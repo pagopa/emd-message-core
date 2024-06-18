@@ -163,13 +163,13 @@ components:
           minLength: 11
           maxLength: 16
         triggerDateTime:
-          description: Date and time in which who originated the message, requested it to be sent
+          description: When (date and time) the subject who originated the message requested to send it
           type: string
           format: date-time
           minLength: 19
           maxLength: 19
         senderDescription: 
-          description: Description of who originated the message
+          description: Description of the subject who originated the message
           type: string
           pattern: "^[ -~]{1,50}$"
           minLength: 1
@@ -216,7 +216,7 @@ components:
     RequestId:
       name: RequestId
       in: header
-      description: Request Id that will be logged by services
+      description: Request ID that will be logged by the service
       required: true
       schema:
         $ref: '#/components/schemas/UUID'
