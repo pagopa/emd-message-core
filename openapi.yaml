@@ -35,9 +35,9 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/SendMessage'
       responses:
-        "204":
-          #description: No content
-          $ref: '#/components/responses/NoContent'
+        "200":
+          #description: Ok
+          $ref: '#/components/responses/SendMessage'
         "400":
           #description: Bad request
           $ref: '#/components/responses/Error'
@@ -126,6 +126,14 @@ components:
           - code: "001000001"
             description: "Unexpected error from server"
 
+    Outcome:
+      description: Outcome of submit operation
+      type: string
+      enum:
+        - OK
+        - NO_CHANNELS_ENABLED
+      example: "NO_CHANNELS_ENABLED"
+    
     RateLimitLimit:
       description: The number of allowed requests in the current period
       type: integer
@@ -250,8 +258,8 @@ components:
           schema:
             $ref: '#/components/schemas/Errors'
 
-    NoContent:
-      description: No content response
+    SendMessage:
+      description: Response to send message request
       headers:
         Access-Control-Allow-Origin:
           description: Indicates whether the response can be shared with requesting code from the given origin
@@ -268,6 +276,18 @@ components:
           required: false
           schema:
             $ref: '#/components/schemas/RateLimitReset'
+        Retry-After:
+          description: The number of seconds to wait before allowing a follow-up request
+          required: false
+          schema:
+            $ref: '#/components/schemas/RetryAfter'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              outcome:
+                $ref: '#/components/schemas/Outcome'
 
   securitySchemes:
     bearerAuth:
