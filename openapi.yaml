@@ -36,8 +36,11 @@ paths:
         $ref: '#/components/requestBodies/SendMessage'
       responses:
         "200":
-          #description: Ok
-          $ref: '#/components/responses/SendMessage'
+          #description: No channels enabled
+          $ref: '#/components/responses/SendMessageNoChannelsEnabled'
+        "202":
+          #description: Accepted
+          $ref: '#/components/responses/SendMessageOk'
         "400":
           #description: Bad request
           $ref: '#/components/responses/Error'
@@ -126,11 +129,17 @@ components:
           - code: "001000001"
             description: "Unexpected error from server"
 
-    Outcome:
+    OutcomeOk:
       description: Outcome of submit operation
       type: string
       enum:
         - OK
+      example: "OK"
+      
+    OutcomeNoChannelsEnabled:
+      description: Outcome of submit operation
+      type: string
+      enum:
         - NO_CHANNELS_ENABLED
       example: "NO_CHANNELS_ENABLED"
     
@@ -258,8 +267,8 @@ components:
           schema:
             $ref: '#/components/schemas/Errors'
 
-    SendMessage:
-      description: Response to send message request
+    SendMessageOk:
+      description: Response to send message request when it is accepted
       headers:
         Access-Control-Allow-Origin:
           description: Indicates whether the response can be shared with requesting code from the given origin
@@ -287,7 +296,38 @@ components:
             type: object
             properties:
               outcome:
-                $ref: '#/components/schemas/Outcome'
+                $ref: '#/components/schemas/OutcomeOk'
+
+    SendMessageNoChannelsEnabled:
+      description: Response to send message request when no channels are enabled
+      headers:
+        Access-Control-Allow-Origin:
+          description: Indicates whether the response can be shared with requesting code from the given origin
+          required: false
+          schema:
+            $ref: '#/components/schemas/AccessControlAllowOrigin'
+        RateLimit-Limit:
+          description: The number of allowed requests in the current period
+          required: false
+          schema:
+            $ref: '#/components/schemas/RateLimitLimit'
+        RateLimit-Reset:
+          description: The number of seconds left in the current period
+          required: false
+          schema:
+            $ref: '#/components/schemas/RateLimitReset'
+        Retry-After:
+          description: The number of seconds to wait before allowing a follow-up request
+          required: false
+          schema:
+            $ref: '#/components/schemas/RetryAfter'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              outcome:
+                $ref: '#/components/schemas/OutcomeNoChannelsEnabled'
 
   securitySchemes:
     bearerAuth:
