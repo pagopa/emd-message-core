@@ -53,9 +53,6 @@ paths:
         "406":
           #description: Not acceptable. Did you require application/json?
           $ref: '#/components/responses/Error'
-        "409":
-          #description: Already exists
-          $ref: '#/components/responses/Error'
         "415":
           #description: Unsupported media type. Did you provide application/json?
           $ref: '#/components/responses/Error'
