@@ -167,15 +167,15 @@ components:
         messageId:
           description: Unique ID of the message
           type: string
-          pattern: "^[ -~]{35,50}$"
-          minLength: 35
-          maxLength: 50
+          pattern: "^[ -~]{24,64}$"
+          minLength: 24
+          maxLength: 64
         recipientId:
-          description: ID (tax code) of the recipient
+          description: ID of the recipient
           type: string
-          pattern: "^(([A-Z]{6}\\d{2}[A-Z]\\d{2}[A-Z]\\d{3}[A-Z])|(\\d{11}))$"
-          minLength: 11
-          maxLength: 16
+          pattern: "^[ -~]{8,64}$"
+          minLength: 8
+          maxLength: 64
         triggerDateTime:
           description: When (date and time) the subject who originated the message requested to send it
           type: string
