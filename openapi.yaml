@@ -195,6 +195,12 @@ components:
           pattern: "^[ -~]{1,2048}$"
           minLength: 1
           maxLength: 2048
+        originId:
+          description: ID of the original message
+          type: string
+          pattern: "^[ -~]{24,36}$"
+          minLength: 24
+          maxLength: 36
         message:
           description: Content of the message
           type: string
