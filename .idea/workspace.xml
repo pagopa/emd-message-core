@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="468cc464-f139-41b8-a4d8-b634fea2fa3c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sonarlint/issuestore/8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sonarlint/issuestore/index.pb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sonarlint/securityhotspotstore/8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sonarlint/securityhotspotstore/index.pb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/HELP.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/emd-message-core.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helm/Chart.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helm/values.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/utils/Utils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/dto/ErrorDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ClientException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ClientExceptionNoBody.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ClientExceptionWithBody.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ErrorManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ServiceException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ServiceExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ServiceExceptionPayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/common/web/exception/ValidationExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/EmdMessageCoreApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/configuration/FeignConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/configuration/MessageSchedulerConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/configuration/RestTemplateConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/configuration/ServiceExceptionConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/connector/citizen/CitizenConnector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/connector/citizen/CitizenConnectorImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/connector/citizen/CitizenRestClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/connector/tpp/TppConnector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/connector/tpp/TppConnectorImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/constants/MessageCoreConstants.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/controller/MessageCoreController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/controller/MessageCoreControllerImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/dto/ChannelDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/dto/ChannelIdList.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/dto/CitizenConsentDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/dto/Contact.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/dto/MessageDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/dto/Outcome.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/enums/AuthenticationType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/enums/MessageStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/enums/OutcomeStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/event/consumer/MessageConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/exception/custom/EmdEncryptionException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/exception/custom/OnboardingCitizenInvocationException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/exception/custom/OnboardingTppInvocationException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/model/CitizenConsent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/model/Message.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/repository/CitizenRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/repository/MessageRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/service/MessageCoreService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/service/MessageCoreServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/service/bus/MessageConsumerService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/service/bus/MessageConsumerServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/service/bus/MessageSchedulerService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/it/gov/pagopa/message/core/service/bus/MessageSchedulerServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/common/utils/MemoryAppender.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/common/utils/UtilsTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/common/web/exception/ErrorManagerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/common/web/exception/ServiceExceptionHandlerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/common/web/exception/ValidationExceptionHandlerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/connector/citizen/CitizenConnectorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/connector/tpp/TppConnectorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/consumer/MessageConsumerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/controller/MessageCoreControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/faker/ChannelDTOFaker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/faker/CitizenConsentDTOFaker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/faker/MessageDTOFaker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/faker/OutcomeFaker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/service/MessageCoreServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/service/bus/MessageConsumerServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/it/gov/pagopa/message/core/service/bus/MessageSchedulerServiceTest.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="5" />
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="MMC-12-implementation-message-core" />
+                    <option name="lastUsedInstant" value="1720000264" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1720000263" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2ijNTRUzXSjBhEkevKFGYlqZ67b" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "MMC-12-implementation-message-core",
+    "last_opened_file_path": "C:/Users/anvitolo/Progetti/SEND/emd-message-core/src/main/java/it/gov/pagopa/message/core/model",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\anvitolo\Progetti\SEND\emd-message-core\src\main\java\it\gov\pagopa\message\core\model" />
+      <recent name="C:\Users\anvitolo\Progetti\SEND\emd-message-core\src\main\java\it\gov\pagopa\message\core\repository" />
+      <recent name="C:\Users\anvitolo\Progetti\SEND\emd-message-core" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="468cc464-f139-41b8-a4d8-b634fea2fa3c" name="Changes" comment="" />
+      <created>1720000033741</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1720000033741</updated>
+    </task>
+    <servers />
+  </component>
+</project>
