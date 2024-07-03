@@ -100,14 +100,19 @@ public class MessageCoreServiceImpl implements MessageCoreService {
         map.add("fiscal_code", fiscalCode);
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map,headers);
-
-        log.info("[EMD][SEND-MESSAGE] Getting Token");
-         String token = restTemplate.exchange(
+        String token = null;
+        try {
+            log.info("[EMD][SEND-MESSAGE] Getting Token");
+            token = restTemplate.exchange(
                     messageUrl,
                     HttpMethod.POST,
                     entity,
                     String.class).getBody();
-        log.info("[EMD][SEND-MESSAGE] Token got");
+            log.info("[EMD][SEND-MESSAGE] Token got");
+        }
+            catch(Exception e){
+            log.info("[EMD][SEND-MESSAGE] Message error");
+        }
 
         return token;
     }
@@ -120,9 +125,8 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
         HttpEntity<MessageDTO> entity = new HttpEntity<>(messageDTO, headers);
 
-
          try {
-             log.info("[EMD][SEND-MESSAGE] Sending message to: {}",messageDTO.toString());
+             log.info("[EMD][SEND-MESSAGE] Sending message");
              restTemplate.exchange(
                     messageUrl,
                     HttpMethod.POST,

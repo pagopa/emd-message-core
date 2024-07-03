@@ -9,4 +9,6 @@ import java.util.ArrayList;
 public interface CitizenRepository extends MongoRepository<CitizenConsent,String> {
     ArrayList<CitizenConsent> findByHashedFiscalCodeAndChannelStateTrue(String hashedFiscalCode);
 
+    CitizenConsent findByHashedFiscalCodeAndChannelId(String hashedFiscalCode, String channelId);
+
 }

@@ -1,8 +1,6 @@
 package it.gov.pagopa.message.core.repository;
 
 
-
-
 import it.gov.pagopa.message.core.model.Channel;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
