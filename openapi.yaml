@@ -10,10 +10,10 @@ info:
 
 servers:
   - description: Development Test
-    url: https://mil-d-apim.azure-api.net/mil-message-dispatcher
+    url: https://mil-d-apim.azure-api.net/emd/emd-message-core
     x-internal: true
   - description: User Acceptance Test
-    url: https://mil-u-apim.azure-api.net/mil-message-dispatcher
+    url: https://mil-u-apim.azure-api.net/emd/emd-message-core
     x-internal: true
 
 tags:
@@ -24,7 +24,7 @@ security:
   - bearerAuth: [ ]
 
 paths:
-  /messages:
+  /sendMessage:
     parameters:
       - $ref: '#/components/parameters/RequestId'
 
@@ -132,14 +132,14 @@ components:
       enum:
         - OK
       example: "OK"
-      
+
     OutcomeNoChannelsEnabled:
       description: Outcome of submit operation
       type: string
       enum:
         - NO_CHANNELS_ENABLED
       example: "NO_CHANNELS_ENABLED"
-    
+
     RateLimitLimit:
       description: The number of allowed requests in the current period
       type: integer
@@ -182,12 +182,24 @@ components:
           format: date-time
           minLength: 19
           maxLength: 19
-        senderDescription: 
+        senderDescription:
           description: Description of the subject who originated the message
           type: string
           pattern: "^[ -~]{1,50}$"
           minLength: 1
           maxLength: 50
+        authenticationType:
+          description: Type of authentication
+          type: string
+          enum:
+            - OAUTH2
+        authenticationUrl:
+          description: URL to retrieve access_token
+          type: string
+          format: uri
+          pattern: "^[ -~]{1,2048}$"
+          minLength: 1
+          maxLength: 2048
         messageUrl:
           description: URL to retrieve the original message
           type: string
@@ -211,10 +223,12 @@ components:
         - messageId
         - recipientId
         - message
+        - authenticationType
       example:
         messageId: "8a32fa8a-5036-4b39-8f2e-47d3a6d23f9e"
         recipientId: "RSSMRA85T10A562S"
         message: "You have a ticket!"
+        authenticationType: "OAUTH2"
 
     UUID:
       description: UUID
