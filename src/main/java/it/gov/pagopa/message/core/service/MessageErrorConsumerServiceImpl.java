@@ -5,6 +5,7 @@ import it.gov.pagopa.message.core.dto.MessageDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,11 @@ import static it.gov.pagopa.common.utils.Constants.ERROR_MSG_MESSAGE_URL;
 public class MessageErrorConsumerServiceImpl implements MessageErrorConsumerService {
 
     private final SendMessageServiceImpl sendMessageServiceImpl;
-
-    public MessageErrorConsumerServiceImpl(SendMessageServiceImpl sendMessageServiceImpl) {
+    private final long maxRetry;
+    public MessageErrorConsumerServiceImpl(SendMessageServiceImpl sendMessageServiceImpl,
+                                           @Value("${app.retry.max-retry}") long maxRetry
+    ) {
+        this.maxRetry = maxRetry;
         this.sendMessageServiceImpl = sendMessageServiceImpl;
     }
 
@@ -28,21 +32,21 @@ public class MessageErrorConsumerServiceImpl implements MessageErrorConsumerServ
     public void processCommand(Message<MessageDTO> message) {
         MessageHeaders headers = message.getHeaders();
         long retry = getNextRetry(headers);
-        MessageDTO messageDTO = message.getPayload();
-        String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
-        String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
-        sendMessageServiceImpl.sendMessage(messageDTO, messageUrl, authenticationUrl,retry);
+        if(retry!=0) {
+            log.info("[EMD-PROCESS-COMMAND] Try: {}",retry);
+            MessageDTO messageDTO = message.getPayload();
+            String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
+            String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
+            sendMessageServiceImpl.sendMessage(messageDTO, messageUrl, authenticationUrl, retry);
+        }
+        else
+            log.info("[EMD-PROCESS-COMMAND] Not retryable");
     }
 
-    private static long getNextRetry(MessageHeaders headers) {
-        Long retryStr = (Long) headers.get(Constants.ERROR_MSG_HEADER_RETRY);
-        if (retryStr != null) {
-            try {
-                return 1 + retryStr;
-            } catch (Exception e) {
-                log.info("[ERROR_MESSAGE_HANDLER] RETRY header not usable: {}", retryStr);
-            }
-        }
+    private long getNextRetry(MessageHeaders headers) {
+        Long retry = (Long) headers.get(Constants.ERROR_MSG_HEADER_RETRY);
+        if (retry != null && (retry >=0 && retry<maxRetry))
+                return 1 + retry;
         return 0;
     }
 
