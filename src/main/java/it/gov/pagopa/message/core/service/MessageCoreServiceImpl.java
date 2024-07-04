@@ -9,15 +9,7 @@ import it.gov.pagopa.message.core.model.Channel;
 import it.gov.pagopa.message.core.model.CitizenConsent;
 import it.gov.pagopa.message.core.dto.Outcome;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,16 +19,17 @@ import java.util.List;
 @Service
 public class MessageCoreServiceImpl implements MessageCoreService {
 
-    private final RestTemplate restTemplate;
     private final CitizenConnectorImpl citizenService;
     private final TppConnectorImpl tppService;
+    private final SendMessageServiceImpl sendMessageServiceImpl;
+
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenService,
                                   TppConnectorImpl tppService,
-                                  RestTemplate restTemplate
+                                  SendMessageServiceImpl sendMessageServiceImpl
                                         ) {
-        this.restTemplate = restTemplate;
         this.tppService = tppService;
         this.citizenService = citizenService;
+        this.sendMessageServiceImpl = sendMessageServiceImpl;
     }
 
     @Override
@@ -71,10 +64,11 @@ public class MessageCoreServiceImpl implements MessageCoreService {
             while (iterator.hasNext()) {
                 Channel channel = iterator.next();
                 if (channel.getId().equals(citizenConsent.getChannelId())) {
-                    sendMessageToUri(
+                    sendMessageServiceImpl.sendMessage(
                             messageDTO,
                             channel.getMessageUrl(),
-                            getToken(channel.getAuthenticationUrl(),messageDTO.getRecipientId()));
+                            channel.getAuthenticationUrl()
+                    );
                     iterator.remove();
                     break;
                 }
@@ -84,59 +78,5 @@ public class MessageCoreServiceImpl implements MessageCoreService {
         return new Outcome(OutcomeStatus.OK);
     }
 
-    private String getToken(String messageUrl, String fiscalCode){
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("RequestId","00000000-0000-0000-0000-000000000006");
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        String clientSecret = "64b5f14d-56ef-4d14-8b65-ff7bc5d4661e";
-        String clientId = "6010064c-ec73-4fa5-9ed5-5446af8920cf";
-        String grantType = "client_credentials";
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("client_secret", clientSecret);
-        map.add("client_id", clientId);
-        map.add("grant_type", grantType);
-        map.add("fiscal_code", fiscalCode);
-
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map,headers);
-        String token = null;
-        try {
-            log.info("[EMD][SEND-MESSAGE] Getting Token");
-            token = restTemplate.exchange(
-                    messageUrl,
-                    HttpMethod.POST,
-                    entity,
-                    String.class).getBody();
-            log.info("[EMD][SEND-MESSAGE] Token got");
-        }
-            catch(Exception e){
-            log.info("[EMD][SEND-MESSAGE] Message error");
-        }
-
-        return token;
-    }
-
-    private void sendMessageToUri(MessageDTO messageDTO, String messageUrl, String token) {
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(token);
-
-        HttpEntity<MessageDTO> entity = new HttpEntity<>(messageDTO, headers);
-
-         try {
-             log.info("[EMD][SEND-MESSAGE] Sending message");
-             restTemplate.exchange(
-                    messageUrl,
-                    HttpMethod.POST,
-                    entity,
-                    String.class);
-             log.info("[EMD][SEND-MESSAGE] Message sent");
-         }
-         catch(Exception e){
-             log.info("[EMD][SEND-MESSAGE] Message error");
-         }
-
-    }
 }
