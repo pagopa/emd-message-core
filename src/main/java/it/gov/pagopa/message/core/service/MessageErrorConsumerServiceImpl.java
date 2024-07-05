@@ -30,6 +30,7 @@ public class MessageErrorConsumerServiceImpl implements MessageErrorConsumerServ
 
     @Override
     public void processCommand(Message<MessageDTO> message) {
+        log.info("[EMD-PROCESS-COMMAND] Queue message received: {}",message.getPayload());
         MessageHeaders headers = message.getHeaders();
         long retry = getNextRetry(headers);
         if(retry!=0) {

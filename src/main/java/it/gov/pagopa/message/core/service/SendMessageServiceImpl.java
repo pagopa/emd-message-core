@@ -29,7 +29,7 @@ public class SendMessageServiceImpl implements SendMessageService {
             toUrl(messageDTO, messageUrl, getToken(authenticationUrl, messageDTO.getRecipientId()));
         }
         catch (Exception e) {
-            log.info("[EMD][SEND-MESSAGE] Message error");
+            log.info("[EMD][SEND-MESSAGE] Error while sending message");
             errorProducerService.sendError(messageDTO,messageUrl,authenticationUrl);
         }
     }
@@ -40,7 +40,7 @@ public class SendMessageServiceImpl implements SendMessageService {
             toUrl(messageDTO, messageUrl, getToken(authenticationUrl, messageDTO.getRecipientId()));
         }
         catch (Exception e) {
-            log.info("[EMD][SEND-MESSAGE] Message error");
+            log.info("[EMD][SEND-MESSAGE] Error while sending message");
             errorProducerService.sendError(messageDTO,messageUrl,authenticationUrl,retry);
         }
     }
@@ -82,12 +82,12 @@ public class SendMessageServiceImpl implements SendMessageService {
         HttpEntity<MessageDTO> entity = new HttpEntity<>(messageDTO, headers);
 
         log.info("[EMD][SEND-MESSAGE] Sending request:{} to: {}",entity, messageUrl);
-        restTemplate.exchange(
+        String response = restTemplate.exchange(
                 messageUrl,
                 HttpMethod.POST,
                 entity,
-                String.class);
-        log.info("[EMD][SEND-MESSAGE] Message sent");
+                String.class).getBody();
+        log.info("[EMD][SEND-MESSAGE] Message sent correctly. Response: {}",response);
 
     }
 

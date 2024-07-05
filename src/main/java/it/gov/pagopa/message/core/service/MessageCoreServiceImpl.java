@@ -64,6 +64,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
             while (iterator.hasNext()) {
                 Channel channel = iterator.next();
                 if (channel.getId().equals(citizenConsent.getChannelId())) {
+                    log.info("[EMD][SEND-MESSAGE] Channel: {}",channel.getBusinessName());
                     sendMessageServiceImpl.sendMessage(
                             messageDTO,
                             channel.getMessageUrl(),
