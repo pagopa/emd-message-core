@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
+
 @Document(collection = "channel")
 @Data
 @SuperBuilder
@@ -22,4 +24,6 @@ public class Channel {
     private AuthenticationType authenticationType;
     private Contact contact;
     private Boolean state;
+    private LocalDateTime creationDate;
+    private LocalDateTime lastUpdateDate;
 }

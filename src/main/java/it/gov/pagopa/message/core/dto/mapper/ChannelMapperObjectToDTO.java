@@ -20,6 +20,8 @@ public class ChannelMapperObjectToDTO {
                 .businessName(channel.getBusinessName())
                 .contact(channel.getContact())
                 .entityId(channel.getEntityId())
+                .lastUpdateDate(channel.getLastUpdateDate())
+                .creationDate(channel.getCreationDate())
                 .build();
     }
 }

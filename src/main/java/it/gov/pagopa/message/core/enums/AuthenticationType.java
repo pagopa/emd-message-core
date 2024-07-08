@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum AuthenticationType {
-    OUATH2("OUATH2");
+    OAUTH2("OAUTH2");
 
 
     private final String status;

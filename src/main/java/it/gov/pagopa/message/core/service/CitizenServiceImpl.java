@@ -35,6 +35,8 @@ public class CitizenServiceImpl implements CitizenService{
         CitizenConsent citizenConsent = mapperToObject.citizenConsentDTOMapper(citizenConsentDTO);
         String hashedFiscalCode = Utils.createSHA256(citizenConsent.getHashedFiscalCode());
         citizenConsent.setHashedFiscalCode(hashedFiscalCode);
+        citizenConsent.setCreationDate(LocalDateTime.now());
+        citizenConsent.setLastUpdateDate(LocalDateTime.now());
         citizenConsent  = citizenRepository.save(citizenConsent);
         log.info("[EMD][CREATE-CITIZEN-CONSENT] Created");
         return mapperToDTO.citizenConsentMapper(citizenConsent);

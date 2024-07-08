@@ -11,6 +11,7 @@ import it.gov.pagopa.message.core.repository.ChannelRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -32,6 +33,8 @@ public class ChannelServiceImpl implements ChannelService {
     public ChannelDTO createChannel(ChannelDTO channelDTO) {
         log.info("[EMD][CREATE-CHANNEL] Received message: {}",channelDTO.toString());
         Channel channel = mapperToObject.channelDTOMapper(channelDTO);
+        channel.setCreationDate(LocalDateTime.now());
+        channel.setLastUpdateDate(LocalDateTime.now());
         channel  = channelRepository.save(channel);
         log.info("[EMD][CREATE-CHANNEL] Created");
         return mapperToDTO.channelMapper(channel);
@@ -45,6 +48,7 @@ public class ChannelServiceImpl implements ChannelService {
         if (optionalChannel.isPresent()) {
             Channel channel = optionalChannel.get();
             channel.setState(false);
+            channel.setLastUpdateDate(LocalDateTime.now());
             channelRepository.save(channel);
             log.info("[EMD][CREATE-CHANNEL] Deleted");
             return mapperToDTO.channelMapper(channel);
@@ -61,6 +65,7 @@ public class ChannelServiceImpl implements ChannelService {
         if (optionalChannel.isPresent()) {
             Channel channel = optionalChannel.get();
             channel.setState(true);
+            channel.setLastUpdateDate(LocalDateTime.now());
             channelRepository.save(channel);
             log.info("[EMD][CREATE-CHANNEL] Updated");
             return mapperToDTO.channelMapper(channel);
