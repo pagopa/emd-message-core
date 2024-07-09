@@ -17,7 +17,6 @@ RUN apk add --no-cache shadow vim curl net-tools bind-tools netcat-openbsd wget
 
 RUN useradd --uid 10000 runner
 
-VOLUME /tmp
 WORKDIR /app
 
 COPY --from=buildtime /build/target/*.jar /app/app.jar
