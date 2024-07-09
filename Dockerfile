@@ -13,7 +13,7 @@ RUN mvn clean package -DskipTests
 #
 FROM amazoncorretto:17-alpine3.19@sha256:539a0a188ce5a2bed985aa311e9a26d473c6c3f37d08d4fc8b6cf6c18075b9ab AS runtime
 
-RUN apk add --no-cache shadow vim curl net-tools bind-tools nc wget
+RUN apk add --no-cache shadow vim curl net-tools bind-tools netcat-openbsd wget
 
 RUN useradd --uid 10000 runner
 
