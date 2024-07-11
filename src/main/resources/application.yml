@@ -75,3 +75,19 @@ spring:
 
 app:
   retry.max-retry: ${ERROR_MESSAGE_MAX_RETRY:5}
+
+management:
+  health:
+    redis.enabled: ${REDIS_CACHE_ENABLED:false}
+    mongo.enabled: ${HEALTH_MONGO_ENABLED:true}
+  endpoint:
+    health:
+      probes.enabled: true
+      group:
+        readiness.include: "*"
+        liveness.include: livenessState,diskSpace,ping,binders
+  endpoints:
+    jmx:
+      exposure.include: "*"
+    web:
+      exposure.include: info, health
