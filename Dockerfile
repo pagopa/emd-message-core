@@ -4,7 +4,9 @@
 FROM maven:3.9.6-amazoncorretto-17-al2023@sha256:459be099faa25a32c06cd45ed1ef2bc9dbbf8a5414da4e72349459a1bb4d6166 AS buildtime
 
 WORKDIR /build
-COPY . .
+
+COPY pom.xml .
+COPY src ./src
 
 RUN mvn clean package -DskipTests
 
