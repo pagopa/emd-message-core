@@ -16,6 +16,6 @@ public interface StubMessageCoreController {
     @PostMapping("/save")
     ResponseEntity<String> saveMessage(@Valid @RequestBody MessageDTO messageDTO);
 
-    @GetMapping("/get")
+    @GetMapping("/get/{fiscalCode}")
     ResponseEntity<ArrayList<Message>> getMessages(@Valid @PathVariable String fiscalCode);
 }
