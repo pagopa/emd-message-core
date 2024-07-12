@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 @RequestMapping("stub/emd/message-core")
 public interface StubMessageCoreController {
 
