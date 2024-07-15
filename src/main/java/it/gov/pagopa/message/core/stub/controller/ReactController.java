@@ -1,4 +1,4 @@
-package it.gov.pagopa.message.core.controller;
+package it.gov.pagopa.message.core.stub.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
