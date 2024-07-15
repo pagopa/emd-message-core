@@ -1,4 +1,7 @@
 spring:
+  jackson:
+    time-zone:
+      Europe/Rome
   application:
     name: "@project.artifactId@"
     version: "@project.version@"
