@@ -3,13 +3,15 @@ package it.gov.pagopa.message.core.stub.controller;
 import it.gov.pagopa.message.core.dto.MessageDTO;
 import it.gov.pagopa.message.core.stub.model.Message;
 import it.gov.pagopa.message.core.stub.service.StubMessageCoreServiceImpl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 
+
 @RestController
+@CrossOrigin(origins = "*")
 public class StubMessageCoreControllerImpl implements StubMessageCoreController {
 
     private final StubMessageCoreServiceImpl stubMessageCoreService;
