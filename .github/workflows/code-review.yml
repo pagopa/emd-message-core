@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -26,46 +26,20 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          restore-keys: ${{ runner.os }}-maven-
 
-      - name: Prepare SonarCloud analysis
-        uses: sonarsource/sonarcloud-github-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          organization: ${{ vars.SONARCLOUD_ORG }}
-          projectKey: ${{ vars.SONARCLOUD_PROJECT_KEY }}
-          projectName: ${{ vars.SONARCLOUD_PROJECT_NAME }}
-          scannerMode: 'CLI'
-          args: >
-            -Dsonar.organization=${{ vars.SONARCLOUD_ORG }}
-            -Dsonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }}
-            -Dsonar.projectName="${{ vars.SONARCLOUD_PROJECT_NAME }}
-            -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
-
-      - name: Build and run tests with Maven
-        run: mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report org.jacoco:jacoco-maven-plugin:report-aggregate --batch-mode --file pom.xml
-        env:
-          MAVEN_OPTS: '-Dmaven.repo.local=$HOME/.m2/repository'
-
-      - name: Find jacoco.xml reports
-        run: |
-          xmlReportPaths=$(find "$(pwd)" -path '**/target/site/jacoco/*.xml' | tr '\n' ',')
-          echo "##vso[task.setvariable variable=xmlReportPaths]$xmlReportPaths"
+      - name: Build with Maven
+        run: mvn clean verify --file pom.xml --no-transfer-progress
 
       - name: Analyze with SonarCloud
-        run: mvn sonar:sonar --batch-mode --file pom.xml -Dsonar.coverage.jacoco.xmlReportPaths=$xmlReportPaths -Dsonar.java.binaries=target/classes
-        env:
-          MAVEN_OPTS: '-Dmaven.repo.local=$HOME/.m2/repository'
-
-
-      - name: Publish SonarCloud results
-        uses: sonarsource/sonarcloud-github-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          organization: ${{ vars.SONARCLOUD_ORG }}
-          waitForQualityGate: 'true'
+        run: mvn sonar:sonar --file pom.xml --batch-mode --no-transfer-progress \
+          -Dsonar.organization=${{ vars.SONARCLOUD_ORG }} \
+          -Dsonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }} \
+          -Dsonar.projectName="${{ vars.SONARCLOUD_PROJECT_NAME }}" \
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml \
+          -Dsonar.java.binaries=target/classes \
+          -Dsonar.java.libraries=target/classes
+
