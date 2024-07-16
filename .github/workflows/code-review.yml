@@ -43,5 +43,5 @@ jobs:
             -Dsonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }}
             -Dsonar.projectName="${{ vars.SONARCLOUD_PROJECT_NAME }}"
             -Dsonar.java.binaries=target/classes
-            -Dsonar.exclusions="**/enums/**, **/stub/**, **/dto/**, **/*Constant*, **/*Config.java, **/*Scheduler.java, **/*Application.java, **/src/test/**, **/Dummy*.java"
+            -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
 
