@@ -32,7 +32,7 @@ jobs:
       - name: Build with Maven
         run: mvn clean install
 
-      - name: Download dependencies
+      - name: Copy dependencies
         run: mvn dependency:copy-dependencies
 
       - name: SonarCloud Scan
@@ -46,5 +46,5 @@ jobs:
             -Dsonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }}
             -Dsonar.projectName="${{ vars.SONARCLOUD_PROJECT_NAME }}"
             -Dsonar.java.binaries=target/classes
-            -Dsonar.libraries=target/dependency/**/*.jar
+            -Dsonar.java.libraries=target/dependency/*.jar
             -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
