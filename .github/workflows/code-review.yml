@@ -31,7 +31,6 @@ jobs:
 
       - name: Build and test with Maven
         run: mvn ${{ env.goals }} -B
-        continue-on-error: ${{ always() }}
         shell: bash
         env:
           goals: 'clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent verify org.jacoco:jacoco-maven-plugin:0.8.8:report org.jacoco:jacoco-maven-plugin:0.8.8:report-aggregate'
