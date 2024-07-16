@@ -19,7 +19,7 @@ public class CitizenControllerImpl implements CitizenController{
 
 
     @Override
-    public ResponseEntity<CitizenConsentDTO> deleteCitizenConsent(CitizenConsentDTO citizenConsentDTO) {
+    public ResponseEntity<CitizenConsentDTO> deleteCitizenConsents(CitizenConsentDTO citizenConsentDTO) {
         citizenConsentDTO = citizenService.deleteCitizenConsent(citizenConsentDTO.getHashedFiscalCode(), citizenConsentDTO.getChannelId());
         return new ResponseEntity<>(citizenConsentDTO, HttpStatus.OK);
     }
