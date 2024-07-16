@@ -48,4 +48,4 @@ jobs:
             -Dsonar.java.binaries=target/classes
             -Dsonar.java.libraries=target/dependency/*.jar
             -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
-            -Dsonar.coverage.jacoco.xmlReportPaths=**/surefire-reports/TEST-*.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=**/site/jacoco/jacoco.xml
