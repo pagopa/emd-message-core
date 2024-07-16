@@ -31,8 +31,6 @@ jobs:
 
       - name: Build and test with Maven
         run: mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent verify org.jacoco:jacoco-maven-plugin:0.8.8:report org.jacoco:jacoco-maven-plugin:0.8.8:report-aggregate -B
-        env:
-          xmlReportPaths: '**/surefire-reports/TEST-*.xml'
 
       - name: Copy dependencies
         run: mvn dependency:copy-dependencies
@@ -50,4 +48,4 @@ jobs:
             -Dsonar.java.binaries=target/classes
             -Dsonar.java.libraries=target/dependency/*.jar
             -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
-            -Dsonar.coverage.jacoco.xmlReportPaths=${{ env.xmlReportPaths }}
+            -Dsonar.coverage.jacoco.xmlReportPaths=**/surefire-reports/TEST-*.xml
