@@ -39,10 +39,11 @@ jobs:
           projectKey: ${{ vars.SONARCLOUD_PROJECT_KEY }}
           projectName: ${{ vars.SONARCLOUD_PROJECT_NAME }}
           scannerMode: 'CLI'
-          extraProperties: |
-            sonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }}
-            sonar.projectName="${{ vars.SONARCLOUD_PROJECT_NAME }}"
-            sonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
+          args: >
+            -Dsonar.organization=${{ vars.SONARCLOUD_ORG }}
+            -Dsonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }}
+            -Dsonar.projectName="${{ vars.SONARCLOUD_PROJECT_NAME }}
+            -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
 
       - name: Build and run tests with Maven
         run: mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report org.jacoco:jacoco-maven-plugin:report-aggregate --batch-mode --file pom.xml
