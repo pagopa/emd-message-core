@@ -56,8 +56,7 @@ jobs:
           echo "##vso[task.setvariable variable=xmlReportPaths]$xmlReportPaths"
 
       - name: Analyze with SonarCloud
-        run: mvn sonar:sonar --batch-mode --file pom.xml -Dsonar.coverage.jacoco.xmlReportPaths=$xmlReportPaths \
-          -Dsonar.exclusions=**/*.java,**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
+        run: mvn sonar:sonar --batch-mode --file pom.xml -Dsonar.coverage.jacoco.xmlReportPaths=$xmlReportPaths -Dsonar.java.binaries=target/classes
         env:
           MAVEN_OPTS: '-Dmaven.repo.local=$HOME/.m2/repository'
 
