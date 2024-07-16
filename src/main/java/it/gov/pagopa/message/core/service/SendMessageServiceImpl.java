@@ -90,6 +90,22 @@ public class SendMessageServiceImpl implements SendMessageService {
         log.info("[EMD][SEND-MESSAGE] Message sent correctly. Response: {}",response);
 
     }
+    private void toUrl2(MessageDTO messageDTO, String messageUrl, TokenDTO token) throws Exception{
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token.getAccessToken());
+        HttpEntity<MessageDTO> entity = new HttpEntity<>(messageDTO, headers);
+
+        log.info("[EMD][SEND-MESSAGE] Sending request:{} to: {}",entity, messageUrl);
+        String response = restTemplate.exchange(
+                messageUrl,
+                HttpMethod.POST,
+                entity,
+                String.class).getBody();
+        log.info("[EMD][SEND-MESSAGE] Message sent correctly. Response: {}",response);
+
+    }
 
 
 }
