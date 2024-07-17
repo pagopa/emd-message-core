@@ -1,12 +1,11 @@
 name: SonarCloud Analysis
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+    types:
+      - opened
+      - edited
+      - synchronize
 
 jobs:
   sonarcloud:
@@ -15,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 #v4.1.7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 #v4.2.1
         with:
           distribution: 'adopt'
           java-version: '17'
@@ -46,4 +45,5 @@ jobs:
           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
           -Dsonar.java.binaries=target/classes \
           -Dsonar.junit.reportPaths=target/surefire-reports \
-          -Dsonar.jacoco.reportPaths=target/jacoco.exec
+          -Dsonar.jacoco.reportPaths=target/jacoco.exec \
+          -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
