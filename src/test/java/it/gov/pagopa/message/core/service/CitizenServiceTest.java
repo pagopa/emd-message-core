@@ -63,7 +63,8 @@ class CitizenServiceTest {
             mockedStatic.when(() -> Utils.createSHA256(any()))
                     .thenThrow(EmdEncryptionException.class);
 
-            EmdEncryptionException exception = assertThrows(EmdEncryptionException.class, () -> citizenService.createCitizenConsent(citizenConsentDTO));
+            assertThrows(EmdEncryptionException.class, () -> citizenService.createCitizenConsent(citizenConsentDTO));
+
         }
     }
 
@@ -83,26 +84,14 @@ class CitizenServiceTest {
     @Test
     void deleteCitizenConsent_Ko_UserNotOnboarded(){
         CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(false);
-
+        String hashedFiscalCode = citizenConsentDTO.getHashedFiscalCode();
+        String channelId = citizenConsentDTO.getChannelId();
         Mockito.when(citizenRepository
                     .findByHashedFiscalCodeAndChannelId(Utils.createSHA256(citizenConsentDTO.getHashedFiscalCode()),citizenConsentDTO.getChannelId()))
                         .thenReturn(null);
 
         assertThrows(UserNotOnboardedException.class, () ->
-                citizenService.deleteCitizenConsent(citizenConsentDTO.getHashedFiscalCode(),citizenConsentDTO.getChannelId()));
-    }
-
-    @Test
-    void deleteCitizenConsent_Ko_EmdEncryptError(){
-        CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(true);
-
-        try (MockedStatic<Utils> mockedStatic = Mockito.mockStatic(Utils.class)) {
-            mockedStatic.when(() -> Utils.createSHA256(any()))
-                    .thenThrow(EmdEncryptionException.class);
-
-            assertThrows(EmdEncryptionException.class, () ->
-                    citizenService.deleteCitizenConsent(citizenConsentDTO.getHashedFiscalCode(),citizenConsentDTO.getChannelId()));
-        }
+                citizenService.deleteCitizenConsent(hashedFiscalCode,channelId));
     }
 
     @Test
@@ -118,27 +107,33 @@ class CitizenServiceTest {
     }
 
     @Test
-    void updateCitizenConsent_Ko_UserNotOnboarded(){
+    void updateCitizenConsent_Ko_UserNotOnboarded() {
+
         CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(true);
 
-        Mockito.when(citizenRepository
-                    .findByHashedFiscalCodeAndChannelId(Utils.createSHA256(citizenConsentDTO.getHashedFiscalCode()),citizenConsentDTO.getChannelId()))
-                        .thenReturn(null);
+        String hashedFiscalCode = citizenConsentDTO.getHashedFiscalCode();
+        String channelId = citizenConsentDTO.getChannelId();
 
-        assertThrows(UserNotOnboardedException.class, () ->
-                citizenService.updateCitizenConsent(citizenConsentDTO.getHashedFiscalCode(),citizenConsentDTO.getChannelId()));
+        Mockito.when(citizenRepository.findByHashedFiscalCodeAndChannelId(hashedFiscalCode, channelId))
+                .thenReturn(null);
+
+        assertThrows(UserNotOnboardedException.class, () -> {
+            citizenService.updateCitizenConsent(hashedFiscalCode, channelId);
+        });
     }
 
     @Test
-    void updateCitizenConsent_Ko_EmdEncryptError(){
+    void citizenConsent_Ko_EmdEncryptError(){
         CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(true);
+        String hashedFiscalCode = citizenConsentDTO.getHashedFiscalCode();
+        String channelId = citizenConsentDTO.getChannelId();
 
         try (MockedStatic<Utils> mockedStatic = Mockito.mockStatic(Utils.class)) {
             mockedStatic.when(() -> Utils.createSHA256(any()))
                     .thenThrow(EmdEncryptionException.class);
 
            assertThrows(EmdEncryptionException.class, () ->
-                    citizenService.deleteCitizenConsent(citizenConsentDTO.getHashedFiscalCode(),citizenConsentDTO.getChannelId()));
+                    citizenService.deleteCitizenConsent(hashedFiscalCode, channelId));
         }
     }
 }
