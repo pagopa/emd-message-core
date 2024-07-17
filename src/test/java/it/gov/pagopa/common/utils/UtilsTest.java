@@ -21,15 +21,16 @@ class UtilsTest {
 
 
     @Test
-    void createSHA256_Ko_NoSuchAlgorithm() throws NoSuchAlgorithmException {
+    void createSHA256_Ko_NoSuchAlgorithm() {
         try (MockedStatic<MessageDigest> mockedStatic = Mockito.mockStatic(MessageDigest.class)) {
             mockedStatic.when(() -> MessageDigest.getInstance(any()))
-                    .thenThrow(NoSuchAlgorithmException.class);
+                    .thenThrow(new NoSuchAlgorithmException("SHA-256 not available"));
 
             EmdEncryptionException exception = assertThrows(EmdEncryptionException.class, () -> Utils.createSHA256(""));
+
+            assertEquals("SHA-256 not available", exception.getCause().getMessage());
         }
     }
-
     @Test
     void  createSHA256_Ok(){
         String toHash = "RSSMRA98B18L049O";

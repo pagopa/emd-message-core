@@ -7,7 +7,6 @@ import it.gov.pagopa.message.core.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,8 +30,6 @@ class MessageErrorProducerTest {
     private ScheduledExecutorService scheduler;
     @InjectMocks
     private MessageErrorProducer messageErrorProducer;
-    @Captor
-    private ArgumentCaptor<Runnable> runnableCaptor;
 
     @Test
      void testStreamBridgeSendCalled() throws Exception {
@@ -51,14 +48,11 @@ class MessageErrorProducerTest {
         ArgumentCaptor<Callable<Object>> runnableCaptor = ArgumentCaptor.forClass(Callable.class);
         when(scheduler.schedule(runnableCaptor.capture(), eq(5L), eq(TimeUnit.SECONDS))).thenReturn(null);
 
-        // Act
         messageErrorProducer.sendToMessageErrorQueue(message);
 
-        // Run the captured Runnable immediately
         Callable<Object> capturedRunnable = runnableCaptor.getValue();
         capturedRunnable.call();
 
-        // Assert
         verify(scheduler).schedule(any(Callable.class), eq(5L), eq(TimeUnit.SECONDS));
         verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(message));
 
