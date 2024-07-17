@@ -42,7 +42,7 @@ jobs:
           -Dsonar.projectKey=${{ vars.SONARCLOUD_PROJECT_KEY }} \
           -Dsonar.organization=${{ vars.SONARCLOUD_ORG }} \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
           -Dsonar.java.binaries=target/classes \
           -Dsonar.junit.reportPaths=target/surefire-reports \
           -Dsonar.jacoco.reportPaths=target/jacoco.exec \
