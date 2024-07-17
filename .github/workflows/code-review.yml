@@ -36,7 +36,7 @@ jobs:
         run: mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent verify org.jacoco:jacoco-maven-plugin:0.8.8:report org.jacoco:jacoco-maven-plugin:0.8.8:report-aggregate -B
 
       - name: Generate JaCoCo XML Report
-        run: mvn jacoco:report -Djacoco.reportFormat=xml -B
+        run: mvn org.jacoco:jacoco-maven-plugin:0.8.8:report -Djacoco.reportFormat=xml -B
 
       - name: SonarCloud Scan
         env:
