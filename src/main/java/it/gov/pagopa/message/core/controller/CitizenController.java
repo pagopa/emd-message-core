@@ -15,12 +15,12 @@ public interface CitizenController {
     /**
      * Send message
      *MessageDispatcherUtils
-     * @param citizenConsentDTO to update
+     * @param userId to update
+     * @param channelId to update
      * @return outcome of the removal
      */
     @DeleteMapping("/citizenConsents")
-    ResponseEntity<CitizenConsentDTO> deleteCitizenConsents(@Valid @RequestBody CitizenConsentDTO citizenConsentDTO);
-
+    ResponseEntity<CitizenConsentDTO> deleteCitizenConsents(@RequestParam String userId, @RequestParam String channelId);
     /**
      * Send message
      *
