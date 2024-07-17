@@ -19,7 +19,7 @@ public interface CitizenController {
      * @return outcome of the removal
      */
     @DeleteMapping("/citizenConsents")
-    ResponseEntity<CitizenConsentDTO> deleteCitizenConsent(@Valid @RequestBody CitizenConsentDTO citizenConsentDTO);
+    ResponseEntity<CitizenConsentDTO> deleteCitizenConsents(@Valid @RequestBody CitizenConsentDTO citizenConsentDTO);
 
     /**
      * Send message
