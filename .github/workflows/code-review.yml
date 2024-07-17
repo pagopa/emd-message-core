@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - release-*
   pull_request:
     types:
       - opened
@@ -54,7 +55,7 @@ jobs:
             -Dsonar.java.binaries=target/classes \
             -Dsonar.junit.reportPaths=target/surefire-reports \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.exclusions=**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
+            -Dsonar.exclusions=**/configuration/**,**/enums/**,**/model/**,**/stub/**,**/dto/**,**/*Constant*,**/*Config.java,**/*Scheduler.java,**/*Application.java,**/src/test/**,**/Dummy*.java
 
       - name: Fetch all branches
         run: git fetch --all
