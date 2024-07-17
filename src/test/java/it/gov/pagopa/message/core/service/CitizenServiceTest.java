@@ -63,11 +63,10 @@ class CitizenServiceTest {
 
         try (MockedStatic<Utils> mockedStatic = Mockito.mockStatic(Utils.class)) {
             mockedStatic.when(() -> Utils.createSHA256(any()))
-                    .thenThrow(new NoSuchAlgorithmException("SHA-256 not available"));
+                    .thenThrow(EmdEncryptionException.class);
 
             EmdEncryptionException exception = assertThrows(EmdEncryptionException.class, () -> citizenService.createCitizenConsent(citizenConsentDTO));
 
-            assertEquals("SHA-256 not available", exception.getCause().getMessage());
         }
     }
 
