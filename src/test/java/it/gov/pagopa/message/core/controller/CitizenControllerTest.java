@@ -85,17 +85,18 @@ class CitizenControllerTest {
 
     @Test
     void deleteCitizenConsent_Ok() throws Exception {
+        String userId = "testUserId";
+        String channelId = "testChannelId";
         CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(false);
-
         Mockito.when(
-            citizenService.deleteCitizenConsent(citizenConsentDTO.getHashedFiscalCode(),citizenConsentDTO.getChannelId()))
+            citizenService.deleteCitizenConsent(userId,channelId))
                     .thenReturn(citizenConsentDTO);
 
         MvcResult result = mockMvc.perform(
                 delete("/emd/onboarding-citizen/citizenConsents")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("userId", userId)
+                        .param("channelId", channelId)
                         .accept(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(citizenConsentDTO))
         ).andExpect(status().isOk()).andReturn();
 
         CitizenConsentDTO resultResponse = objectMapper.readValue(
