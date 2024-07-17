@@ -85,6 +85,11 @@ spring:
 
 app:
   retry.max-retry: ${ERROR_MESSAGE_MAX_RETRY:5}
+  token:
+    client: ${HYPE_KEY:}
+    clientId: ${HYPE_CLIENT:}
+    grantType: ${GRANT_TYPE:client_credentials}
+    tenantId: ${HYPE_TENANT:}
 
 management:
   health:
