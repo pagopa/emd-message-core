@@ -2,8 +2,6 @@ package it.gov.pagopa.message.core.faker;
 
 import it.gov.pagopa.message.core.dto.MessageDTO;
 
-import java.time.LocalDateTime;
-
 public class MessageDTOFaker {
 
     private MessageDTOFaker(){}
@@ -12,7 +10,7 @@ public class MessageDTOFaker {
                 .messageId("messageId")
                 .messageUrl("messageUrl")
                 .message("message")
-                .triggerDateTime(LocalDateTime.now())
+                .triggerDateTime("triggerDateTime")
                 .senderDescription("sender")
                 .recipientId("recipientId")
                 .originId("originId")

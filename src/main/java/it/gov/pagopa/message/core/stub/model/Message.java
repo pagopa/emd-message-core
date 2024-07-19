@@ -3,6 +3,7 @@ package it.gov.pagopa.message.core.stub.model;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 
 @Data
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 public class Message {
     private String messageId;
     private String hashedFiscalCode;
-    private LocalDateTime originalRegistrationDate;
+    private String originalRegistrationDate;
     private String originalSender;
     private String originId;
     private String messageUrl;

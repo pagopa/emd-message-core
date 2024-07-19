@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(MessageCoreControllerImpl.class)
 class MessageCoreControllerTest {
 
+
     @MockBean
     private MessageCoreServiceImpl messageCoreService;
 
