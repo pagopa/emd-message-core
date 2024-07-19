@@ -2,9 +2,6 @@ package it.gov.pagopa.message.core.faker;
 
 import it.gov.pagopa.message.core.dto.MessageDTO;
 
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-
 public class MessageDTOFaker {
 
     private MessageDTOFaker(){}
