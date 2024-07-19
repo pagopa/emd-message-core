@@ -4,6 +4,8 @@ import it.gov.pagopa.message.core.dto.MessageDTO;
 import it.gov.pagopa.message.core.dto.TokenDTO;
 import it.gov.pagopa.message.core.faker.MessageDTOFaker;
 import it.gov.pagopa.message.core.faker.TokenDTOFaker;
+import it.gov.pagopa.message.core.stub.model.MessageMapperDTOToObject;
+import it.gov.pagopa.message.core.stub.repository.MessageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -33,6 +35,11 @@ class SendMesssageServiceTest {
 
     @MockBean
     MessageErrorProducerService errorProducerService;
+
+    @MockBean
+    MessageRepository messageRepository;
+    @MockBean
+    MessageMapperDTOToObject mapperDTOToObject;
 
     @Autowired
     SendMessageServiceImpl sendMessageService;

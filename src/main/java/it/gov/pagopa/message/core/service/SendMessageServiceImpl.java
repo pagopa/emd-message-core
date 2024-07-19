@@ -2,6 +2,8 @@ package it.gov.pagopa.message.core.service;
 
 import it.gov.pagopa.message.core.dto.MessageDTO;
 import it.gov.pagopa.message.core.dto.TokenDTO;
+import it.gov.pagopa.message.core.stub.model.MessageMapperDTOToObject;
+import it.gov.pagopa.message.core.stub.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -19,6 +21,10 @@ public class SendMessageServiceImpl implements SendMessageService {
     private final RestTemplate restTemplate;
     private final MessageErrorProducerService errorProducerService;
 
+    private final MessageRepository messageRepository;
+
+    private final MessageMapperDTOToObject mapperDTOToObject;
+
     private final String client;
     private final String clientId;
     private final String grantType;
@@ -26,12 +32,14 @@ public class SendMessageServiceImpl implements SendMessageService {
     private final String tenantId;
     public SendMessageServiceImpl(MessageErrorProducerService errorProducerService,
                                   RestTemplate restTemplate,
-                                  @Value("${app.token.client}")String client,
+                                  MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}")String client,
                                   @Value("${app.token.clientId}") String clientId,
                                   @Value("${app.token.grantType}") String grantType,
                                   @Value("${app.token.tenantId}") String tenantId) {
         this.restTemplate = restTemplate;
         this.errorProducerService = errorProducerService;
+        this.messageRepository = messageRepository;
+        this.mapperDTOToObject = mapperDTOToObject;
         this.client = client;
         this.clientId = clientId;
         this.grantType = grantType;
@@ -99,7 +107,7 @@ public class SendMessageServiceImpl implements SendMessageService {
                 entity,
                 String.class).getBody();
         log.info("[EMD][SEND-MESSAGE] Message sent correctly. Response: {}",response);
-
+        messageRepository.save(mapperDTOToObject.messageObjectMapper(messageDTO));
     }
 
 
