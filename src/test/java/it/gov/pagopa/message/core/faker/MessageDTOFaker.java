@@ -13,7 +13,7 @@ public class MessageDTOFaker {
                 .messageId("messageId")
                 .messageUrl("messageUrl")
                 .message("message")
-                .triggerDateTime(ZonedDateTime.now())
+                .triggerDateTime("triggerDateTime")
                 .senderDescription("sender")
                 .recipientId("recipientId")
                 .originId("originId")

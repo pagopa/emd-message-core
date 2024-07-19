@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 public class Message {
     private String messageId;
     private String hashedFiscalCode;
-    private ZonedDateTime originalRegistrationDate;
+    private String originalRegistrationDate;
     private String originalSender;
     private String originId;
     private String messageUrl;
