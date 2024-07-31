@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.times;
 @ContextConfiguration(classes = {
         SendMessageServiceImpl.class
 })
-class SendMesssageServiceTest {
+class SendMessageServiceTest {
 
     @MockBean
     RestTemplate restTemplate;
@@ -82,7 +83,7 @@ class SendMesssageServiceTest {
                 Mockito.eq(HttpMethod.POST),
                 any(HttpEntity.class),
                 Mockito.eq(TokenDTO.class)
-        )).thenThrow(new RuntimeException("Mocked exception"));
+        )).thenThrow(new RestClientException("Mocked exception"));
 
         Mockito.doNothing().when(errorProducerService).sendError(messegeDTO,messegaUrl,authenticationUrl);
         sendMessageService.sendMessage(messegeDTO,messegaUrl,authenticationUrl);
@@ -109,7 +110,7 @@ class SendMesssageServiceTest {
                 Mockito.eq(HttpMethod.POST),
                 any(HttpEntity.class),
                 Mockito.eq(String.class)
-        )).thenThrow(new RuntimeException("Mocked exception"));
+        )).thenThrow(new RestClientException("Mocked exception"));
 
         Mockito.doNothing().when(errorProducerService).sendError(messegeDTO,messegaUrl,authenticationUrl);
         sendMessageService.sendMessage(messegeDTO,messegaUrl,authenticationUrl);
@@ -155,7 +156,7 @@ class SendMesssageServiceTest {
                 Mockito.eq(HttpMethod.POST),
                 any(HttpEntity.class),
                 Mockito.eq(TokenDTO.class)
-        )).thenThrow(new RuntimeException("Mocked exception"));
+        )).thenThrow(new RestClientException("Mocked exception"));
 
         Mockito.doNothing().when(errorProducerService).sendError(messegeDTO,messegaUrl,authenticationUrl,retry);
         sendMessageService.sendMessage(messegeDTO,messegaUrl,authenticationUrl,retry);
@@ -181,7 +182,7 @@ class SendMesssageServiceTest {
                 Mockito.eq(HttpMethod.POST),
                 any(HttpEntity.class),
                 Mockito.eq(String.class)
-        )).thenThrow(new RuntimeException("Mocked exception"));
+        )).thenThrow(new RestClientException("Mocked exception"));
 
         Mockito.doNothing().when(errorProducerService).sendError(messegeDTO,messegaUrl,authenticationUrl,retry);
         sendMessageService.sendMessage(messegeDTO,messegaUrl,authenticationUrl,retry);
