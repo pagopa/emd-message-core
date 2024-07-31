@@ -8,14 +8,14 @@ import it.gov.pagopa.message.core.exception.custom.TppNotOnboardedException;
 import it.gov.pagopa.message.core.model.Channel;
 import it.gov.pagopa.message.core.model.mapper.ChannelMapperDTOToObject;
 import it.gov.pagopa.message.core.repository.ChannelRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static it.gov.pagopa.common.utils.Utils.logInfo;
+
 @Service
-@Slf4j
 public class ChannelServiceImpl implements ChannelService {
 
     private final ChannelRepository channelRepository;
@@ -31,46 +31,46 @@ public class ChannelServiceImpl implements ChannelService {
 
     @Override
     public ChannelDTO createChannel(ChannelDTO channelDTO) {
-        log.info("[EMD][CREATE-CHANNEL] Received message: {}",channelDTO.toString());
+        logInfo("[EMD][CREATE-CHANNEL] Received message: %s".formatted(channelDTO.toString()));
         Channel channel = mapperToObject.channelDTOMapper(channelDTO);
         channel.setCreationDate(LocalDateTime.now());
         channel.setLastUpdateDate(LocalDateTime.now());
         channel  = channelRepository.save(channel);
-        log.info("[EMD][CREATE-CHANNEL] Created");
+        logInfo("[EMD][CREATE-CHANNEL] Created");
         return mapperToDTO.channelMapper(channel);
     }
 
 
     @Override
     public ChannelDTO deleteChannel(String channelId) {
-        log.info("[EMD][DELETE-CHANNEL] Received  channelId {} ", channelId);
+        logInfo("[EMD][DELETE-CHANNEL] Received  channelId %s ".formatted(channelId));
         Optional<Channel> optionalChannel = channelRepository.findById(channelId);
         if (optionalChannel.isPresent()) {
             Channel channel = optionalChannel.get();
             channel.setState(false);
             channel.setLastUpdateDate(LocalDateTime.now());
             channelRepository.save(channel);
-            log.info("[EMD][CREATE-CHANNEL] Deleted");
+            logInfo("[EMD][CREATE-CHANNEL] Deleted");
             return mapperToDTO.channelMapper(channel);
         } else {
-            log.error("[EMD][DELETE-CHANNEL] Tpp not onboarded");
+            logInfo("[EMD][DELETE-CHANNEL] Tpp not onboarded");
             throw new TppNotOnboardedException("Tpp not onboarded", true, null);
         }
     }
 
     @Override
     public ChannelDTO updateChannel(String channelId) {
-        log.info("[EMD][UPDATE-CHANNEL] Received channelId {} ", channelId);
+        logInfo("[EMD][UPDATE-CHANNEL] Received channelId %s ".formatted(channelId));
         Optional<Channel> optionalChannel = channelRepository.findById(channelId);
         if (optionalChannel.isPresent()) {
             Channel channel = optionalChannel.get();
             channel.setState(true);
             channel.setLastUpdateDate(LocalDateTime.now());
             channelRepository.save(channel);
-            log.info("[EMD][CREATE-CHANNEL] Updated");
+            logInfo("[EMD][CREATE-CHANNEL] Updated");
             return mapperToDTO.channelMapper(channel);
         } else {
-            log.error("[EMD][UPDATE-CHANNEL] Tpp not onboarded");
+            logInfo("[EMD][UPDATE-CHANNEL] Tpp not onboarded");
             throw new TppNotOnboardedException("Tpp not onboarded", true, null);
         }
 

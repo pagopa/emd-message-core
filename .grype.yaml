@@ -8,3 +8,6 @@ ignore:
   - vulnerability: CVE-2023-51074 # json-path 2.9.0
   - vulnerability: CVE-2024-26308 # commons-compress 1.26.2
   - vulnerability: CVE-2024-25710 # commons-compress 1.26.2
+  - vulnerability: CVE-2023-43642 # snappy-java 1.1.10.5
+  - vulnerability: CVE-2023-34455 # snappy-java 1.1.10.5
+  - vulnerability: CVE-2024-22271 # spring-cloud-function-context 4.1.2
