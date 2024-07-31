@@ -4,7 +4,6 @@ import it.gov.pagopa.message.core.dto.MessageDTO;
 import it.gov.pagopa.message.core.dto.TokenDTO;
 import it.gov.pagopa.message.core.stub.model.MessageMapperDTOToObject;
 import it.gov.pagopa.message.core.stub.repository.MessageRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,9 +12,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import static it.gov.pagopa.common.utils.Utils.logInfo;
+
 @Service
-@Slf4j
 public class SendMessageServiceImpl implements SendMessageService {
 
     private final RestTemplate restTemplate;
@@ -49,10 +51,11 @@ public class SendMessageServiceImpl implements SendMessageService {
     @Override
     public void sendMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl) {
         try {
-            toUrl(messageDTO, messageUrl, getToken(authenticationUrl));
+            TokenDTO token = getToken(authenticationUrl);
+            toUrl(messageDTO, messageUrl, token);
         }
-        catch (Exception e) {
-            log.info("[EMD][SEND-MESSAGE] Error while sending message");
+        catch (RestClientException | NullPointerException e) {
+            logInfo("[EMD][SEND-MESSAGE] Error while sending message");
             errorProducerService.sendError(messageDTO,messageUrl,authenticationUrl);
         }
     }
@@ -60,15 +63,16 @@ public class SendMessageServiceImpl implements SendMessageService {
     @Override
     public void sendMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, long retry) {
         try {
-            toUrl(messageDTO, messageUrl, getToken(authenticationUrl));
+            TokenDTO token = getToken(authenticationUrl);
+            toUrl(messageDTO, messageUrl, token);
         }
-        catch (Exception e) {
-            log.info("[EMD][SEND-MESSAGE] Error while sending message");
+        catch (RestClientException | NullPointerException e) {
+            logInfo("[EMD][SEND-MESSAGE] Error while sending message");
             errorProducerService.sendError(messageDTO,messageUrl,authenticationUrl,retry);
         }
     }
 
-    private TokenDTO getToken(String authenticationUrl) throws Exception{
+    private TokenDTO getToken(String authenticationUrl) throws RestClientException, NullPointerException{
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -82,31 +86,31 @@ public class SendMessageServiceImpl implements SendMessageService {
         TokenDTO token;
 
         authenticationUrl = authenticationUrl.replace("tenantId",tenantId);
-        log.info("[EMD][SEND-MESSAGE] Getting Token");
+        logInfo("[EMD][SEND-MESSAGE] Getting Token");
         token = restTemplate.exchange(
                 authenticationUrl,
                 HttpMethod.POST,
                 entity,
                 TokenDTO.class).getBody();
-        log.info("[EMD][SEND-MESSAGE] Token got: {}",token);
+        logInfo("[EMD][SEND-MESSAGE] Token got");
 
         return token;
     }
 
-    private void toUrl(MessageDTO messageDTO, String messageUrl, TokenDTO token) throws Exception{
+    private void toUrl(MessageDTO messageDTO, String messageUrl, TokenDTO token) throws RestClientException, NullPointerException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token.getAccessToken());
         HttpEntity<MessageDTO> entity = new HttpEntity<>(messageDTO, headers);
 
-        log.info("[EMD][SEND-MESSAGE] Sending request:{} to: {}",entity, messageUrl);
+        logInfo("[EMD][SEND-MESSAGE] Sending request:%s to: %s".formatted(entity, messageUrl));
         String response = restTemplate.exchange(
                 messageUrl,
                 HttpMethod.POST,
                 entity,
                 String.class).getBody();
-        log.info("[EMD][SEND-MESSAGE] Message sent correctly. Response: {}",response);
+        logInfo("[EMD][SEND-MESSAGE] Message sent correctly. Response: %s".formatted(response));
         messageRepository.save(mapperDTOToObject.messageObjectMapper(messageDTO));
     }
 

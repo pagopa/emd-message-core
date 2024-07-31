@@ -8,14 +8,14 @@ import it.gov.pagopa.common.utils.Utils;
 import it.gov.pagopa.message.core.model.Channel;
 import it.gov.pagopa.message.core.model.CitizenConsent;
 import it.gov.pagopa.message.core.dto.Outcome;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static it.gov.pagopa.common.utils.Utils.logInfo;
 
-@Slf4j
+
 @Service
 public class MessageCoreServiceImpl implements MessageCoreService {
 
@@ -35,17 +35,17 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     @Override
     public Outcome sendMessage(MessageDTO messageDTO) {
 
-        log.info("[EMD][SEND-MESSAGE] Recived message: {}",messageDTO);
+        logInfo("[EMD][SEND-MESSAGE] Recived message: %s".formatted(messageDTO));
         String hashedFiscalCode = Utils.createSHA256(messageDTO.getRecipientId());
         ArrayList<CitizenConsent> citizenConsentList =
                 citizenService.getCitizenConsentsEnabled(hashedFiscalCode);
 
         if(citizenConsentList.isEmpty()) {
-            log.info("[EMD][SEND-MESSAGE] Citizen consent list is empty");
+            logInfo("[EMD][SEND-MESSAGE] Citizen consent list is empty");
             return new Outcome(OutcomeStatus.NO_CHANNELS_ENABLED);
         }
 
-        log.info("[EMD][SEND-MESSAGE] Citizen consent list: {}",citizenConsentList);
+        logInfo("[EMD][SEND-MESSAGE] Citizen consent list: %s".formatted(citizenConsentList));
         List<Channel> channelList = tppService.getChannelsList(
                                 citizenConsentList
                                 .stream()
@@ -54,17 +54,17 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                         );
 
         if(channelList.isEmpty()) {
-            log.info("[EMD][SEND-MESSAGE] Channel list is empty");
+            logInfo("[EMD][SEND-MESSAGE] Channel list is empty");
             return new Outcome(OutcomeStatus.NO_CHANNELS_ENABLED);
         }
-        log.info("[EMD][SEND-MESSAGE] Channel list: {}",channelList);
+        logInfo("[EMD][SEND-MESSAGE] Channel list: %s".formatted(channelList));
 
         for (CitizenConsent citizenConsent : citizenConsentList) {
             Iterator<Channel> iterator = channelList.iterator();
             while (iterator.hasNext()) {
                 Channel channel = iterator.next();
                 if (channel.getId().equals(citizenConsent.getChannelId())) {
-                    log.info("[EMD][SEND-MESSAGE] Channel: {}",channel.getBusinessName());
+                    logInfo("[EMD][SEND-MESSAGE] Channel: %s".formatted(channel.getBusinessName()));
                     sendMessageServiceImpl.sendMessage(
                             messageDTO,
                             channel.getMessageUrl(),

@@ -29,4 +29,13 @@ public class Utils {
             throw new EmdEncryptionException("Something went wrong creating SHA256",true,e);
         }
     }
+
+    public static void logInfo(String message){
+        log.info(inputSanify(message));
+    }
+    private static String inputSanify(String message){
+        if (message != null)
+           return message.replaceAll("[\\r\\n]", "");
+       return "[EMD][WARNING] Null log";
+    }
 }
