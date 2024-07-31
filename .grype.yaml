@@ -2,8 +2,8 @@ ignore:
   - vulnerability: CVE-2022-1471 # solved in snakeyaml 2.2
   - vulnerability: CVE-2024-23672 # tomcat-embed-core 10.1.25
   - vulnerability: CVE-2024-24549 # tomcat-embed-websocket 10.1.25
-  - vulnerability: CVE-2024-22243 # spring-web 6.1.6
-  - vulnerability: CVE-2024-22259 # spring-web 6.1.6
+  - vulnerability: CVE-2024-22243 # spring-web 6.0.22
+  - vulnerability: CVE-2024-22259 # spring-web 6.0.22
   - vulnerability: CVE-2023-3635 # okio-jvm 3.9.0
   - vulnerability: CVE-2023-51074 # json-path 2.9.0
   - vulnerability: CVE-2024-26308 # commons-compress 1.26.2
