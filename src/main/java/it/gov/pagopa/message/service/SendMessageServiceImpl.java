@@ -31,12 +31,11 @@ public class SendMessageServiceImpl implements SendMessageService {
     private final String tenantId;
 
     public SendMessageServiceImpl(MessageErrorProducerService errorProducerService,
-                                  WebClient webClient,
                                   MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}") String client,
                                   @Value("${app.token.clientId}") String clientId,
                                   @Value("${app.token.grantType}") String grantType,
                                   @Value("${app.token.tenantId}") String tenantId) {
-        this.webClient = webClient;
+        this.webClient = WebClient.builder().build();
         this.errorProducerService = errorProducerService;
         this.messageRepository = messageRepository;
         this.mapperDTOToObject = mapperDTOToObject;
