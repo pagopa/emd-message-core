@@ -2,12 +2,12 @@ package it.gov.pagopa.message.service;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageMapperDTOToObject;
 import it.gov.pagopa.message.dto.TokenDTO;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
 import it.gov.pagopa.message.faker.MessageFaker;
 import it.gov.pagopa.message.faker.TokenDTOFaker;
 import it.gov.pagopa.message.model.Message;
-import it.gov.pagopa.message.dto.MessageMapperDTOToObject;
 import it.gov.pagopa.message.repository.MessageRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -49,12 +48,8 @@ class SendMessageServiceImplTest {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(mockWebServer.url("/").toString())
-                .build();
-
-        sendMessageService = new SendMessageServiceImpl
-                (errorProducerService, webClient, messageRepository, mapperDTOToObject, "client_secret", "client_id", "grant_type", "tenant_id");
+         sendMessageService = new SendMessageServiceImpl
+                (errorProducerService, messageRepository, mapperDTOToObject, "client_secret", "client_id", "grant_type", "tenant_id");
     }
 
     @AfterEach
