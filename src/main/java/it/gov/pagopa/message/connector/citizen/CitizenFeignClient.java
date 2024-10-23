@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 
 @FeignClient(
-        name = "emd-citizen",
-        url = "http://localhost:8084")
+        name = "citizen",
+        url = "{rest-client.citizen.baseUrl}")
 public interface CitizenFeignClient {
 
     @GetMapping(
