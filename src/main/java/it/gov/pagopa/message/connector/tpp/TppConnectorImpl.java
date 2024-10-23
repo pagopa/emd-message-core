@@ -6,6 +6,7 @@ import feign.FeignException;
 import it.gov.pagopa.message.custom.TppInvocationException;
 import it.gov.pagopa.message.dto.TppDTO;
 import it.gov.pagopa.message.dto.TppIdList;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -21,6 +22,7 @@ public class TppConnectorImpl implements  TppConnector {
 
     public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList) {
         return Mono.fromCallable(() -> tppFeignClient.getTppsEnabled(tppIdList))
-                .onErrorMap(FeignException.class, feignException -> new TppInvocationException());
+                .onErrorMap(FeignException.class, feignException -> new TppInvocationException())
+                .map(ResponseEntity::getBody);
     }
 }
