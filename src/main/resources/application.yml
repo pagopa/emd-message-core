@@ -112,6 +112,6 @@ management:
 
 rest-client:
   citizen:
-    baseUrl: ${EMD_ONBOARDING_CITIZEN:http://emd-citizen}
+    baseUrl: ${EMD_CITIZEN:http://emd-citizen}
   tpp:
-    baseUrl: ${EMD_ONBOARDING_TPP:http://emd-tpp}
+    baseUrl: ${EMD_TPP:http://emd-tpp}
