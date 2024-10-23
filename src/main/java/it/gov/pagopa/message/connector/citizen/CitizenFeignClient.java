@@ -12,7 +12,7 @@ import java.util.List;
 
 @FeignClient(
         name = "citizen",
-        url = "{rest-client.citizen.baseUrl}")
+        url = "${rest-client.citizen.baseUrl}")
 public interface CitizenFeignClient {
 
     @GetMapping(

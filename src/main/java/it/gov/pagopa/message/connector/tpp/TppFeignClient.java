@@ -13,7 +13,7 @@ import java.util.List;
 
 @FeignClient(
         name = "tpp",
-        url = "{rest-client.tpp.baseUrl}")
+        url = "${rest-client.tpp.baseUrl}")
 public interface TppFeignClient {
     @PostMapping(
             value ="/emd/tpp/list",
