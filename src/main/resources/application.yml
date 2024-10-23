@@ -6,13 +6,6 @@ spring:
     name: "@project.artifactId@"
     version: "@project.version@"
   jmx.enabled: true
-  resources:
-    static-locations: classpath:/static/
-    cache:
-      cachecontrol:
-        max-age: 3600
-        no-transform: true
-        must-revalidate: true
   config:
     activate:
       on-profile: default
@@ -20,6 +13,15 @@ spring:
     mongodb:
       database: ${MONGODB_DBNAME:mil}
       uri: ${MONGODB_URI:mongodb://localhost:27017}
+      config:
+        connectionPool:
+          maxSize: ${MONGODB_CONNECTIONPOOL_MAX_SIZE:100}
+          minSize: ${MONGODB_CONNECTIONPOOL_MIN_SIZE:5}
+          maxWaitTimeMS: ${MONGODB_CONNECTIONPOOL_MAX_WAIT_MS:120000}
+          maxConnectionLifeTimeMS: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTION_LIFE_MS:0}
+          maxConnectionIdleTimeMS: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTION_IDLE_MS:120000}
+          maxConnecting: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTING:2}
+
   cloud:
     function:
       definition: consumerCommands
@@ -83,6 +85,7 @@ spring:
                   max.ms: ${KAFKA_COMMANDS_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
                   ms: ${KAFKA_COMMANDS_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
 
+
 app:
   retry.max-retry: ${ERROR_MESSAGE_MAX_RETRY:5}
   token:
@@ -93,16 +96,22 @@ app:
 
 management:
   health:
-    redis.enabled: ${REDIS_CACHE_ENABLED:false}
-    mongo.enabled: ${HEALTH_MONGO_ENABLED:true}
+    mongo.enabled: ${HEALTH_MONGO_ENABLED:false}
   endpoint:
     health:
+      show-details: always
       probes.enabled: true
       group:
         readiness.include: "*"
-        liveness.include: livenessState,diskSpace,ping,binders
+        liveness.include: livenessState,diskSpace,ping
   endpoints:
     jmx:
       exposure.include: "*"
     web:
       exposure.include: info, health
+
+rest-client:
+  citizen:
+    baseUrl: ${EMD_ONBOARDING_CITIZEN:http://emd-onboarding-citizen}
+  tpp:
+    baseUrl: ${EMD_ONBOARDING_TPP:http://emd-onboarding-tpp}
