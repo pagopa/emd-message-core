@@ -13,17 +13,18 @@ import java.util.List;
 @Service
 public class CitizenConnectorImpl implements CitizenConnector {
 
-    @Value("${rest-client.citizen.baseUrl}")
-    private String baseUrl;
 
     private final WebClient webClient;
-    public CitizenConnectorImpl(WebClient.Builder webClientBuilder) {
+    public CitizenConnectorImpl(WebClient.Builder webClientBuilder,
+                                @Value("${rest-client.citizen.baseUrl}") String baseUrl) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
+
     }
 
     public Mono<List<CitizenConsentDTO>> getCitizenConsentsEnabled(String fiscalCode) {
+        String uri  = String.format("/emd/citizen/list/%s/enabled",fiscalCode);
         return webClient.get()
-                .uri("/emd/citizen/list/{fiscalCode}/enabled", fiscalCode)
+                .uri(uri)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<>() {
                 });
