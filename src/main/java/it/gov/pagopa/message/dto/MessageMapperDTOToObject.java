@@ -1,7 +1,6 @@
-package it.gov.pagopa.message.core.stub.model;
+package it.gov.pagopa.message.dto;
 
-import it.gov.pagopa.message.core.dto.MessageDTO;
-
+import it.gov.pagopa.message.model.Message;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,16 +10,16 @@ import static it.gov.pagopa.common.utils.Utils.createSHA256;
 @Service
 public class MessageMapperDTOToObject {
 
-    public Message messageObjectMapper(MessageDTO messageDTO){
+    public Message map(MessageDTO messageDTO, String entityId){
         return Message.builder()
                 .messageId(messageDTO.getMessageId())
                 .hashedFiscalCode(createSHA256(messageDTO.getRecipientId()))
-                .originalRegistrationDate(messageDTO.getTriggerDateTime())
-                .originalSender(messageDTO.getSenderDescription())
-                .originId(messageDTO.getOriginId())
+                .triggerDateTime(messageDTO.getTriggerDateTime())
                 .messageUrl(messageDTO.getMessageUrl())
-                .messageContent(messageDTO.getMessage())
+                .content(messageDTO.getContent())
+                .originId(messageDTO.getOriginId())
                 .elaborationDateTime(LocalDateTime.now())
+                .entityId(entityId)
                 .build();
     }
 }
