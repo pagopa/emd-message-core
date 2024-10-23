@@ -2,7 +2,7 @@ package it.gov.pagopa.common.utils;
 
 
 
-import it.gov.pagopa.message.core.exception.custom.EmdEncryptionException;
+import it.gov.pagopa.common.web.exception.EmdEncryptionException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
