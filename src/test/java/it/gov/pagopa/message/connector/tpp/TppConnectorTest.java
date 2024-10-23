@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -31,7 +32,7 @@ class TppConnectorTest {
     void getTppsEnabled_Success() {
         TppIdList tppIdList = new TppIdList();
         List<TppDTO> tppDTOs =List.of(TppDTOFaker.mockInstance());
-        when(tppFeignClient.getTppsEnabled(tppIdList)).thenReturn(tppDTOs);
+        when(tppFeignClient.getTppsEnabled(tppIdList)).thenReturn(ResponseEntity.ok(tppDTOs));
 
         List<TppDTO> result = tppConnectorImpl.getTppsEnabled(tppIdList).block();
 
