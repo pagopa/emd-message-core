@@ -8,7 +8,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
 import java.util.List;
 
 @Service
@@ -16,11 +15,8 @@ public class TppConnectorImpl implements  TppConnector {
     private final WebClient webClient;
 
 
-    @Value("${rest-client.tpp.baseUrl}")
-    private String baseUrl;
-
-
-    public TppConnectorImpl(WebClient.Builder webClientBuilder) {
+    public TppConnectorImpl(WebClient.Builder webClientBuilder,
+                            @Value("${rest-client.tpp.baseUrl}") String baseUrl) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
