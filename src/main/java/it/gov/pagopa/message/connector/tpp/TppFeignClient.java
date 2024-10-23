@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 
 @FeignClient(
-        name = "emd-tpp",
-        url = "http://localhost:8082")
+        name = "tpp",
+        url = "{rest-client.tpp.baseUrl}")
 public interface TppFeignClient {
     @PostMapping(
             value ="/emd/tpp/list",
