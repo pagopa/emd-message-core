@@ -22,9 +22,8 @@ public class CitizenConnectorImpl implements CitizenConnector {
     }
 
     public Mono<List<CitizenConsentDTO>> getCitizenConsentsEnabled(String fiscalCode) {
-        String uri  = String.format("/emd/citizen/list/%s/enabled",fiscalCode);
         return webClient.get()
-                .uri(uri)
+                .uri("/emd/citizen/list/{fiscalCode}/enabled",fiscalCode)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<>() {
                 });

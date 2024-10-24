@@ -21,7 +21,7 @@ public interface MessageCoreController {
      * @param messageDTO to be sent to the tpp
      * @return outcome of sending the message
      */
-    @PostMapping("/send")
+    @PostMapping("/sendMessage")
     Mono<ResponseEntity<Outcome>> sendMessage(@Valid @RequestBody MessageDTO messageDTO);
 
 }
