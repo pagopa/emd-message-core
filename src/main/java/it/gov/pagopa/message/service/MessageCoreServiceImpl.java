@@ -66,11 +66,13 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     }
     private Mono<Outcome> processMessages(List<TppDTO> tppDTOList,
                                           MessageDTO messageDTO) {
-        Flux.fromIterable(tppDTOList)
-             .doOnNext(tppDTO -> {
-                            log.info("[EMD-MESSAGE-CORE][SEND]Prepare sending message to: {}", tppDTO.getTppId());
-                            sendMessageService.sendMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
-                        });
-        return Mono.just(new Outcome(OutcomeStatus.OK));
+       return Flux.fromIterable(tppDTOList)
+                .flatMap(tppDTO -> {
+                    log.info("[EMD-MESSAGE-CORE][SEND]Prepare sending message to: {}", tppDTO.getTppId());
+                    return sendMessageService.sendMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
+                })
+                .then()
+                .thenReturn(new Outcome(OutcomeStatus.OK));
     }
+
 }
