@@ -36,6 +36,7 @@ public class MessageErrorConsumerServiceImpl implements MessageErrorConsumerServ
             String entidyId = (String) headers.get(ERROR_MSG_ENTITY_ID);
             log.info("[EMD-PROCESS-COMMAND] Try {} for message {}",retry,messageDTO.getMessageId());
             sendMessageServiceImpl.sendMessage(messageDTO, messageUrl, authenticationUrl, entidyId, retry).then();
+
         }
         else
             log.info("[EMD-PROCESS-COMMAND] Message {} not retryable", messageDTO.getMessageId());
