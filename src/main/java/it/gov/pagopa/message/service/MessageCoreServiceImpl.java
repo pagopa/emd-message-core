@@ -70,9 +70,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
              .doOnNext(tppDTO -> {
                             log.info("[EMD-MESSAGE-CORE][SEND]Prepare sending message to: {}", tppDTO.getTppId());
                             sendMessageService.sendMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
-                        })
-            .subscribe();
-
+                        });
         return Mono.just(new Outcome(OutcomeStatus.OK));
     }
 }
