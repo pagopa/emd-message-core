@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
 
 
-@RequestMapping("/emd/message")
+@RequestMapping("/emd/message-core")
 public interface MessageCoreController {
 
     /**
