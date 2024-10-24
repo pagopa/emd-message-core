@@ -30,14 +30,16 @@ public class MessageErrorProducer {
     this.binder = binder;
   }
 
-  public void sendToMessageErrorQueue(Message<MessageDTO> message){
+  public void sendToMessageErrorQueue(Message<MessageDTO> message) {
     log.info("Scheduling message to queue");
+    streamBridge.send("messageSender-out-0", binder, message);
+    /*
       scheduler.schedule(
               () -> streamBridge.send("messageSender-out-0", binder, message),
               5,
               TimeUnit.SECONDS);
+    */
     }
-
 }
 
 
