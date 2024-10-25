@@ -1,7 +1,7 @@
 package it.gov.pagopa.message.dto;
 
 
-import it.gov.pagopa.common.utils.Utils;
+import it.gov.pagopa.common.utils.CommonUtilities;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,9 +24,9 @@ public class MessageDTO {
     @Override
     public String toString() {
 
-        return "Message{" +
+        return "MessageDTO{" +
                 "messageId='" + messageId + '\'' +
-                ", recipientId='" + Utils.createSHA256(recipientId) + '\'' +
+                ", recipientId='" + CommonUtilities.createSHA256(recipientId) + '\'' +
                 ", triggerDateTime='" + triggerDateTime + '\'' +
                 ", senderDescription='" + senderDescription + '\'' +
                 ", messageUrl='" + messageUrl + '\'' +

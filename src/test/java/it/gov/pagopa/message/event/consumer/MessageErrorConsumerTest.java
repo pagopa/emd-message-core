@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import reactor.core.publisher.Flux;
 
 import java.util.function.Consumer;
 
@@ -24,7 +25,7 @@ class MessageErrorConsumerTest {
     MessageErrorConsumerService messageErrorConsumerService;
     @InjectMocks
     MessageErrorConsumer messageErrorConsumer;
-    private Consumer<Message<MessageDTO>> consumerCommands;
+    private Consumer<Flux<Message<String>>> consumerCommands;
     @BeforeEach
     public void setUp(){
         consumerCommands = messageErrorConsumer.consumerCommands(messageErrorConsumerService);
@@ -37,14 +38,15 @@ class MessageErrorConsumerTest {
         String messageUrl = "messegaUrl";
         String authenticationUrl = "authenticationUrl";
         long retry = 1;
-        Message<MessageDTO> message = MessageBuilder
-                .withPayload(messageDTO)
+        Message<String> message = MessageBuilder
+                .withPayload(messageDTO.toString())
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
                 .setHeader(ERROR_MSG_AUTH_URL, authenticationUrl)
                 .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
                 .build();
-        consumerCommands.accept(message);
-        verify(messageErrorConsumerService).processCommand(message);
+        Flux<Message<String>> flux = Flux.just(message);
+        consumerCommands.accept(flux);
+        verify(messageErrorConsumerService).execute(flux);
     }
 
 

@@ -1,6 +1,6 @@
 package it.gov.pagopa.message.stub.service;
 
-import it.gov.pagopa.common.utils.Utils;
+import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.model.MessageMapperObjectToDTO;
 import it.gov.pagopa.message.repository.MessageRepository;
@@ -23,7 +23,7 @@ public class StubMessageCoreServiceImpl implements StubMessageCoreService {
 
     @Override
     public Mono<List<MessageDTO>> getMessages(String fiscalCode) {
-        String hashedFiscalCode = Utils.createSHA256(fiscalCode);
+        String hashedFiscalCode = CommonUtilities.createSHA256(fiscalCode);
         return messageRepository.findByHashedFiscalCode(hashedFiscalCode)
                 .collectList()
                 .map(messageList -> messageList.stream()

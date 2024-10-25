@@ -20,25 +20,16 @@ public class MessageErrorProducer {
 
   private final String binder;
   private final StreamBridge streamBridge;
-  private final ScheduledExecutorService scheduler;
 
   public MessageErrorProducer(StreamBridge streamBridge,
-                              ScheduledExecutorService scheduler,
                               @Value("${spring.cloud.stream.bindings.messageSender-out-0.binder}")String binder) {
     this.streamBridge = streamBridge;
-    this.scheduler = scheduler;
     this.binder = binder;
   }
 
   public void sendToMessageErrorQueue(Message<MessageDTO> message) {
-    log.info("Scheduling message to queue");
+    log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to queue",message.getPayload().getMessageId());
     streamBridge.send("messageSender-out-0", binder, message);
-    /*
-      scheduler.schedule(
-              () -> streamBridge.send("messageSender-out-0", binder, message),
-              5,
-              TimeUnit.SECONDS);
-    */
     }
 }
 

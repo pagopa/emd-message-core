@@ -17,8 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
-class UtilsTest {
-
+class CommonUtilitiesTest {
 
     @Test
     void createSHA256_Ko_NoSuchAlgorithm() {
@@ -26,7 +25,7 @@ class UtilsTest {
             mockedStatic.when(() -> MessageDigest.getInstance(any()))
                     .thenThrow(new NoSuchAlgorithmException("SHA-256 not available"));
 
-            EmdEncryptionException exception = assertThrows(EmdEncryptionException.class, () -> Utils.createSHA256(""));
+            EmdEncryptionException exception = assertThrows(EmdEncryptionException.class, () -> CommonUtilities.createSHA256(""));
 
             assertEquals("SHA-256 not available", exception.getCause().getMessage());
         }
@@ -35,7 +34,7 @@ class UtilsTest {
     void  createSHA256_Ok(){
         String toHash = "RSSMRA98B18L049O";
         String hashedExpected = "0b393cbe68a39f26b90c80a8dc95abc0fe4c21821195b4671a374c1443f9a1bb";
-        String actualHash = Utils.createSHA256(toHash);
+        String actualHash = CommonUtilities.createSHA256(toHash);
         assertEquals(actualHash,hashedExpected);
     }
 
