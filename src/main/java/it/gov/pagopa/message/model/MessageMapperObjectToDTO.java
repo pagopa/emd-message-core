@@ -3,10 +3,6 @@ package it.gov.pagopa.message.model;
 import it.gov.pagopa.message.dto.MessageDTO;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
-import static it.gov.pagopa.common.utils.Utils.createSHA256;
-
 @Service
 public class MessageMapperObjectToDTO {
 

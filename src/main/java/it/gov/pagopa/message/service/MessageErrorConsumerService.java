@@ -1,9 +1,10 @@
 package it.gov.pagopa.message.service;
 
 
-import it.gov.pagopa.message.dto.MessageDTO;
 import org.springframework.messaging.Message;
+import reactor.core.publisher.Flux;
 
 public interface MessageErrorConsumerService {
-    void processCommand(Message<MessageDTO> messageDTO);
+    void execute(Flux<Message<String>> messageFlux);
+
 }

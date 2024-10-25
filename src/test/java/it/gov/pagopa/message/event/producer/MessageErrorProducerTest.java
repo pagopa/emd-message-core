@@ -26,8 +26,6 @@ class MessageErrorProducerTest {
 
     @Mock
     private StreamBridge streamBridge;
-    @Mock
-    private ScheduledExecutorService scheduler;
     @InjectMocks
     private MessageErrorProducer messageErrorProducer;
 
@@ -45,15 +43,7 @@ class MessageErrorProducerTest {
                 .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
                 .build();
 
-        ArgumentCaptor<Callable<Object>> runnableCaptor = ArgumentCaptor.forClass(Callable.class);
-        when(scheduler.schedule(runnableCaptor.capture(), eq(5L), eq(TimeUnit.SECONDS))).thenReturn(null);
-
         messageErrorProducer.sendToMessageErrorQueue(message);
-
-        Callable<Object> capturedRunnable = runnableCaptor.getValue();
-        capturedRunnable.call();
-
-        verify(scheduler).schedule(any(Callable.class), eq(5L), eq(TimeUnit.SECONDS));
         verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(message));
 
     }

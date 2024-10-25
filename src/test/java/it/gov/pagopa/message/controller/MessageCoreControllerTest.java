@@ -33,7 +33,7 @@ class MessageCoreControllerTest {
         Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(outcome));
 
         webTestClient.post()
-                .uri("/emd/message/send")
+                .uri("/emd/message-core/sendMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(messageDTO)
@@ -55,7 +55,7 @@ class MessageCoreControllerTest {
         Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(outcome));
 
         webTestClient.post()
-                .uri("/emd/message/send")
+                .uri("/emd/message-core/sendMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(messageDTO)
