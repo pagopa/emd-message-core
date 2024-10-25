@@ -92,7 +92,7 @@ app:
   message-core:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:PT1S}
   retry:
-    max-retry: ${ERROR_MESSAGE_MAX_RETRY:5}
+    max-retry: ${ERROR_MESSAGE_MAX_RETRY:3}
   token:
     client: ${HYPE_KEY:}
     clientId: ${HYPE_CLIENT:}
