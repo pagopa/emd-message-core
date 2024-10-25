@@ -35,7 +35,7 @@ class SendMessageServiceImplTest {
     private MockWebServer mockWebServer;
 
     @Mock
-    private MessageErrorProducerService errorProducerService;
+    private QueueMessageProducerService errorProducerService;
 
     @Mock
     private MessageRepository messageRepository;
@@ -108,7 +108,7 @@ class SendMessageServiceImplTest {
 
         sendMessageService.sendMessage(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId).block();
 
-        verify(errorProducerService, times(1)).sendError(any(), any(), any(), any());
+        verify(errorProducerService, times(1)).enqueueMessage(any(), any(), any(), any());
     }
 
     @Test
@@ -128,7 +128,7 @@ class SendMessageServiceImplTest {
 
         sendMessageService.sendMessage(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId).block();
 
-        verify(errorProducerService, times(1)).sendError(any(), any(), any(), any());
+        verify(errorProducerService, times(1)).enqueueMessage(any(), any(), any(), any());
     }
 
     @Test
@@ -184,7 +184,7 @@ class SendMessageServiceImplTest {
 
         sendMessageService.sendMessage(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
 
-        verify(errorProducerService, times(1)).sendError(any(), any(), any(), any(),anyLong());
+        verify(errorProducerService, times(1)).enqueueMessage(any(), any(), any(), any(),anyLong());
     }
 
     @Test
@@ -205,6 +205,6 @@ class SendMessageServiceImplTest {
 
         sendMessageService.sendMessage(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
 
-        verify(errorProducerService, times(1)).sendError(any(), any(), any(), any(),anyLong());
+        verify(errorProducerService, times(1)).enqueueMessage(any(), any(), any(), any(),anyLong());
     }
 }

@@ -37,7 +37,7 @@ class MessageCoreServiceTest {
     TppConnectorImpl tppService;
 
     @MockBean
-    SendMessageServiceImpl sendMessageService;
+    QueueMessageProducerServiceImpl queueMessageProducerService;
 
     @Autowired
     MessageCoreServiceImpl messageCoreService;
@@ -55,7 +55,7 @@ class MessageCoreServiceTest {
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.just(tppDTOS));
 
-        Mockito.when(sendMessageService.sendMessage(any(),any(),any(),any()))
+        Mockito.when(queueMessageProducerService.enqueueMessage(any(), any(), any(), any()))
                 .thenReturn(Mono.empty());
 
         Outcome serviceResponse = messageCoreService.sendMessage(messageDTO).block();

@@ -17,12 +17,12 @@ import static org.mockito.Mockito.times;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = {
-        MessageErrorProducerServiceImpl.class
+        QueueMessageProducerServiceImpl.class
 })
- class MessageErrorProducerServiceTest {
+ class QueueMessageProducerServiceTest {
 
     @Autowired
-    MessageErrorProducerServiceImpl messageErrorProducerService;
+    QueueMessageProducerServiceImpl messageErrorProducerService;
     @MockBean
     MessageErrorProducer messageErrorProducer;
 
@@ -33,13 +33,13 @@ import static org.mockito.Mockito.times;
     private final static String entityId = "entityId";
     @Test
     void sendError1_OK(){
-        messageErrorProducerService.sendError(messegeDTO,messegaUrl,authenticationUrl,entityId);
+        messageErrorProducerService.enqueueMessage(messegeDTO,messegaUrl,authenticationUrl,entityId);
         Mockito.verify(messageErrorProducer,times(1)).sendToMessageErrorQueue(any());
     }
 
     @Test
     void sendError2_OK(){
-        messageErrorProducerService.sendError(messegeDTO,messegaUrl,authenticationUrl,entityId, retry);
+        messageErrorProducerService.enqueueMessage(messegeDTO,messegaUrl,authenticationUrl,entityId, retry);
         Mockito.verify(messageErrorProducer,times(1)).sendToMessageErrorQueue(any());
     }
 }

@@ -25,14 +25,14 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final CitizenConnectorImpl citizenConnector;
     private final TppConnectorImpl tppConnector;
-    private final SendMessageServiceImpl sendMessageService;
+    private final QueueMessageProducerServiceImpl queueMessageProducerService;
 
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
                                   TppConnectorImpl tppConnector,
-                                  SendMessageServiceImpl sendMessageService) {
+                                  QueueMessageProducerServiceImpl queueMessageProducerService) {
         this.tppConnector = tppConnector;
         this.citizenConnector = citizenConnector;
-        this.sendMessageService = sendMessageService;
+        this.queueMessageProducerService = queueMessageProducerService;
     }
 
 
@@ -69,7 +69,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
        return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
                     log.info("[EMD-MESSAGE-CORE][SEND]Prepare sending message to: {}", tppDTO.getTppId());
-                    return sendMessageService.sendMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
+                    return queueMessageProducerService.enqueueMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
                 })
                 .then()
                 .thenReturn(new Outcome(OutcomeStatus.OK));

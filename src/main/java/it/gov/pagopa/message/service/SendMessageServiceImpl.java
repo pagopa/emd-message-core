@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 public class SendMessageServiceImpl implements SendMessageService {
 
     private final WebClient webClient;
-    private final MessageErrorProducerService errorProducerService;
+    private final QueueMessageProducerService queueMessageProducerService;
 
     private final MessageRepository messageRepository;
 
@@ -30,13 +30,13 @@ public class SendMessageServiceImpl implements SendMessageService {
     private final String grantType;
     private final String tenantId;
 
-    public SendMessageServiceImpl(MessageErrorProducerService errorProducerService,
+    public SendMessageServiceImpl(QueueMessageProducerService queueMessageProducerService,
                                   MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}") String client,
                                   @Value("${app.token.clientId}") String clientId,
                                   @Value("${app.token.grantType}") String grantType,
                                   @Value("${app.token.tenantId}") String tenantId) {
         this.webClient = WebClient.builder().build();
-        this.errorProducerService = errorProducerService;
+        this.queueMessageProducerService = queueMessageProducerService;
         this.messageRepository = messageRepository;
         this.mapperDTOToObject = mapperDTOToObject;
         this.client = client;
@@ -51,7 +51,7 @@ public class SendMessageServiceImpl implements SendMessageService {
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> {
                     log.error("[EMD-MESSAGE-CORE][SEND]Error while sending message");
-                    errorProducerService.sendError(messageDTO, messageUrl, authenticationUrl,entityId);
+                    queueMessageProducerService.enqueueMessage(messageDTO, messageUrl, authenticationUrl,entityId);
                     return Mono.empty();
                 })
                 .then();
@@ -63,7 +63,7 @@ public class SendMessageServiceImpl implements SendMessageService {
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> {
                     log.error("[EMD-MESSAGE-CORE][SEND]Error while sending message");
-                    errorProducerService.sendError(messageDTO, messageUrl, authenticationUrl,entityId,retry);
+                    queueMessageProducerService.enqueueMessage(messageDTO, messageUrl, authenticationUrl,entityId,retry);
                     return Mono.empty();
                 })
                 .then();
