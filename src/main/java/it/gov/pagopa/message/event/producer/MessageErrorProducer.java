@@ -30,7 +30,6 @@ public class MessageErrorProducer {
   public void sendToMessageErrorQueue(Message<MessageDTO> message) {
     log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to queue",message.getPayload().getMessageId());
     streamBridge.send("messageSender-out-0", binder, message);
-
     }
 }
 
