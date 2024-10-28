@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 public class SendMessageServiceImpl implements SendMessageService {
 
     private final WebClient webClient;
-    private final MessageErrorProducerService errorProducerService;
+    private final MessageProducerService errorProducerService;
 
     private final MessageRepository messageRepository;
 
@@ -30,7 +30,7 @@ public class SendMessageServiceImpl implements SendMessageService {
     private final String grantType;
     private final String tenantId;
 
-    public SendMessageServiceImpl(MessageErrorProducerService errorProducerService,
+    public SendMessageServiceImpl(MessageProducerService errorProducerService,
                                   MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}") String client,
                                   @Value("${app.token.clientId}") String clientId,
                                   @Value("${app.token.grantType}") String grantType,
@@ -51,8 +51,8 @@ public class SendMessageServiceImpl implements SendMessageService {
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> {
                     log.error("[EMD-MESSAGE-CORE][SEND]Error while sending message");
-                    errorProducerService.sendError(messageDTO, messageUrl, authenticationUrl,entityId);
-                    return Mono.empty();
+                    errorProducerService.enqueueMessage(messageDTO, messageUrl, authenticationUrl,entityId);
+                    return null;
                 })
                 .then();
     }
@@ -63,8 +63,8 @@ public class SendMessageServiceImpl implements SendMessageService {
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> {
                     log.error("[EMD-MESSAGE-CORE][SEND]Error while sending message");
-                    errorProducerService.sendError(messageDTO, messageUrl, authenticationUrl,entityId,retry);
-                    return Mono.empty();
+                    errorProducerService.enqueueMessage(messageDTO, messageUrl, authenticationUrl,entityId,retry);
+                    return null;
                 })
                 .then();
     }

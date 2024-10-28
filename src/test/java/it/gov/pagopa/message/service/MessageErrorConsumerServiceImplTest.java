@@ -1,7 +1,6 @@
 package it.gov.pagopa.message.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Test;
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -24,7 +22,7 @@ import static org.mockito.Mockito.times;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = {
-        MessageErrorConsumerServiceImpl.class,
+        MessageConsumerServiceImpl.class,
         ObjectMapper.class
 })
 @TestPropertySource(properties = {
@@ -41,7 +39,7 @@ class MessageErrorConsumerServiceImplTest {
     @MockBean
     ObjectMapper objectMapper;
     @Autowired
-    MessageErrorConsumerServiceImpl messageErrorConsumerServiceImpl;
+    MessageConsumerServiceImpl messageErrorConsumerServiceImpl;
 
     @Test
     void processCommand_RetryOk(){

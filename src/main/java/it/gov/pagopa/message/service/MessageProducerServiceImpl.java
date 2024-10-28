@@ -8,28 +8,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.message.constants.MessageCoreConstants.MessageHeader.*;
 
 @Slf4j
 @Service
-public class MessageErrorProducerServiceImpl implements  MessageErrorProducerService {
+public class MessageProducerServiceImpl implements MessageProducerService {
 
     private final MessageErrorProducer messageErrorProducer;
 
-    public MessageErrorProducerServiceImpl(MessageErrorProducer messageErrorProducer){
+    public MessageProducerServiceImpl(MessageErrorProducer messageErrorProducer){
         this.messageErrorProducer = messageErrorProducer;
     }
 
      @Override
-    public void sendError(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId) {
+    public Mono<Void> enqueueMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId) {
         Message<MessageDTO> message = createMessage(messageDTO, messageUrl, authenticationUrl, entityId,0);
-        messageErrorProducer.sendToMessageErrorQueue(message);
+        return messageErrorProducer.sendToMessageErrorQueue(message);
     }
 
 
     @Override
-    public void sendError(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
+    public void enqueueMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
         Message<MessageDTO> message = createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry);
         messageErrorProducer.sendToMessageErrorQueue(message);
     }

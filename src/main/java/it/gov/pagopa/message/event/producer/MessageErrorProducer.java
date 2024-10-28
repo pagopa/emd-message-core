@@ -7,12 +7,10 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ScheduledExecutorService;
-
-
 import org.springframework.beans.factory.annotation.Value;
+import reactor.core.publisher.Mono;
 
-import java.util.concurrent.TimeUnit;
+
 
 @Component
 @Slf4j
@@ -27,9 +25,10 @@ public class MessageErrorProducer {
     this.binder = binder;
   }
 
-  public void sendToMessageErrorQueue(Message<MessageDTO> message) {
+  public Mono<Void> sendToMessageErrorQueue(Message<MessageDTO> message) {
     log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to queue",message.getPayload().getMessageId());
     streamBridge.send("messageSender-out-0", binder, message);
+    return Mono.empty();
     }
 }
 

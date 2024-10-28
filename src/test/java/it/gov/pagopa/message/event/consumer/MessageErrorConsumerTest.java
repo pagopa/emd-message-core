@@ -2,7 +2,7 @@ package it.gov.pagopa.message.event.consumer;
 
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
-import it.gov.pagopa.message.service.MessageErrorConsumerService;
+import it.gov.pagopa.message.service.MessageConsumerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 class MessageErrorConsumerTest {
 
     @Mock
-    MessageErrorConsumerService messageErrorConsumerService;
+    MessageConsumerService messageErrorConsumerService;
     @InjectMocks
     MessageErrorConsumer messageErrorConsumer;
     private Consumer<Flux<Message<String>>> consumerCommands;

@@ -22,19 +22,19 @@ import static it.gov.pagopa.message.constants.MessageCoreConstants.MessageHeader
 
 @Service
 @Slf4j
-public class MessageErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements MessageErrorConsumerService{
+public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements MessageConsumerService {
 
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final SendMessageServiceImpl sendMessageServiceImpl;
     private final long maxRetry;
-    public MessageErrorConsumerServiceImpl(ObjectMapper objectMapper,
-                                           SendMessageServiceImpl sendMessageServiceImpl,
-                                           @Value("${app.retry.max-retry}") long maxRetry,
-                                           @Value("${spring.application.name}") String applicationName,
-                                           @Value("${spring.cloud.stream.kafka.bindings.consumerCommands-in-0.consumer.ackTime}") long commitMillis,
-                                           @Value("${app.message-core.build-delay-duration}") String delayMinusCommit
+    public MessageConsumerServiceImpl(ObjectMapper objectMapper,
+                                      SendMessageServiceImpl sendMessageServiceImpl,
+                                      @Value("${app.retry.max-retry}") long maxRetry,
+                                      @Value("${spring.application.name}") String applicationName,
+                                      @Value("${spring.cloud.stream.kafka.bindings.consumerCommands-in-0.consumer.ackTime}") long commitMillis,
+                                      @Value("${app.message-core.build-delay-duration}") String delayMinusCommit
     ) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
