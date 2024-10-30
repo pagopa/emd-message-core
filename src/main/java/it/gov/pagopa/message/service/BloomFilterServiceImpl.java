@@ -1,0 +1,49 @@
+package it.gov.pagopa.message.service;
+
+
+import com.azure.cosmos.implementation.guava25.hash.BloomFilter;
+import com.azure.cosmos.implementation.guava25.hash.Funnels;
+import it.gov.pagopa.message.model.CitizenConsent;
+import it.gov.pagopa.message.repository.CitizenRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
+
+@Service
+@Slf4j
+public class BloomFilterServiceImpl implements BloomFilterService{
+
+    private final CitizenRepository citizenRepository;
+
+    private BloomFilter<String> bloomFilter;
+
+    public BloomFilterServiceImpl(CitizenRepository citizenRepository) {
+        this.citizenRepository = citizenRepository;
+    }
+
+
+    @Scheduled(fixedRate = 3600000)
+    public void initializeBloomFilter() {
+        bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8), 1000000, 0.01);
+
+         citizenRepository.findAll()
+                    .map(CitizenConsent::getHashedFiscalCode)
+                    .doOnNext(bloomFilter::put)
+                    .doOnComplete(() -> log.info("Bloom filter initialized"))
+                    .subscribe();
+    }
+    @Override
+
+    public boolean mightContain(String hashedFiscalCode) {
+        return bloomFilter.mightContain(hashedFiscalCode);
+    }
+
+
+    @Scheduled(fixedRate = 3600000)
+    public void updateBloomFilter() {
+        this.initializeBloomFilter();
+    }
+
+}

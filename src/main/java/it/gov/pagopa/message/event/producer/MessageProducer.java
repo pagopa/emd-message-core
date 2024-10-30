@@ -8,28 +8,25 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import org.springframework.beans.factory.annotation.Value;
-import reactor.core.publisher.Mono;
-
 
 
 @Component
 @Slf4j
-public class MessageErrorProducer {
+public class MessageProducer {
 
   private final String binder;
   private final StreamBridge streamBridge;
 
-  public MessageErrorProducer(StreamBridge streamBridge,
-                              @Value("${spring.cloud.stream.bindings.messageSender-out-0.binder}")String binder) {
+  public MessageProducer(StreamBridge streamBridge,
+                         @Value("${spring.cloud.stream.bindings.messageSender-out-0.binder}")String binder) {
     this.streamBridge = streamBridge;
     this.binder = binder;
   }
 
-  public Mono<Void> sendToMessageErrorQueue(Message<MessageDTO> message) {
+  public void sendToMessageQueue(Message<MessageDTO> message) {
     log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to queue",message.getPayload().getMessageId());
     streamBridge.send("messageSender-out-0", binder, message);
-    return Mono.empty();
-    }
+  }
 }
 
 

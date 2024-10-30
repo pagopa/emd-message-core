@@ -1,7 +1,7 @@
 package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.dto.MessageDTO;
-import it.gov.pagopa.message.event.producer.MessageErrorProducer;
+import it.gov.pagopa.message.event.producer.MessageProducer;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,27 +19,18 @@ import static org.mockito.Mockito.times;
 @ContextConfiguration(classes = {
         MessageProducerServiceImpl.class
 })
- class MessageErrorProducerServiceTest {
+ class MessageProducerServiceTest {
 
     @Autowired
     MessageProducerServiceImpl messageErrorProducerService;
     @MockBean
-    MessageErrorProducer messageErrorProducer;
+    MessageProducer messageProducer;
 
     private final static MessageDTO messegeDTO = MessageDTOFaker.mockInstance();
-    private final static String messegaUrl = "messegaUrl";
-    private final static String authenticationUrl = "authenticationUrl";
-    private final static long retry = 1;
-    private final static String entityId = "entityId";
     @Test
     void sendError1_OK(){
-        messageErrorProducerService.enqueueMessage(messegeDTO,messegaUrl,authenticationUrl,entityId);
-        Mockito.verify(messageErrorProducer,times(1)).sendToMessageErrorQueue(any());
+        messageErrorProducerService.enqueueMessage(messegeDTO);
+        Mockito.verify(messageProducer,times(1)).sendToMessageQueue(any());
     }
 
-    @Test
-    void sendError2_OK(){
-        messageErrorProducerService.enqueueMessage(messegeDTO,messegaUrl,authenticationUrl,entityId, retry);
-        Mockito.verify(messageErrorProducer,times(1)).sendToMessageErrorQueue(any());
-    }
 }

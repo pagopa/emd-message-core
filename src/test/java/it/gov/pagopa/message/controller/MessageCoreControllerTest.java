@@ -2,8 +2,6 @@ package it.gov.pagopa.message.controller;
 
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
-import it.gov.pagopa.message.faker.OutcomeFaker;
-import it.gov.pagopa.message.model.Outcome;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,9 +26,8 @@ class MessageCoreControllerTest {
     @Test
     void sendMessage_Ok() {
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        Outcome outcome = OutcomeFaker.mockInstance(true);
 
-        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(outcome));
+        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(true));
 
         webTestClient.post()
                 .uri("/emd/message-core/sendMessage")
@@ -39,20 +36,19 @@ class MessageCoreControllerTest {
                 .bodyValue(messageDTO)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(Outcome.class)
+                .expectBody(String.class)
                 .consumeWith(response -> {
-                    Outcome resultResponse = response.getResponseBody();
+                    String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
-                    Assertions.assertEquals(outcome, resultResponse);
+                    Assertions.assertEquals("OK", resultResponse);
                 });
     }
 
     @Test
-    void sendMessage_NoChannelEnabled() {
+    void sendMessage_Ko() {
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        Outcome outcome = OutcomeFaker.mockInstance(false);
 
-        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(outcome));
+        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(false));
 
         webTestClient.post()
                 .uri("/emd/message-core/sendMessage")
@@ -61,11 +57,11 @@ class MessageCoreControllerTest {
                 .bodyValue(messageDTO)
                 .exchange()
                 .expectStatus().isAccepted()
-                .expectBody(Outcome.class)
+                .expectBody(String.class)
                 .consumeWith(response -> {
-                    Outcome resultResponse = response.getResponseBody();
+                    String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
-                    Assertions.assertEquals(outcome, resultResponse);
+                    Assertions.assertEquals("KO", resultResponse);
                 });
     }
 
