@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -24,7 +25,7 @@ public class BloomFilterServiceImpl implements BloomFilterService{
     }
 
 
-    @Scheduled(fixedRate = 3600000)
+    @PostConstruct
     public void initializeBloomFilter() {
         bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8), 1000000, 0.01);
 
