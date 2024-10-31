@@ -9,6 +9,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
+import static it.gov.pagopa.message.constants.MessageCoreConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
+
 @Slf4j
 @Service
 public class MessageProducerServiceImpl implements MessageProducerService {
@@ -29,6 +31,7 @@ public class MessageProducerServiceImpl implements MessageProducerService {
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO) {
         return MessageBuilder
                 .withPayload(messageDTO)
+                .setHeader(ERROR_MSG_HEADER_RETRY, 0L)
                 .build();
 
     }
