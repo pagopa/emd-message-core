@@ -43,7 +43,7 @@ public class BloomFilterServiceImpl implements BloomFilterService{
 
 
     @Scheduled(fixedRate = 3600000)
-    public void updateBloomFilter() {
+    public void update() {
         this.initializeBloomFilter();
     }
 
