@@ -18,11 +18,10 @@ public class MessageCoreControllerImpl implements MessageCoreController {
     public Mono<ResponseEntity<String>> sendMessage(MessageDTO messageDTO) {
         return messageCoreService.sendMessage(messageDTO)
                 .map(outcome -> {
-                    if (Boolean.TRUE.equals(outcome)) {
+                    if (Boolean.TRUE.equals(outcome))
                         return ResponseEntity.ok("OK");
-                    } else {
+                    else
                         return ResponseEntity.status(HttpStatus.ACCEPTED).body("KO");
-                    }
                 });
     }
 }

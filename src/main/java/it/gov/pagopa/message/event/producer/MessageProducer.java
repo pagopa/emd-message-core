@@ -24,7 +24,7 @@ public class MessageProducer {
   }
 
   public void sendToMessageQueue(Message<MessageDTO> message) {
-    log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to queue",message.getPayload().getMessageId());
+    log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to messageSenderQueue",message.getPayload().getMessageId());
     streamBridge.send("messageSender-out-0", binder, message);
   }
 }

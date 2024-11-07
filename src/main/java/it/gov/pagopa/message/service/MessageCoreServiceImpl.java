@@ -25,7 +25,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     @Override
     public Mono<Boolean> sendMessage(MessageDTO messageDTO) {
-        log.info("[EMD-MESSAGE-CORE][SEND]Received message: {}", messageDTO);
+        log.info("[EMD-MESSAGE-CORE][SEND] Received message: {}", messageDTO);
         if (bloomFilterServiceImpl.mightContain(CommonUtilities.createSHA256(messageDTO.getRecipientId()))) {
             messageErrorProducerService.enqueueMessage(messageDTO);
             return Mono.just(true);

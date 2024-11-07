@@ -30,7 +30,7 @@ public class BloomFilterServiceImpl implements BloomFilterService{
         bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8), 1000000, 0.01);
 
          citizenRepository.findAll()
-                    .map(CitizenConsent::getHashedFiscalCode)
+                    .map(CitizenConsent::getFiscalCode)
                     .doOnNext(bloomFilter::put)
                     .doOnComplete(() -> log.info("Bloom filter initialized"))
                     .subscribe();
