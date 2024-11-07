@@ -25,8 +25,8 @@ class BloomFilterServiceTest {
 
     @BeforeEach
     void setUp() {
-        CitizenConsent consent1 = CitizenConsent.builder().hashedFiscalCode("hashedFiscalCode1").build();
-        CitizenConsent consent2 = CitizenConsent.builder().hashedFiscalCode("hashedFiscalCode2").build();
+        CitizenConsent consent1 = CitizenConsent.builder().fiscalCode("hashedFiscalCode1").build();
+        CitizenConsent consent2 = CitizenConsent.builder().fiscalCode("hashedFiscalCode2").build();
         when(citizenRepository.findAll()).thenReturn(Flux.just(consent1, consent2));
         bloomFilterService.initializeBloomFilter();
     }
@@ -40,7 +40,7 @@ class BloomFilterServiceTest {
 
     @Test
     void testUpdate() {
-        CitizenConsent consent1 = CitizenConsent.builder().hashedFiscalCode("hashedFiscalCode1").build();
+        CitizenConsent consent1 = CitizenConsent.builder().fiscalCode("hashedFiscalCode1").build();
         when(citizenRepository.findAll()).thenReturn(Flux.just(consent1));
         bloomFilterService.update();
         assertTrue(bloomFilterService.mightContain("hashedFiscalCode1"));

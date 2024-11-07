@@ -1,6 +1,5 @@
 package it.gov.pagopa.message.service;
 
-import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Assertions;
@@ -31,11 +30,11 @@ class MessageCoreServiceTest {
 
 
     private final MessageDTO MESSAGE = MessageDTOFaker.mockInstance();
-    private final String HASHED_FISCAL_CODE = CommonUtilities.createSHA256(MESSAGE.getRecipientId());
+    private final String FISCAL_CODE = MESSAGE.getRecipientId();
     @Test
     void sendMessage_Ok()  {
 
-        when(bloomFilterServiceImpl.mightContain(HASHED_FISCAL_CODE)).thenReturn(true);
+        when(bloomFilterServiceImpl.mightContain(FISCAL_CODE)).thenReturn(true);
         doNothing().when(messageProducerService).enqueueMessage(MESSAGE);
         Boolean result = messageCoreService.sendMessage(MESSAGE).block();
         Assertions.assertEquals(true, result);
@@ -44,7 +43,7 @@ class MessageCoreServiceTest {
 
     @Test
     void sendMessage_Ko()  {
-        when(bloomFilterServiceImpl.mightContain(HASHED_FISCAL_CODE)).thenReturn(false);
+        when(bloomFilterServiceImpl.mightContain(FISCAL_CODE)).thenReturn(false);
         Boolean result = messageCoreService.sendMessage(MESSAGE).block();
         Assertions.assertEquals(false,result);
     }

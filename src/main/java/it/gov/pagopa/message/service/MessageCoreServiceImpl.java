@@ -1,6 +1,5 @@
 package it.gov.pagopa.message.service;
 
-import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.message.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     @Override
     public Mono<Boolean> sendMessage(MessageDTO messageDTO) {
         log.info("[EMD-MESSAGE-CORE][SEND] Received message: {}", messageDTO);
-        if (bloomFilterServiceImpl.mightContain(CommonUtilities.createSHA256(messageDTO.getRecipientId()))) {
+        if (bloomFilterServiceImpl.mightContain(messageDTO.getRecipientId())) {
             messageErrorProducerService.enqueueMessage(messageDTO);
             return Mono.just(true);
         }
