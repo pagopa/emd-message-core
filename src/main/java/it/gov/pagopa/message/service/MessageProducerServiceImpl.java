@@ -23,8 +23,7 @@ public class MessageProducerServiceImpl implements MessageProducerService {
 
     @Override
     public void enqueueMessage(MessageDTO messageDTO) {
-        Message<MessageDTO> message = createMessage(messageDTO);
-        messageProducer.sendToMessageQueue(message);
+        messageProducer.sendToMessageQueue(createMessage(messageDTO));
     }
 
     @NotNull

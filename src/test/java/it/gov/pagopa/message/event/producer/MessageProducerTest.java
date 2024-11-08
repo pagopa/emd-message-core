@@ -25,10 +25,10 @@ class MessageProducerTest {
     private MessageProducer messageProducer;
 
     @Test
-     void testStreamBridgeSendCalled() throws Exception {
+     void testStreamBridgeSendCalled() {
 
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "messegaUrl";
+        String messageUrl = "messageUrl";
         String authenticationUrl = "authenticationUrl";
         long retry = 1;
         Message<MessageDTO> message = MessageBuilder
