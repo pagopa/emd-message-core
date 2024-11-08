@@ -1,5 +1,6 @@
 package it.gov.pagopa.message.service;
 
+import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,26 +12,28 @@ import reactor.core.publisher.Mono;
 @Service
 public class MessageCoreServiceImpl implements MessageCoreService {
 
-    private final BloomFilterServiceImpl bloomFilterServiceImpl;
+    private final CitizenConnectorImpl citizenConnector;
 
-    private final MessageProducerServiceImpl messageErrorProducerService;
+    private final MessageProducerServiceImpl messageProducerService;
 
-    public MessageCoreServiceImpl(BloomFilterServiceImpl bloomFilterServiceImpl,
+    public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
                                   MessageProducerServiceImpl messageProducerService) {
-        this.bloomFilterServiceImpl = bloomFilterServiceImpl;
-        this.messageErrorProducerService = messageProducerService;
+        this.citizenConnector = citizenConnector;
+        this.messageProducerService = messageProducerService;
     }
 
 
     @Override
     public Mono<Boolean> sendMessage(MessageDTO messageDTO) {
         log.info("[EMD-MESSAGE-CORE][SEND] Received message: {}", messageDTO);
-        if (bloomFilterServiceImpl.mightContain(messageDTO.getRecipientId())) {
-            messageErrorProducerService.enqueueMessage(messageDTO);
-            return Mono.just(true);
-        }
-        else
-            return Mono.just(false);
+        return citizenConnector.checkFiscalCode(messageDTO.getRecipientId())
+                .flatMap(response -> {
+                    if ("OK".equals(response)) {
+                        return messageProducerService.enqueueMessage(messageDTO)
+                                .thenReturn(true);
+                    }
+                    return Mono.just(false);
+                });
     }
 
 }

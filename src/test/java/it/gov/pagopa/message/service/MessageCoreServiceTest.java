@@ -1,5 +1,6 @@
 package it.gov.pagopa.message.service;
 
+import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Assertions;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import reactor.core.publisher.Mono;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -20,10 +22,9 @@ import static org.mockito.Mockito.when;
 })
 class MessageCoreServiceTest {
     @MockBean
-    BloomFilterServiceImpl bloomFilterServiceImpl;
-
-    @MockBean
     MessageProducerServiceImpl messageProducerService;
+    @MockBean
+    CitizenConnectorImpl citizenConnector;
 
     @Autowired
     MessageCoreServiceImpl messageCoreService;
@@ -34,8 +35,8 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_Ok()  {
 
-        when(bloomFilterServiceImpl.mightContain(FISCAL_CODE)).thenReturn(true);
-        doNothing().when(messageProducerService).enqueueMessage(MESSAGE);
+        when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("OK"));
+        when(messageProducerService.enqueueMessage(MESSAGE)).thenReturn(Mono.empty());
         Boolean result = messageCoreService.sendMessage(MESSAGE).block();
         Assertions.assertEquals(true, result);
 
@@ -43,7 +44,7 @@ class MessageCoreServiceTest {
 
     @Test
     void sendMessage_Ko()  {
-        when(bloomFilterServiceImpl.mightContain(FISCAL_CODE)).thenReturn(false);
+        when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("NO CHANNEL ENABLED"));
         Boolean result = messageCoreService.sendMessage(MESSAGE).block();
         Assertions.assertEquals(false,result);
     }

@@ -22,14 +22,14 @@ import static org.mockito.Mockito.times;
  class MessageProducerServiceTest {
 
     @Autowired
-    MessageProducerServiceImpl messageErrorProducerService;
+    MessageProducerServiceImpl messageProducerService;
     @MockBean
     MessageProducer messageProducer;
 
     private final static MessageDTO messegeDTO = MessageDTOFaker.mockInstance();
     @Test
-    void sendError1_OK(){
-        messageErrorProducerService.enqueueMessage(messegeDTO);
+    void sendMessage_OK(){
+        messageProducerService.enqueueMessage(messegeDTO).block();
         Mockito.verify(messageProducer,times(1)).sendToMessageQueue(any());
     }
 
