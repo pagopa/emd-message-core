@@ -22,18 +22,17 @@ class MessageCoreControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
+    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
 
     @Test
     void sendMessage_Ok() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-
-        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(true));
+        Mockito.when(messageCoreService.send(MESSAGE_DTO)).thenReturn(Mono.just(true));
 
         webTestClient.post()
                 .uri("/emd/message-core/sendMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(messageDTO)
+                .bodyValue(MESSAGE_DTO)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class)
@@ -46,15 +45,13 @@ class MessageCoreControllerTest {
 
     @Test
     void sendMessage_Ko() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-
-        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(false));
+        Mockito.when(messageCoreService.send(MESSAGE_DTO)).thenReturn(Mono.just(false));
 
         webTestClient.post()
                 .uri("/emd/message-core/sendMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(messageDTO)
+                .bodyValue(MESSAGE_DTO)
                 .exchange()
                 .expectStatus().isAccepted()
                 .expectBody(String.class)

@@ -13,7 +13,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
@@ -34,10 +33,10 @@ class MessageCoreServiceTest {
     private final String FISCAL_CODE = MESSAGE.getRecipientId();
     @Test
     void sendMessage_Ok()  {
-
         when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("OK"));
         when(messageProducerService.enqueueMessage(MESSAGE)).thenReturn(Mono.empty());
-        Boolean result = messageCoreService.sendMessage(MESSAGE).block();
+
+        Boolean result = messageCoreService.send(MESSAGE).block();
         Assertions.assertEquals(true, result);
 
     }
@@ -45,7 +44,8 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_Ko()  {
         when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("NO CHANNEL ENABLED"));
-        Boolean result = messageCoreService.sendMessage(MESSAGE).block();
+
+        Boolean result = messageCoreService.send(MESSAGE).block();
         Assertions.assertEquals(false,result);
     }
 

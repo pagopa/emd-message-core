@@ -6,5 +6,5 @@ import reactor.core.publisher.Mono;
 
 public interface MessageCoreService {
 
-    Mono<Boolean> sendMessage(MessageDTO messageDTO);
+    Mono<Boolean> send(MessageDTO messageDTO);
 }

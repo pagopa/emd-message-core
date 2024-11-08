@@ -24,16 +24,13 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
 
     @Override
-    public Mono<Boolean> sendMessage(MessageDTO messageDTO) {
+    public Mono<Boolean> send(MessageDTO messageDTO) {
         log.info("[EMD-MESSAGE-CORE][SEND] Received message: {}", messageDTO);
         return citizenConnector.checkFiscalCode(messageDTO.getRecipientId())
-                .flatMap(response -> {
-                    if ("OK".equals(response)) {
-                        return messageProducerService.enqueueMessage(messageDTO)
-                                .thenReturn(true);
-                    }
-                    return Mono.just(false);
-                });
+                .flatMap(response -> "OK".equals(response) ?
+                    messageProducerService.enqueueMessage(messageDTO).thenReturn(true) :
+                    Mono.just(false));
     }
-
 }
+
+

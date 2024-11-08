@@ -26,10 +26,10 @@ import static org.mockito.Mockito.times;
     @MockBean
     MessageProducer messageProducer;
 
-    private final static MessageDTO messegeDTO = MessageDTOFaker.mockInstance();
+    private final static MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     @Test
     void sendMessage_OK(){
-        messageProducerService.enqueueMessage(messegeDTO).block();
+        messageProducerService.enqueueMessage(MESSAGE_DTO).block();
         Mockito.verify(messageProducer,times(1)).sendToMessageQueue(any());
     }
 

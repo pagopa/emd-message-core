@@ -15,13 +15,10 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         this.messageCoreService = messageCoreService;
     }
 
-    public Mono<ResponseEntity<String>> sendMessage(MessageDTO messageDTO) {
-        return messageCoreService.sendMessage(messageDTO)
-                .map(outcome -> {
-                    if (Boolean.TRUE.equals(outcome))
-                        return ResponseEntity.ok("OK");
-                    else
-                        return ResponseEntity.status(HttpStatus.ACCEPTED).body("NO CHANNELS ENABLED");
-                });
+    public Mono<ResponseEntity<String>> send(MessageDTO messageDTO) {
+        return messageCoreService.send(messageDTO)
+                .map(outcome -> Boolean.TRUE.equals(outcome) ?
+                        ResponseEntity.ok("OK") :
+                        ResponseEntity.status(HttpStatus.ACCEPTED).body("NO CHANNELS ENABLED"));
     }
 }
