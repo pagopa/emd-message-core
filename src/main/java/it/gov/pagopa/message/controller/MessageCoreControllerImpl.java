@@ -21,7 +21,7 @@ public class MessageCoreControllerImpl implements MessageCoreController {
                     if (Boolean.TRUE.equals(outcome))
                         return ResponseEntity.ok("OK");
                     else
-                        return ResponseEntity.status(HttpStatus.ACCEPTED).body("KO");
+                        return ResponseEntity.status(HttpStatus.ACCEPTED).body("NO CHANNELS ENABLED");
                 });
     }
 }
