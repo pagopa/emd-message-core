@@ -61,13 +61,6 @@ spring:
 app:
   message-core:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:PT1S}
-  retry:
-    max-retry: ${ERROR_MESSAGE_MAX_RETRY:5}
-  token:
-    client: ${HYPE_KEY:}
-    clientId: ${HYPE_CLIENT:}
-    grantType: ${GRANT_TYPE:client_credentials}
-    tenantId: ${HYPE_TENANT:}
 
 management:
   health:
@@ -88,5 +81,3 @@ management:
 rest-client:
   citizen:
     baseUrl: ${EMD_CITIZEN:http://emd-citizen}
-  tpp:
-    baseUrl: ${EMD_TPP:http://emd-tpp}
