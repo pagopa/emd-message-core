@@ -28,7 +28,7 @@ import static org.mockito.Mockito.times;
     @Test
     void sendMessage_OK(){
         messageProducerService.enqueueMessage(MESSAGE_DTO).block();
-        Mockito.verify(messageProducer,times(1)).sendToMessageQueue(any());
+        Mockito.verify(messageProducer,times(1)).scheduleMessage(any());
     }
 
 }

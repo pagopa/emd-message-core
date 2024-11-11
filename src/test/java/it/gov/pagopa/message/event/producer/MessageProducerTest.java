@@ -24,7 +24,7 @@ class MessageProducerTest {
 
     @Test
      void testStreamBridgeSendCalled() {
-        messageProducer.sendToMessageQueue(QUEUE_MESSAGE);
+        messageProducer.scheduleMessage(QUEUE_MESSAGE);
         verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(QUEUE_MESSAGE));
 
     }

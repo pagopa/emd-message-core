@@ -23,8 +23,10 @@ public class MessageProducer {
     this.binder = binder;
   }
 
-  public void sendToMessageQueue(Message<MessageDTO> message) {
-    log.info("[EMD-MESSAGE-CORE][SEND] Scheduling message {} to messageSenderQueue",message.getPayload().getMessageId());
+  public void scheduleMessage(Message<MessageDTO> message) {
+    String messageId = message.getPayload().getMessageId();
+    log.info("[MESSAGE-CORE][SCHEDULE-MESSAGE] Scheduling message ID: {} to messageSenderQueue", messageId);
+
     streamBridge.send("messageSender-out-0", binder, message);
   }
 }

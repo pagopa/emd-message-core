@@ -24,17 +24,29 @@ public class MessageProducerServiceImpl implements MessageProducerService {
 
     @Override
     public Mono<Void> enqueueMessage(MessageDTO messageDTO) {
-        return Mono.fromRunnable(() -> messageProducer.sendToMessageQueue(createMessage(messageDTO)));
+        log.info("[MESSAGE-PRODUCER][ENQUEUE] Enqueuing message with ID: {}", messageDTO.getMessageId());
+
+        return Mono.fromRunnable(() -> {
+            try {
+                Message<MessageDTO> message = createMessage(messageDTO);
+                log.info("[MESSAGE-PRODUCER][ENQUEUE] Message with ID: {} successfully created. Sending to message queue.", messageDTO.getMessageId());
+                messageProducer.scheduleMessage(message);
+            } catch (Exception e) {
+                log.error("[MESSAGE-PRODUCER][ENQUEUE] Error while creating or sending message with ID: {}. Error: {}", messageDTO.getMessageId(), e.getMessage());
+            }
+        });
     }
 
     @NotNull
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO) {
+        log.debug("[MESSAGE-PRODUCER][CREATE-MESSAGE] Creating message with ID: {}", messageDTO.getMessageId());
+
         return MessageBuilder
                 .withPayload(messageDTO)
                 .setHeader(ERROR_MSG_HEADER_RETRY, 0L)
                 .build();
-
     }
+
 
 
 }
