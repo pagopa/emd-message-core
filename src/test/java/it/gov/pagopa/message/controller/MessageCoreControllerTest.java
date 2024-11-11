@@ -1,7 +1,5 @@
 package it.gov.pagopa.message.controller;
 
-import it.gov.pagopa.message.dto.MessageDTO;
-import it.gov.pagopa.message.faker.MessageDTOFaker;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
+
 @WebFluxTest(MessageCoreControllerImpl.class)
 class MessageCoreControllerTest {
 
@@ -21,8 +21,6 @@ class MessageCoreControllerTest {
 
     @Autowired
     private WebTestClient webTestClient;
-
-    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
 
     @Test
     void sendMessage_Ok() {

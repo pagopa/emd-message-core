@@ -1,4 +1,4 @@
-package it.gov.pagopa.message.faker;
+package it.gov.pagopa.message.utils.faker;
 
 
 

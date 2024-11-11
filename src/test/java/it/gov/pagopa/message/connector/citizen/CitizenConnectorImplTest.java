@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 
+import static it.gov.pagopa.message.utils.TestUtils.FISCAL_CODE;
+import static it.gov.pagopa.message.utils.TestUtils.RESPONSE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -20,8 +22,6 @@ class CitizenConnectorImplTest {
 
     private MockWebServer mockWebServer;
     private CitizenConnectorImpl citizenConnector;
-    private static final String FISCAL_CODE = "12345678901";
-    private static final String RESPONSE = "OK";
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();

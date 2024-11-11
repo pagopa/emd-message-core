@@ -1,8 +1,6 @@
 package it.gov.pagopa.message.service;
 
-import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.event.producer.MessageProducer;
-import it.gov.pagopa.message.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -12,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.times;
     @MockBean
     MessageProducer messageProducer;
 
-    private final static MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     @Test
     void sendMessage_OK(){
         messageProducerService.enqueueMessage(MESSAGE_DTO).block();
