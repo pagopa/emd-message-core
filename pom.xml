@@ -9,7 +9,7 @@
 	</parent>
 
 	<groupId>it.gov.pagopa.message.core</groupId>
-	<artifactId>emd-notifier-sender</artifactId>
+	<artifactId>emd-message-core</artifactId>
 	<name>emd-message-core</name>
 	<description>Message Dispatcher Microservice</description>
 	<version>0.0.1</version>
