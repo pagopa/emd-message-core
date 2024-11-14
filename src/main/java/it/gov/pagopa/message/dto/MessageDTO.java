@@ -39,6 +39,7 @@ public class MessageDTO {
                 ", senderDescription='" + senderDescription + '\'' +
                 ", messageUrl='" + messageUrl + '\'' +
                 ", originId='" + originId + '\'' +
+                ", associatedPayment='" + associatedPayment + '\'' +
                 '}';
     }
 }
