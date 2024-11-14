@@ -1,78 +1,48 @@
 package it.gov.pagopa.message.service;
 
-import it.gov.pagopa.message.connector.citizen.CitizenConnectorImpl;
-import it.gov.pagopa.message.connector.tpp.TppConnectorImpl;
-import it.gov.pagopa.message.dto.CitizenConsentDTO;
-import it.gov.pagopa.message.dto.TppDTO;
-import it.gov.pagopa.message.dto.TppIdList;
-import it.gov.pagopa.message.enums.OutcomeStatus;
+import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.dto.MessageDTO;
-import it.gov.pagopa.message.model.Outcome;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-
-import java.util.List;
-
+import static it.gov.pagopa.common.utils.CommonUtilities.createSHA256;
 
 
 @Slf4j
 @Service
 public class MessageCoreServiceImpl implements MessageCoreService {
 
-
     private final CitizenConnectorImpl citizenConnector;
-    private final TppConnectorImpl tppConnector;
-    private final SendMessageServiceImpl sendMessageService;
+
+    private final MessageProducerServiceImpl messageProducerService;
 
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
-                                  TppConnectorImpl tppConnector,
-                                  SendMessageServiceImpl sendMessageService) {
-        this.tppConnector = tppConnector;
+                                  MessageProducerServiceImpl messageProducerService) {
         this.citizenConnector = citizenConnector;
-        this.sendMessageService = sendMessageService;
+        this.messageProducerService = messageProducerService;
     }
 
 
     @Override
-    public Mono<Outcome> sendMessage(MessageDTO messageDTO) {
-        log.info("[EMD-MESSAGE-CORE][SEND]Received message: {}", messageDTO);
+    public Mono<Boolean> send(MessageDTO messageDTO) {
+        log.info("[MESSAGE-CORE][SEND] Received message: {}", messageDTO);
 
-        return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
-                .flatMap(citizenConsentDTOSList -> {
-                    if (citizenConsentDTOSList.isEmpty()) {
-                        log.info("[EMD-MESSAGE-CORE][SEND]Citizen consent list is empty");
-                        return Mono.just(new Outcome(OutcomeStatus.NO_CHANNELS_ENABLED));
+        return citizenConnector.checkFiscalCode(messageDTO.getRecipientId())
+                .flatMap(response -> {
+                    if ("OK".equals(response)) {
+                        log.info("[MESSAGE-CORE][SEND] Fiscal code check passed for recipient: {}", createSHA256(createSHA256(messageDTO.getRecipientId())));
+                        return messageProducerService.enqueueMessage(messageDTO)
+                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message {} enqueued successfully for recipient: {}",messageDTO.getMessageId(), createSHA256(messageDTO.getRecipientId())))
+                                .thenReturn(true);
+                    } else {
+                        log.warn("[MESSAGE-CORE][SEND] Fiscal code check failed for recipient: {}", createSHA256(messageDTO.getRecipientId()));
+                        return Mono.just(false);
                     }
-
-                    log.info("[EMD-MESSAGE-CORE][SEND]Citizen consent list: {}", citizenConsentDTOSList);
-
-                    List<String> tppIds = citizenConsentDTOSList.stream()
-                            .map(CitizenConsentDTO::getTppId)
-                            .toList();
-
-                    return tppConnector.getTppsEnabled(new TppIdList(tppIds))
-                            .flatMap(tppList -> {
-                                if (tppList.isEmpty()) {
-                                    log.info("[EMD-MESSAGE-CORE][SEND]Channel list is empty");
-                                    return Mono.just(new Outcome(OutcomeStatus.NO_CHANNELS_ENABLED));
-                                }
-                                log.info("[EMD-MESSAGE-CORE][SEND]Channel list: {}", tppList);
-                                return processMessages(tppList, messageDTO);
-                            });
-                });
-    }
-    private Mono<Outcome> processMessages(List<TppDTO> tppDTOList,
-                                          MessageDTO messageDTO) {
-       return Flux.fromIterable(tppDTOList)
-                .flatMap(tppDTO -> {
-                    log.info("[EMD-MESSAGE-CORE][SEND]Prepare sending message to: {}", tppDTO.getTppId());
-                    return sendMessageService.sendMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
                 })
-                .then()
-                .thenReturn(new Outcome(OutcomeStatus.OK));
+                .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", createSHA256(messageDTO.getRecipientId()), error.getMessage()));
     }
 
 }
+
+

@@ -1,9 +1,5 @@
 package it.gov.pagopa.message.controller;
 
-import it.gov.pagopa.message.dto.MessageDTO;
-import it.gov.pagopa.message.faker.MessageDTOFaker;
-import it.gov.pagopa.message.faker.OutcomeFaker;
-import it.gov.pagopa.message.model.Outcome;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -15,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
+
 @WebFluxTest(MessageCoreControllerImpl.class)
 class MessageCoreControllerTest {
 
@@ -24,48 +22,41 @@ class MessageCoreControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
-
     @Test
     void sendMessage_Ok() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        Outcome outcome = OutcomeFaker.mockInstance(true);
-
-        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(outcome));
+        Mockito.when(messageCoreService.send(MESSAGE_DTO)).thenReturn(Mono.just(true));
 
         webTestClient.post()
                 .uri("/emd/message-core/sendMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(messageDTO)
+                .bodyValue(MESSAGE_DTO)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(Outcome.class)
+                .expectBody(String.class)
                 .consumeWith(response -> {
-                    Outcome resultResponse = response.getResponseBody();
+                    String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
-                    Assertions.assertEquals(outcome, resultResponse);
+                    Assertions.assertEquals("OK", resultResponse);
                 });
     }
 
     @Test
-    void sendMessage_NoChannelEnabled() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        Outcome outcome = OutcomeFaker.mockInstance(false);
-
-        Mockito.when(messageCoreService.sendMessage(messageDTO)).thenReturn(Mono.just(outcome));
+    void sendMessage_Ko() {
+        Mockito.when(messageCoreService.send(MESSAGE_DTO)).thenReturn(Mono.just(false));
 
         webTestClient.post()
                 .uri("/emd/message-core/sendMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(messageDTO)
+                .bodyValue(MESSAGE_DTO)
                 .exchange()
                 .expectStatus().isAccepted()
-                .expectBody(Outcome.class)
+                .expectBody(String.class)
                 .consumeWith(response -> {
-                    Outcome resultResponse = response.getResponseBody();
+                    String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
-                    Assertions.assertEquals(outcome, resultResponse);
+                    Assertions.assertEquals("NO CHANNELS ENABLED", resultResponse);
                 });
     }
 
