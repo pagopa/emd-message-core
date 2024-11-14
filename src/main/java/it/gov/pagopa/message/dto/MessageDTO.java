@@ -1,8 +1,8 @@
 package it.gov.pagopa.message.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonAlias;
 import it.gov.pagopa.common.utils.CommonUtilities;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +22,12 @@ public class MessageDTO {
     @JsonAlias("message")
     private String content;
     private String entityId;
+    private Boolean associatedPayment;
+
+    @PostConstruct
+    private void postConstruct() {
+        this.associatedPayment = true;
+    }
 
     @Override
     public String toString() {

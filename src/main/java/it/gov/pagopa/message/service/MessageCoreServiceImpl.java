@@ -33,7 +33,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     if ("OK".equals(response)) {
                         log.info("[MESSAGE-CORE][SEND] Fiscal code check passed for recipient: {}", createSHA256(createSHA256(messageDTO.getRecipientId())));
                         return messageProducerService.enqueueMessage(messageDTO)
-                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message enqueued successfully for recipient: {}", createSHA256(messageDTO.getRecipientId())))
+                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message {} enqueued successfully for recipient: {}",messageDTO.getMessageId(), createSHA256(messageDTO.getRecipientId())))
                                 .thenReturn(true);
                     } else {
                         log.warn("[MESSAGE-CORE][SEND] Fiscal code check failed for recipient: {}", createSHA256(messageDTO.getRecipientId()));
