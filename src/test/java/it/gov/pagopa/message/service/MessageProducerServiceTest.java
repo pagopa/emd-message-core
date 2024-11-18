@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import reactor.test.StepVerifier;
 
 import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +28,8 @@ import static org.mockito.Mockito.times;
 
     @Test
     void sendMessage_OK(){
-        messageProducerService.enqueueMessage(MESSAGE_DTO).block();
+        StepVerifier.create(messageProducerService.enqueueMessage(MESSAGE_DTO))
+                .verifyComplete();
         Mockito.verify(messageProducer,times(1)).scheduleMessage(any());
     }
 

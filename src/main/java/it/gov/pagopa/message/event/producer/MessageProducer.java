@@ -26,7 +26,6 @@ public class MessageProducer {
   public void scheduleMessage(Message<MessageDTO> message) {
     String messageId = message.getPayload().getMessageId();
     log.info("[MESSAGE-CORE][SCHEDULE-MESSAGE] Scheduling message ID: {} to messageSenderQueue", messageId);
-
     streamBridge.send("messageSender-out-0", binder, message);
   }
 }
