@@ -10,6 +10,7 @@ import java.util.function.Function;
 class PerformanceLoggerTest {
 
 //region mono ops
+    @Test
     void testMonoLogTimingOnNext(){
         testMonoLogTimingOnNext(null);
         testMonoLogTimingOnNext(Object::toString);

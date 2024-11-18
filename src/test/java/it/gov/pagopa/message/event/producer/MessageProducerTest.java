@@ -20,13 +20,10 @@ class MessageProducerTest {
     @InjectMocks
     private MessageProducer messageProducer;
 
-
-
     @Test
      void testStreamBridgeSendCalled() {
         messageProducer.scheduleMessage(QUEUE_MESSAGE);
         verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(QUEUE_MESSAGE));
-
     }
 }
 

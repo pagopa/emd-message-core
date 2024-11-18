@@ -27,13 +27,9 @@ public class MessageProducerServiceImpl implements MessageProducerService {
         log.info("[MESSAGE-PRODUCER][ENQUEUE] Enqueuing message with ID: {}", messageDTO.getMessageId());
 
         return Mono.fromRunnable(() -> {
-            try {
                 Message<MessageDTO> message = createMessage(messageDTO);
                 log.info("[MESSAGE-PRODUCER][ENQUEUE] Message with ID: {} successfully created. Sending to message queue.", messageDTO.getMessageId());
                 messageProducer.scheduleMessage(message);
-            } catch (Exception e) {
-                log.error("[MESSAGE-PRODUCER][ENQUEUE] Error while creating or sending message with ID: {}. Error: {}", messageDTO.getMessageId(), e.getMessage());
-            }
         });
     }
 

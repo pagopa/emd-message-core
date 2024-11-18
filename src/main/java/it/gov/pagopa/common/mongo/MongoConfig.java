@@ -1,4 +1,4 @@
-package it.gov.pagopa.common.configuration;
+package it.gov.pagopa.common.mongo;
 
 import com.mongodb.lang.NonNull;
 import it.gov.pagopa.common.utils.CommonConstants;
