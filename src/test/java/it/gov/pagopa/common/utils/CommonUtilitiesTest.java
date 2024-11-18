@@ -29,7 +29,6 @@ class CommonUtilitiesTest {
 
     @Mock
     private Message<String> messageMock;
-
     @Mock
     private ObjectReader objectReaderMock;
 
@@ -94,17 +93,6 @@ class CommonUtilitiesTest {
     @Test
     void readMessagePayload_StringPayload() {
         String expectedPayload = "test message";
-        when(messageMock.getPayload()).thenReturn(expectedPayload);
-
-        String actualPayload = CommonUtilities.readMessagePayload(messageMock);
-
-        assertEquals(expectedPayload, actualPayload);
-    }
-
-    @Test
-    void readMessagePayload_ByteArrayPayload() {
-        String expectedPayload = "test message";
-
         when(messageMock.getPayload()).thenReturn(expectedPayload);
 
         String actualPayload = CommonUtilities.readMessagePayload(messageMock);
