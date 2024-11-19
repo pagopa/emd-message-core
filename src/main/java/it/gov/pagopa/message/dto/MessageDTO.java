@@ -20,7 +20,6 @@ public class MessageDTO {
     private String originId;
     @JsonAlias("message")
     private String content;
-    private String entityId;
     private Boolean associatedPayment;
 
     @Override
