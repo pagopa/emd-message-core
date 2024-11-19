@@ -21,6 +21,7 @@ public class MessageDTO {
     @JsonAlias("message")
     private String content;
     private Boolean associatedPayment;
+    private String idPsp;
 
     @Override
     public String toString() {
