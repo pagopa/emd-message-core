@@ -7,7 +7,6 @@ import org.springframework.messaging.Message;
 
 public class TestUtils {
 
-    public TestUtils(){}
 
     public static final String RESPONSE = "OK";
     public static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
@@ -15,5 +14,5 @@ public class TestUtils {
     public static final String AUTHENTICATION_URL = "authenticationUrl";
     public static final long RETRY = 1;
     public static final String FISCAL_CODE = MESSAGE_DTO.getRecipientId();
-    public static Message<MessageDTO> QUEUE_MESSAGE = QueueMessageFaker.mockInstance(MESSAGE_DTO);
+    public static final Message<MessageDTO> QUEUE_MESSAGE = QueueMessageFaker.mockInstance(MESSAGE_DTO);
 }
