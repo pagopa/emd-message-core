@@ -1,7 +1,6 @@
 package it.gov.pagopa.common.configuration;
 
 import com.mongodb.MongoClientSettings;
-import it.gov.pagopa.common.mongo.MongoConfig;
 import it.gov.pagopa.common.utils.CommonConstants;
 import org.bson.types.Decimal128;
 import org.junit.jupiter.api.Assertions;

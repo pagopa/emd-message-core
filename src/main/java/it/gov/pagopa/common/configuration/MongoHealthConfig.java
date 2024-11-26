@@ -1,6 +1,5 @@
-package it.gov.pagopa.common.mongo;
+package it.gov.pagopa.common.configuration;
 
-import it.gov.pagopa.common.configuration.CustomReactiveMongoHealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
