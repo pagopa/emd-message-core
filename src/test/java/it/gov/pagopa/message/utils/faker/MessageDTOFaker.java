@@ -5,8 +5,6 @@ package it.gov.pagopa.message.utils.faker;
 import it.gov.pagopa.message.dto.MessageDTO;
 
 public class MessageDTOFaker {
-
-    private MessageDTOFaker(){}
     public static MessageDTO mockInstance() {
         return MessageDTO.builder()
                 .messageId("messageId")

@@ -10,7 +10,6 @@ import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_URL;
 
 public class QueueMessageFaker {
 
-    public QueueMessageFaker(){}
     public static Message<MessageDTO> mockInstance(MessageDTO messageDTO) {
         return MessageBuilder
                 .withPayload(messageDTO)
