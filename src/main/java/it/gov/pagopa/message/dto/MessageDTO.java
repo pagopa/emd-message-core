@@ -1,7 +1,7 @@
 package it.gov.pagopa.message.dto;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import it.gov.pagopa.common.utils.CommonUtilities;
+import it.gov.pagopa.message.enums.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,10 +18,10 @@ public class MessageDTO {
     private String senderDescription;
     private String messageUrl;
     private String originId;
-    @JsonAlias("message")
     private String content;
     private Boolean associatedPayment;
     private String idPsp;
+    private Channel channel;
 
     @Override
     public String toString() {
@@ -33,7 +33,9 @@ public class MessageDTO {
                 ", senderDescription='" + senderDescription + '\'' +
                 ", messageUrl='" + messageUrl + '\'' +
                 ", originId='" + originId + '\'' +
-                ", associatedPayment='" + associatedPayment + '\'' +
+                ", content='" + content + '\'' +
+                ", idPsp='" + idPsp + '\'' +
+                ", channel='" + channel + '\'' +
                 '}';
     }
 }

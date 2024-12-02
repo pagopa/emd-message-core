@@ -3,17 +3,21 @@ package it.gov.pagopa.message.utils.faker;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.enums.Channel;
 
 public class MessageDTOFaker {
     public static MessageDTO mockInstance() {
         return MessageDTO.builder()
                 .messageId("messageId")
-                .messageUrl("messageUrl")
-                .content("message")
+                .recipientId("recipientId")
                 .triggerDateTime("date")
                 .senderDescription("sender")
-                .recipientId("recipientId")
+                .messageUrl("messageUrl")
                 .originId("originId")
+                .content("message")
+                .associatedPayment(true)
+                .idPsp("originId")
+                .channel(Channel.valueOf("SEND"))
                 .build();
 
     }
