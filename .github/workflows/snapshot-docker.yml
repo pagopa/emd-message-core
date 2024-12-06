@@ -2,6 +2,8 @@ name: Snapshot docker build and push
 
 on:
   push:
+    branches:
+      - release-*
     # Sequence of patterns matched against refs/heads
     branches-ignore:
       - 'main'
