@@ -22,5 +22,4 @@ public interface MessageCoreController {
      */
     @PostMapping("/sendMessage")
     Mono<ResponseEntity<String>> send(@Valid @RequestBody MessageDTO messageDTO);
-
 }
