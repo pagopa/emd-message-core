@@ -1,6 +1,7 @@
 package it.gov.pagopa.message.controller;
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.SendResponseDTO;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,10 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         this.messageCoreService = messageCoreService;
     }
 
-    public Mono<ResponseEntity<String>> send(MessageDTO messageDTO) {
+    public Mono<ResponseEntity<SendResponseDTO>> send(MessageDTO messageDTO) {
         return messageCoreService.send(messageDTO)
                 .map(outcome -> Boolean.TRUE.equals(outcome) ?
-                        ResponseEntity.ok("OK") :
-                        ResponseEntity.status(HttpStatus.ACCEPTED).body("NO CHANNELS ENABLED"));
+                        ResponseEntity.ok(new SendResponseDTO("OK")) :
+                        ResponseEntity.status(HttpStatus.ACCEPTED).body(new SendResponseDTO("NO CHANNELS ENABLED")));
     }
 }
