@@ -20,6 +20,6 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         return messageCoreService.send(messageDTO)
                 .map(outcome -> Boolean.TRUE.equals(outcome) ?
                         ResponseEntity.ok(new SendResponseDTO("OK")) :
-                        ResponseEntity.status(HttpStatus.ACCEPTED).body(new SendResponseDTO("NO CHANNELS ENABLED")));
+                        ResponseEntity.status(HttpStatus.ACCEPTED).body(new SendResponseDTO("NO_CHANNELS_ENABLED")));
     }
 }
