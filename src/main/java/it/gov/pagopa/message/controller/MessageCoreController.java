@@ -2,6 +2,7 @@ package it.gov.pagopa.message.controller;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.SendResponseDTO;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -21,5 +22,5 @@ public interface MessageCoreController {
      * @return outcome of sending the message
      */
     @PostMapping("/sendMessage")
-    Mono<ResponseEntity<String>> send(@Valid @RequestBody MessageDTO messageDTO);
+    Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);
 }

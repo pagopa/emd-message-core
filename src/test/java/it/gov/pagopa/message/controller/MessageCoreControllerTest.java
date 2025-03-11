@@ -37,7 +37,7 @@ class MessageCoreControllerTest {
                 .consumeWith(response -> {
                     String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
-                    Assertions.assertEquals("OK", resultResponse);
+                    Assertions.assertEquals("{\"outcome\":\"OK\"}", resultResponse);
                 });
     }
 
@@ -56,7 +56,7 @@ class MessageCoreControllerTest {
                 .consumeWith(response -> {
                     String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
-                    Assertions.assertEquals("NO CHANNELS ENABLED", resultResponse);
+                    Assertions.assertEquals("{\"outcome\":\"NO_CHANNELS_ENABLED\"}",resultResponse);
                 });
     }
 
