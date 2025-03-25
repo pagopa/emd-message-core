@@ -45,7 +45,6 @@ COPY --from=buildtime /build/target/*.jar /app/app.jar
 
 ADD https://github.com/microsoft/ApplicationInsights-Java/releases/download/3.7.1/applicationinsights-agent-3.7.1.jar /app/applicationinsights-agent.jar
 
-
 RUN chown -R runner:runner /app
 
 USER 10000
