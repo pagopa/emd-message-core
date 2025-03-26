@@ -58,7 +58,6 @@ public class CommonUtilities {
         return headerValue!=null? new String(headerValue, StandardCharsets.UTF_8) : null;
     }
 
-    /** To convert cents into euro */
     public static String createSHA256(String fiscalCode)  {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -76,5 +75,11 @@ public class CommonUtilities {
             log.info("Something went wrong creating SHA256");
             throw new EmdEncryptionException("Something went wrong creating SHA256",true,e);
         }
+    }
+
+    public static String inputSanitization(String message){
+        if (message != null)
+            return message.replaceAll("[\\r\\n]", " ");
+        return "[EMD][WARNING] Null log";
     }
 }
