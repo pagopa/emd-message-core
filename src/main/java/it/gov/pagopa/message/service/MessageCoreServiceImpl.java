@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.common.utils.CommonUtilities.createSHA256;
+import static it.gov.pagopa.common.utils.CommonUtilities.inputSanitization;
 
 
 @Slf4j
@@ -26,21 +27,23 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     @Override
     public Mono<Boolean> send(MessageDTO messageDTO) {
-        log.info("[MESSAGE-CORE][SEND] Received message: {}", messageDTO);
+        String messageId = inputSanitization(messageDTO.getMessageId());
+        String recipientIdHashed = createSHA256(inputSanitization(messageDTO.getRecipientId()));
+        log.info("[MESSAGE-CORE][SEND] Received message: {}", messageId);
 
         return citizenConnector.checkFiscalCode(messageDTO.getRecipientId())
                 .flatMap(response -> {
                     if ("OK".equals(response)) {
-                        log.info("[MESSAGE-CORE][SEND] Fiscal code check passed for recipient: {}", createSHA256(createSHA256(messageDTO.getRecipientId())));
-                        return messageProducerService.enqueueMessage(messageDTO)
-                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message {} enqueued successfully for recipient: {}",messageDTO.getMessageId(), createSHA256(messageDTO.getRecipientId())))
+                        log.info("[MESSAGE-CORE][SEND] Fiscal code check passed for recipient: {}", recipientIdHashed);
+                        return messageProducerService.enqueueMessage(messageDTO,messageId)
+                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message {} enqueued successfully for recipient: {}",messageId,recipientIdHashed))
                                 .thenReturn(true);
                     } else {
-                        log.warn("[MESSAGE-CORE][SEND] Fiscal code check failed for recipient: {}", createSHA256(messageDTO.getRecipientId()));
+                        log.warn("[MESSAGE-CORE][SEND] Fiscal code check failed for recipient: {}", recipientIdHashed);
                         return Mono.just(false);
                     }
                 })
-                .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", createSHA256(messageDTO.getRecipientId()), error.getMessage()));
+                .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", recipientIdHashed, error.getMessage()));
     }
 
 }
