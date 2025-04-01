@@ -11,8 +11,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static it.gov.pagopa.message.utils.TestUtils.FISCAL_CODE;
-import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
+import static it.gov.pagopa.message.utils.TestUtils.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
@@ -32,7 +31,7 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_Ok()  {
         when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("OK"));
-        when(messageProducerService.enqueueMessage(MESSAGE_DTO)).thenReturn(Mono.empty());
+        when(messageProducerService.enqueueMessage(MESSAGE_DTO,MESSAGE_ID)).thenReturn(Mono.empty());
 
 
         StepVerifier.create(messageCoreService.send(MESSAGE_DTO))
