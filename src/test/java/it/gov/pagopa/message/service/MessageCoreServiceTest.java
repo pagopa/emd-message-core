@@ -33,7 +33,6 @@ class MessageCoreServiceTest {
         when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("OK"));
         when(messageProducerService.enqueueMessage(MESSAGE_DTO,MESSAGE_ID)).thenReturn(Mono.empty());
 
-
         StepVerifier.create(messageCoreService.send(MESSAGE_DTO))
                 .expectNext(true)
                 .verifyComplete();

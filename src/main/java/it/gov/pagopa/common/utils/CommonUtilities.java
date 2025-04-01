@@ -77,9 +77,11 @@ public class CommonUtilities {
         }
     }
 
+
     public static String inputSanitization(String message){
         if (message != null)
             return message.replace("\n", " ").replace("\r", " ");
         return "[EMD][WARNING] Null log";
     }
+
 }
