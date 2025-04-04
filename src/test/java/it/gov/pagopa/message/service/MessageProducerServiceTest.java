@@ -12,6 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.test.StepVerifier;
 
 import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
+import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.times;
 
     @Test
     void sendMessage_OK(){
-        StepVerifier.create(messageProducerService.enqueueMessage(MESSAGE_DTO))
+        StepVerifier.create(messageProducerService.enqueueMessage(MESSAGE_DTO,MESSAGE_ID))
                 .verifyComplete();
         Mockito.verify(messageProducer,times(1)).scheduleMessage(any());
     }
