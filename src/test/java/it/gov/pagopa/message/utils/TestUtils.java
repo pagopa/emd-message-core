@@ -11,6 +11,7 @@ public class TestUtils {
     public static final String RESPONSE = "OK";
     public static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     public static final String MESSAGE_URL = "messageUrl";
+    public static final String MESSAGE_ID = MESSAGE_DTO.getMessageId();
     public static final String AUTHENTICATION_URL = "authenticationUrl";
     public static final long RETRY = 1;
     public static final String FISCAL_CODE = MESSAGE_DTO.getRecipientId();
