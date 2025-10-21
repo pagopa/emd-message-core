@@ -25,6 +25,9 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Mono<Boolean> send(MessageDTO messageDTO) {
         String messageId = inputSanitization(messageDTO.getMessageId());

@@ -16,6 +16,9 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         this.messageCoreService = messageCoreService;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Mono<ResponseEntity<SendResponseDTO>> send(MessageDTO messageDTO) {
         return messageCoreService.send(messageDTO)
                 .map(outcome -> Boolean.TRUE.equals(outcome) ?

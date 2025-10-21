@@ -16,10 +16,11 @@ import reactor.core.publisher.Mono;
 public interface MessageCoreController {
 
     /**
-     * Send message
+     * Starts the process to deliver the notification of the message to the TPP.
      *
-     * @param messageDTO to be sent to the tpp
-     * @return outcome of sending the message
+     * @param messageDTO the message to be queued for delivery
+     * @return HTTP 200 with outcome "OK" if successfully queued, <br>
+     *         HTTP 202 with "NO_CHANNELS_ENABLED" if no notification channels are available for the recipient
      */
     @PostMapping("/sendMessage")
     Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);

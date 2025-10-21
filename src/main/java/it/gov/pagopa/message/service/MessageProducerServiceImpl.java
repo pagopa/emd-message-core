@@ -22,6 +22,9 @@ public class MessageProducerServiceImpl implements MessageProducerService {
         this.messageProducer = messageProducer;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Mono<Void> enqueueMessage(MessageDTO messageDTO, String messageId) {
         log.info("[MESSAGE-PRODUCER][ENQUEUE] Enqueuing message with ID: {}", messageId);

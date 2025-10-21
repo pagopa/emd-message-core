@@ -15,6 +15,9 @@ public class CitizenConnectorImpl implements CitizenConnector {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Mono<String> checkFiscalCode(String fiscalCode) {
         return webClient.get()
