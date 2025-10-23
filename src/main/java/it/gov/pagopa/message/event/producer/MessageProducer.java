@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
 
+/**
+ *  Component responsible for producing and sending messages to the message queue.
+ */
 @Component
 @Slf4j
 public class MessageProducer {
@@ -23,6 +26,11 @@ public class MessageProducer {
     this.binder = binder;
   }
 
+  /**
+   * Schedules a message to be sent to the message queue.
+   *
+   * @param message the message to be scheduled
+   */
   public void scheduleMessage(Message<MessageDTO> message) {
     String messageId = message.getPayload().getMessageId();
     log.info("[MESSAGE-CORE][SCHEDULE-MESSAGE] Scheduling message ID: {} to messageSenderQueue", messageId);
