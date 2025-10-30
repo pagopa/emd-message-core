@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+/**
+ * <p>Implementation of the reactive REST contract defined by {@link MessageCoreController}</p>
+ */
 @RestController
 public class MessageCoreControllerImpl implements MessageCoreController {
     private final MessageCoreServiceImpl messageCoreService;

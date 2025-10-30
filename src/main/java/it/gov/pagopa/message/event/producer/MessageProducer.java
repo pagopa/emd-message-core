@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 
 /**
- *  Component responsible for producing and sending messages to the message queue.
+ * <p>Producer component for sending messages to the message broker.</p>
+ *
+ * <p>Uses Spring Cloud Stream {@link StreamBridge} to publish messages to the configured binder.</p>
  */
 @Component
 @Slf4j
@@ -27,9 +29,15 @@ public class MessageProducer {
   }
 
   /**
-   * Schedules a message to be sent to the message queue.
+   * <p>Sends a message to the message broker queue.</p>
    *
-   * @param message the message to be scheduled
+   * <p>Flow:</p>
+   * <ol>
+   *   <li>Extract message ID from payload for logging.</li>
+   *   <li>Send message to {@code messageSender-out-0} binding via configured binder.</li>
+   * </ol>
+   *
+   * @param message the message to be scheduled and sent
    */
   public void scheduleMessage(Message<MessageDTO> message) {
     String messageId = message.getPayload().getMessageId();

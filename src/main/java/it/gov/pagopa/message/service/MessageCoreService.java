@@ -4,14 +4,20 @@ package it.gov.pagopa.message.service;
 import it.gov.pagopa.message.dto.MessageDTO;
 import reactor.core.publisher.Mono;
 
+/**
+ * <p>Service contract for message delivery orchestration.</p>
+ */
 public interface MessageCoreService {
 
     /**
-     * Check before adding message on kafka queue for notification delivery
+     * <p>Validates recipient and enqueues message for notification delivery.</p>
      *
      * @param messageDTO the message to be queued for delivery
-     * @return HTTP 200 with outcome "OK" if successfully queued, <br>
-     *         HTTP 202 with "NO_CHANNELS_ENABLED" if no notification channels are available for the recipient
+     * @return {@code Mono<Boolean>}
+     * <ul>
+     *   <li>{@code true} if successfully queued,</li>
+     *   <li>{@code false} if no channels enabled</li>
+     * </ul>
      */
     Mono<Boolean> send(MessageDTO messageDTO);
 }
