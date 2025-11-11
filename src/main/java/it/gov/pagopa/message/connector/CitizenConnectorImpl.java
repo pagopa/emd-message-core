@@ -6,6 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+/**
+ * <p>Implementation of {@link CitizenConnector}.</p>
+ *
+ * <p>Uses {@link WebClient} to perform HTTP calls to the emd-citizen service.</p>
+ */
 @Service
 public class CitizenConnectorImpl implements CitizenConnector {
 
@@ -15,6 +20,12 @@ public class CitizenConnectorImpl implements CitizenConnector {
 
     }
 
+    /**
+     *  {@inheritDoc}
+     *
+     * @param fiscalCode the fiscal code to verify
+     * @return {@code Mono<String>} status from emd-citizen service
+     */
     @Override
     public Mono<String> checkFiscalCode(String fiscalCode) {
         return webClient.get()

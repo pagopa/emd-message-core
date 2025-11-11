@@ -2,6 +2,10 @@ package it.gov.pagopa.message.enums;
 
 import lombok.Getter;
 
+
+/**
+ * Enum representing the communication channels available for sending messages.
+ */
 @Getter
 public enum Channel {
 
