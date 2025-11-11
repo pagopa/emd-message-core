@@ -25,6 +25,13 @@ public class ServiceExceptionHandler {
     this.transcodeMap = transcodeMap;
   }
 
+  /**
+   * Handles ServiceException exceptions.
+   *
+   * @param error the ServiceException to handle
+   * @param request the current HTTP request
+   * @return a ResponseEntity representing the error response
+   */
   @SuppressWarnings("squid:S1452")
   @ExceptionHandler(ServiceException.class)
   protected ResponseEntity<? extends ServiceExceptionPayload> handleException(ServiceException error, ServerHttpRequest request) {
@@ -34,6 +41,13 @@ public class ServiceExceptionHandler {
     return errorManager.handleException(transcodeException(error), request);
   }
 
+
+  /**
+   *  Transcode a ServiceException into a ClientException based on the predefined mapping.
+   *
+   * @param error the ServiceException to transcode
+   * @return the corresponding ClientException
+   */
   private ClientException transcodeException(ServiceException error) {
     HttpStatus httpStatus = transcodeMap.get(error.getClass());
 
@@ -45,6 +59,13 @@ public class ServiceExceptionHandler {
     return new ClientExceptionWithBody(httpStatus, error.getCode(), error.getMessage(), error.isPrintStackTrace(), error);
   }
 
+  /**
+   * Handles ServiceException exceptions that provide a payload.
+   *
+   * @param error the ServiceException to handle
+   * @param request the current HTTP request
+   * @return a ResponseEntity representing the error response with payload
+   */
   private ResponseEntity<? extends ServiceExceptionPayload> handleBodyProvidedException(ServiceException error, ServerHttpRequest request) {
     ClientException clientException = transcodeException(error);
     ErrorManager.logClientException(clientException, request);
