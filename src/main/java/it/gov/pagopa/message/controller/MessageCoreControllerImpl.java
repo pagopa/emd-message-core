@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+/**
+ * <p>Implementation of the reactive REST contract defined by {@link MessageCoreController}</p>
+ */
 @RestController
 public class MessageCoreControllerImpl implements MessageCoreController {
     private final MessageCoreServiceImpl messageCoreService;
@@ -16,6 +19,9 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         this.messageCoreService = messageCoreService;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Mono<ResponseEntity<SendResponseDTO>> send(MessageDTO messageDTO) {
         return messageCoreService.send(messageDTO)
                 .map(outcome -> Boolean.TRUE.equals(outcome) ?
