@@ -1,6 +1,10 @@
 package it.gov.pagopa.message.controller;
 
+import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.enums.Channel;
+import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
+import java.util.Objects;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -59,5 +63,72 @@ class MessageCoreControllerTest {
                     Assertions.assertEquals("{\"outcome\":\"NO_CHANNELS_ENABLED\"}",resultResponse);
                 });
     }
+
+
+  @Test
+  void sendMessage_Ko_Digital_With_AnalogDate_test() {
+    MessageDTO messageDTO = MessageDTO.builder()
+        .messageId("messageId")
+        .recipientId("recipientId")
+        .triggerDateTime("date")
+        .senderDescription("sender")
+        .messageUrl("messageUrl")
+        .originId("originId")
+        .content("message")
+        .associatedPayment(true)
+        .idPsp("originId")
+        .analogSchedulingDate("date")
+        .workflowType(WorkflowType.valueOf("DIGITAL"))
+        .channel(Channel.valueOf("SEND"))
+        .build();
+
+    webTestClient.post()
+        .uri("/emd/message-core/sendMessage")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .bodyValue(messageDTO)
+        .exchange()
+        .expectStatus().isBadRequest()
+        .expectBody()
+        .consumeWith((response) -> {
+          String resultResponse = new String(Objects.requireNonNull(response.getResponseBody()));
+          Assertions.assertNotNull(resultResponse);
+          Assertions.assertTrue(resultResponse.contains(
+              "{\"code\":\"INVALID_REQUEST\",\"message\":\"[analogSchedulingDate]: analogSchedulingDate must be null or empty when workflowType is DIGITAL\"}"));
+        });
+  }
+
+  @Test
+  void sendMessage_Ko_Analog_Without_AnalogDate_test() {
+    MessageDTO messageDTO = MessageDTO.builder()
+        .messageId("messageId")
+        .recipientId("recipientId")
+        .triggerDateTime("date")
+        .senderDescription("sender")
+        .messageUrl("messageUrl")
+        .originId("originId")
+        .content("message")
+        .associatedPayment(true)
+        .idPsp("originId")
+        .analogSchedulingDate(null)
+        .workflowType(WorkflowType.valueOf("ANALOG"))
+        .channel(Channel.valueOf("SEND"))
+        .build();
+
+    webTestClient.post()
+        .uri("/emd/message-core/sendMessage")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .bodyValue(messageDTO)
+        .exchange()
+        .expectStatus().isBadRequest()
+        .expectBody()
+        .consumeWith((response) -> {
+          String resultResponse = new String(Objects.requireNonNull(response.getResponseBody()));
+          Assertions.assertNotNull(resultResponse);
+          Assertions.assertTrue(resultResponse.contains(
+              "{\"code\":\"INVALID_REQUEST\",\"message\":\"[analogSchedulingDate]: analogSchedulingDate is required when workflowType is ANALOG\"}"));
+        });
+  }
 
 }

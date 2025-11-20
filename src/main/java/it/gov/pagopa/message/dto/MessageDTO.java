@@ -2,6 +2,8 @@ package it.gov.pagopa.message.dto;
 
 import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.message.enums.Channel;
+import it.gov.pagopa.message.enums.WorkflowType;
+import it.gov.pagopa.message.validator.ValidAnalogScheduling;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Builder
+@ValidAnalogScheduling
 public class MessageDTO {
 
     /**
@@ -51,6 +54,11 @@ public class MessageDTO {
     /**
      * Text content displayed in the header section.
      */
+    private String title;
+
+    /**
+     * Message content in Markdown format, dynamic based on workflowType (ANALOG/DIGITAL)
+     */
     private String content;
 
     /**
@@ -64,11 +72,24 @@ public class MessageDTO {
     private String idPsp;
 
     /**
+     * Expiry date for the 5-day deadline. <br>
+     * Required only when workflowType is ANALOG.
+     */
+    private String analogSchedulingDate;
+
+    /**
      * Communication channel through which the courtesy message originated.
      *
      * @see Channel
      */
     private Channel channel;
+
+    /**
+     *  Indetifier of the workflow type.
+     *
+     * @see WorkflowType
+     */
+    private WorkflowType workflowType;
 
     @Override
     public String toString() {
@@ -80,9 +101,12 @@ public class MessageDTO {
                 ", senderDescription='" + senderDescription + '\'' +
                 ", messageUrl='" + messageUrl + '\'' +
                 ", originId='" + originId + '\'' +
+                ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 ", idPsp='" + idPsp + '\'' +
+                ", analogSchedulingDate='" + analogSchedulingDate + '\'' +
                 ", channel='" + channel + '\'' +
+                ", workflowType='" + workflowType + '\'' +
                 '}';
     }
 }
