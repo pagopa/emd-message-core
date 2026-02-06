@@ -4,6 +4,9 @@ import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.message.enums.Channel;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.validator.ValidAnalogScheduling;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,49 +19,58 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @ValidAnalogScheduling
 public class MessageDTO {
 
     /**
      * Unique identifier of the message.
      */
+    @Size(min = 1, max = 100)
     private String messageId;
 
     /**
      * Unique identifier of the recipient (e.g., fiscal code).
      */
+    @Size(min = 1, max = 100)
     private String recipientId;
 
     /**
      * Date and time when the message was originated. <br>
      * Expected format: ISO 8601 date-time string.
      */
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
+            message = "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)")
     private String triggerDateTime;
 
     /**
      * Description of the message sender.
      */
+    @Size(min = 1, max = 250)
     private String senderDescription;
 
     /**
      * URL to retrieve the original message.
      */
+    @Size(min = 1, max = 2048)
     private String messageUrl;
 
     /**
      * ID of the original message (e.g., IUN ).
      */
+    @Size(min = 1, max = 100)
     private String originId;
 
     /**
      * Text content displayed in the header section.
      */
+    @Size(min = 1, max = 250)
     private String title;
 
     /**
      * Message content in Markdown format, dynamic based on workflowType (ANALOG/DIGITAL)
      */
+    @Size(min = 1, max = 100000)
     private String content;
 
     /**
@@ -67,14 +79,11 @@ public class MessageDTO {
     private Boolean associatedPayment;
 
     /**
-     * Identifier of the Payment Service Provider (PSP).
-     */
-    private String idPsp;
-
-    /**
      * Expiry date for the 5-day deadline. <br>
      * Required only when workflowType is ANALOG.
      */
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
+            message = "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)")
     private String analogSchedulingDate;
 
     /**
@@ -82,6 +91,7 @@ public class MessageDTO {
      *
      * @see Channel
      */
+    @NotNull(message = "The channel field is required")
     private Channel channel;
 
     /**
@@ -89,8 +99,9 @@ public class MessageDTO {
      *
      * @see WorkflowType
      */
+    @NotNull(message = "The workflowType field is required")
     private WorkflowType workflowType;
-
+    
     @Override
     public String toString() {
 
@@ -103,7 +114,6 @@ public class MessageDTO {
                 ", originId='" + originId + '\'' +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
-                ", idPsp='" + idPsp + '\'' +
                 ", analogSchedulingDate='" + analogSchedulingDate + '\'' +
                 ", channel='" + channel + '\'' +
                 ", workflowType='" + workflowType + '\'' +

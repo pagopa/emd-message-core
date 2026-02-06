@@ -7,6 +7,8 @@ import it.gov.pagopa.message.dto.SendResponseDTO;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.enums.Channel;
+import it.gov.pagopa.message.enums.WorkflowType;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -216,6 +218,7 @@ public class MessageCoreFlowIT extends BaseIT {
         .originId("ORIGIN_" + messageId)
         .content("Test content for " + messageId)
         .associatedPayment(true)
+        .workflowType(WorkflowType.DIGITAL)
         .build();
   }
 
