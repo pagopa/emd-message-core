@@ -273,12 +273,6 @@ class MessageCoreControllerTest {
             Arguments.of(
                 baseValidDTO.toBuilder().workflowType(null).build(),
                 "workflowType", "The workflowType field is required"
-            ),
-            
-            // channel: @NotNull  
-            Arguments.of(
-                baseValidDTO.toBuilder().channel(null).build(),
-                "channel", "The channel field is required"
             )
         );
 

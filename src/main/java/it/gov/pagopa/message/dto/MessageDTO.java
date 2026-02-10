@@ -91,7 +91,6 @@ public class MessageDTO {
      *
      * @see Channel
      */
-    @NotNull(message = "The channel field is required")
     private Channel channel;
 
     /**
