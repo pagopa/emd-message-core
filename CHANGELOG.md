@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/pagopa/emd-message-core/compare/v1.3.0...v1.3.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* [MMC-297] Add validation on MessageDTO and update test ([#87](https://github.com/pagopa/emd-message-core/issues/87)) ([712012c](https://github.com/pagopa/emd-message-core/commit/712012c5ce6b7c7571f720769ff21112dbead865))
+* [MMC-297] Fix validation on MessageDTO and update test ([#89](https://github.com/pagopa/emd-message-core/issues/89)) ([e8f4c44](https://github.com/pagopa/emd-message-core/commit/e8f4c440370a0b663d16ed14ed206920ae2bfd58))
+
 ## [1.3.0](https://github.com/pagopa/emd-message-core/compare/v1.2.3...v1.3.0) (2025-11-20)
 
 
