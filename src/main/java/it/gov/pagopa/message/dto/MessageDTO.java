@@ -4,6 +4,7 @@ import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.message.enums.Channel;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.validator.ValidAnalogScheduling;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -52,7 +53,7 @@ public class MessageDTO {
      * Description of the message sender.
      */
     @Size(min = 1, max = 250, message = "The senderDescription field must be between 1 and 250")
-    @NotNull(message = "The senderDescription field is required")
+    @NotBlank(message = "The senderDescription field is required")
     private String senderDescription;
 
     /**
@@ -75,14 +76,14 @@ public class MessageDTO {
      * Text content displayed in the header section.
      */
     @Size(min = 1, max = 250, message = "The title field must be between 1 and 250")
-    @NotNull(message = "The title field is required")
+    @NotBlank(message = "The title field is required")
     private String title;
 
     /**
      * Message content in Markdown format, dynamic based on workflowType (ANALOG/DIGITAL)
      */
     @Size(min = 1, max = 100000, message = "The content field must be between 1 and 100000")
-    @NotNull(message = "The content field is required")
+    @NotBlank(message = "The content field is required")
     private String content;
 
     /**

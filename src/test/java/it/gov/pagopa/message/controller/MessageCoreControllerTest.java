@@ -319,7 +319,15 @@ class MessageCoreControllerTest {
                 "messageUrl", "The messageUrl field cannot contain any blank spaces"),
             Arguments.of(
                 baseValidDTO.toBuilder().originId("invalid origin id with spaces").build(),
-                "originId", "The originId field cannot contain any blank spaces")
+                "originId", "The originId field cannot contain any blank spaces"),
+
+            // ==================== @NotBlank VALIDATIONS ====================
+            Arguments.of(baseValidDTO.toBuilder().senderDescription(" ").build(),
+                "senderDescription", "The senderDescription field is required"),
+            Arguments.of(baseValidDTO.toBuilder().title(" ").build(),
+                "title", "The title field is required"),
+            Arguments.of(baseValidDTO.toBuilder().content(" ").build(),
+                "content", "The content field is required")
         );
 
     }
