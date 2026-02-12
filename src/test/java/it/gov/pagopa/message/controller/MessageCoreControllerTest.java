@@ -80,6 +80,7 @@ class MessageCoreControllerTest {
             .senderDescription("sender")
             .messageUrl("messageUrl")
             .originId("originId")
+            .title("title")
             .content("message")
             .associatedPayment(true)
             .analogSchedulingDate("2023-12-25T10:30:00Z")
@@ -113,6 +114,7 @@ class MessageCoreControllerTest {
             .senderDescription("sender")
             .messageUrl("messageUrl")
             .originId("originId")
+            .title("title")
             .content("message")
             .associatedPayment(true)
             .analogSchedulingDate(null)
@@ -268,12 +270,57 @@ class MessageCoreControllerTest {
             ),
             
             // ==================== @NotNull VALIDATIONS ====================
-            
-            // workflowType: @NotNull
+
             Arguments.of(
+                baseValidDTO.toBuilder().messageId(null).build(),
+                "messageId", "The messageId field is required"
+            ),
+            Arguments.of(
+                baseValidDTO.toBuilder().recipientId(null).build(),
+                "recipientId", "The recipientId field is required"
+            ),
+            Arguments.of(
+                baseValidDTO.toBuilder().triggerDateTime(null).build(),
+                "triggerDateTime", "The triggerDateTime field is required"
+            ),
+            Arguments.of(
+                baseValidDTO.toBuilder().senderDescription(null).build(),
+                "senderDescription", "The senderDescription field is required"
+            ),
+            Arguments.of(
+                baseValidDTO.toBuilder().messageUrl(null).build(),
+                "messageUrl", "The messageUrl field is required"
+            ),  
+            Arguments.of(
+                baseValidDTO.toBuilder().originId(null).build(),
+                "originId", "The originId field is required"
+            ),
+            Arguments.of(
+                baseValidDTO.toBuilder().title(null).build(),
+                "title", "The title field is required"
+            ),
+            Arguments.of(
+                baseValidDTO.toBuilder().content(null).build(),
+                "content", "The content field is required"
+            ),Arguments.of(
                 baseValidDTO.toBuilder().workflowType(null).build(),
                 "workflowType", "The workflowType field is required"
-            )
+            ),
+
+            // ==================== @NotNull VALIDATIONS ====================
+            Arguments.of(
+                baseValidDTO.toBuilder().messageId("invalid message id with spaces").build(),
+                "messageId", "La stringa non può contenere spazi vuoti"),
+            Arguments.of(
+                baseValidDTO.toBuilder().recipientId("invalid recipient id with spaces").build(),
+                "recipientId", "La stringa non può contenere spazi vuoti"),
+            Arguments.of(
+                baseValidDTO.toBuilder().messageUrl("invalid message url with spaces").build(),
+                "messageUrl", "La stringa non può contenere spazi vuoti"),
+            Arguments.of(
+                baseValidDTO.toBuilder().originId("invalid origin id with spaces").build(),
+                "originId", "La stringa non può contenere spazi vuoti")
+
         );
 
     }

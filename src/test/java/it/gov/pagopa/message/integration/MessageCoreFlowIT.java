@@ -216,6 +216,7 @@ public class MessageCoreFlowIT extends BaseIT {
         .senderDescription("Test Sender")
         .messageUrl("https://example.com/message/" + messageId)
         .originId("ORIGIN_" + messageId)
+        .title("title")
         .content("Test content for " + messageId)
         .associatedPayment(true)
         .workflowType(WorkflowType.DIGITAL)
