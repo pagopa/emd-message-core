@@ -26,16 +26,16 @@ public class MessageDTO {
     /**
      * Unique identifier of the message.
      */
-    @Size(min = 1, max = 100)
-    @Pattern(regexp = "^\\S+$", message = "La stringa non può contenere spazi vuoti")
+    @Size(min = 1, max = 100, message = "The messageId field must be between 1 and 100")
+    @Pattern(regexp = "^\\S+$", message = "The messageId field cannot contain any blank spaces")
     @NotNull(message = "The messageId field is required")
     private String messageId;
 
     /**
      * Unique identifier of the recipient (e.g., fiscal code).
      */
-    @Size(min = 1, max = 100)
-    @Pattern(regexp = "^\\S+$", message = "La stringa non può contenere spazi vuoti")
+    @Size(min = 1, max = 100, message = "The recipientId field must be between 1 and 100")
+    @Pattern(regexp = "^\\S+$", message = "The recipientId field cannot contain any blank spaces")
     @NotNull(message = "The recipientId field is required")
     private String recipientId;
 
@@ -44,44 +44,44 @@ public class MessageDTO {
      * Expected format: ISO 8601 date-time string.
      */
     @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
-            message = "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)")           
+            message = "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)")
     @NotNull(message = "The triggerDateTime field is required")
     private String triggerDateTime;
 
     /**
      * Description of the message sender.
      */
-    @Size(min = 1, max = 250)
+    @Size(min = 1, max = 250, message = "The senderDescription field must be between 1 and 250")
     @NotNull(message = "The senderDescription field is required")
     private String senderDescription;
 
     /**
      * URL to retrieve the original message.
      */
-    @Size(min = 1, max = 2048)
-    @Pattern(regexp = "^\\S+$", message = "La stringa non può contenere spazi vuoti")
+    @Size(min = 1, max = 2048, message = "The messageUrl field must be between 1 and 2048")
+    @Pattern(regexp = "^\\S+$", message = "The messageUrl field cannot contain any blank spaces")
     @NotNull(message = "The messageUrl field is required")
     private String messageUrl;
 
     /**
      * ID of the original message (e.g., IUN ).
      */
-    @Size(min = 1, max = 100)
-    @Pattern(regexp = "^\\S+$", message = "La stringa non può contenere spazi vuoti")
+    @Size(min = 1, max = 100, message = "The originId field must be between 1 and 100")
+    @Pattern(regexp = "^\\S+$", message = "The originId field cannot contain any blank spaces")
     @NotNull(message = "The originId field is required")
     private String originId;
 
     /**
      * Text content displayed in the header section.
      */
-    @Size(min = 1, max = 250)
+    @Size(min = 1, max = 250, message = "The title field must be between 1 and 250")
     @NotNull(message = "The title field is required")
     private String title;
 
     /**
      * Message content in Markdown format, dynamic based on workflowType (ANALOG/DIGITAL)
      */
-    @Size(min = 1, max = 100000)
+    @Size(min = 1, max = 100000, message = "The content field must be between 1 and 100000")
     @NotNull(message = "The content field is required")
     private String content;
 

@@ -176,71 +176,71 @@ class MessageCoreControllerTest {
             // messageId: @Size(min = 1, max = 100)
             Arguments.of(
                 baseValidDTO.toBuilder().messageId("").build(),
-                "messageId", "size must be between 1 and 100"
+                "messageId", "The messageId field must be between 1 and 100"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().messageId("a".repeat(101)).build(), // 101 caratteri
-                "messageId", "size must be between 1 and 100"
+                "messageId", "The messageId field must be between 1 and 100"
             ),
             
             // recipientId: @Size(min = 1, max = 100)
             Arguments.of(
                 baseValidDTO.toBuilder().recipientId("").build(),
-                "recipientId", "size must be between 1 and 100"
+                "recipientId", "The recipientId field must be between 1 and 100"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().recipientId("b".repeat(101)).build(), // 101 caratteri
-                "recipientId", "size must be between 1 and 100"
+                "recipientId", "The recipientId field must be between 1 and 100"
             ),
             
             // senderDescription: @Size(min = 1, max = 250)
             Arguments.of(
                 baseValidDTO.toBuilder().senderDescription("").build(),
-                "senderDescription", "size must be between 1 and 250"
+                "senderDescription", "The senderDescription field must be between 1 and 250"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().senderDescription("c".repeat(251)).build(), // 251 caratteri
-                "senderDescription", "size must be between 1 and 250"
+                "senderDescription", "The senderDescription field must be between 1 and 250"
             ),
             
             // messageUrl: @Size(min = 1, max = 2048)
             Arguments.of(
                 baseValidDTO.toBuilder().messageUrl("").build(),
-                "messageUrl", "size must be between 1 and 2048"
+                "messageUrl", "The messageUrl field must be between 1 and 2048"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().messageUrl("d".repeat(2049)).build(), // 2049 caratteri
-                "messageUrl", "size must be between 1 and 2048"
+                "messageUrl", "The messageUrl field must be between 1 and 2048"
             ),
             
             // originId: @Size(min = 1, max = 100)
             Arguments.of(
                 baseValidDTO.toBuilder().originId("").build(),
-                "originId", "size must be between 1 and 100"
+                "originId", "The originId field must be between 1 and 100"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().originId("e".repeat(101)).build(), // 101 caratteri
-                "originId", "size must be between 1 and 100"
+                "originId", "The originId field must be between 1 and 100"
             ),
             
             // title: @Size(min = 1, max = 250)
             Arguments.of(
                 baseValidDTO.toBuilder().title("").build(),
-                "title", "size must be between 1 and 250"
+                "title", "The title field must be between 1 and 250"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().title("f".repeat(251)).build(), // 251 caratteri
-                "title", "size must be between 1 and 250"
+                "title", "The title field must be between 1 and 250"
             ),
             
             // content: @Size(min = 1, max = 100000)
             Arguments.of(
                 baseValidDTO.toBuilder().content("").build(),
-                "content", "size must be between 1 and 100000"
+                "content", "The content field must be between 1 and 100000"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder().content("g".repeat(100001)).build(), // 100001 caratteri
-                "content", "size must be between 1 and 100000"
+                "content", "The content field must be between 1 and 100000"
             ),
             
             // ==================== @Pattern VALIDATIONS ====================
@@ -248,25 +248,25 @@ class MessageCoreControllerTest {
             // triggerDateTime: pattern validation
             Arguments.of(
                 baseValidDTO.toBuilder().triggerDateTime("invalid-date-format").build(),
-                "triggerDateTime", "The date format must be ISO 8601"
+                "triggerDateTime", "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)"
             ), 
             Arguments.of(
                 baseValidDTO.toBuilder()
                     .workflowType(WorkflowType.ANALOG).triggerDateTime("2023-99-99T99:99:99Z").build(),
-                "triggerDateTime", "The date format must be ISO 8601"
+                "triggerDateTime", "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)"
             ),
             
             // analogSchedulingDate: pattern validation (quando presente)
             Arguments.of(
                 baseValidDTO.toBuilder().workflowType(WorkflowType.ANALOG)
                     .analogSchedulingDate("invalid-date-format").build(),
-                "analogSchedulingDate", "The date format must be ISO 8601"
+                "analogSchedulingDate", "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)"
             ),
             Arguments.of(
                 baseValidDTO.toBuilder()
                     .workflowType(WorkflowType.ANALOG)
                     .analogSchedulingDate("2023-99-99T99:99:99Z").build(),
-                "analogSchedulingDate", "The date format must be ISO 8601"
+                "analogSchedulingDate", "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)"
             ),
             
             // ==================== @NotNull VALIDATIONS ====================
@@ -310,17 +310,16 @@ class MessageCoreControllerTest {
             // ==================== @NotNull VALIDATIONS ====================
             Arguments.of(
                 baseValidDTO.toBuilder().messageId("invalid message id with spaces").build(),
-                "messageId", "La stringa non può contenere spazi vuoti"),
+                "messageId", "The messageId field cannot contain any blank spaces"),
             Arguments.of(
                 baseValidDTO.toBuilder().recipientId("invalid recipient id with spaces").build(),
-                "recipientId", "La stringa non può contenere spazi vuoti"),
+                "recipientId", "The recipientId field cannot contain any blank spaces"),
             Arguments.of(
                 baseValidDTO.toBuilder().messageUrl("invalid message url with spaces").build(),
-                "messageUrl", "La stringa non può contenere spazi vuoti"),
+                "messageUrl", "The messageUrl field cannot contain any blank spaces"),
             Arguments.of(
                 baseValidDTO.toBuilder().originId("invalid origin id with spaces").build(),
-                "originId", "La stringa non può contenere spazi vuoti")
-
+                "originId", "The originId field cannot contain any blank spaces")
         );
 
     }
