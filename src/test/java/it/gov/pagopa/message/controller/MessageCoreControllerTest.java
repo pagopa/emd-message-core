@@ -307,23 +307,19 @@ class MessageCoreControllerTest {
                 "workflowType", "The workflowType field is required"
             ),
 
-            // ==================== @NotNull VALIDATIONS ====================
-            Arguments.of(
-                baseValidDTO.toBuilder().messageId("invalid message id with spaces").build(),
-                "messageId", "The messageId field cannot contain any blank spaces"),
-            Arguments.of(
-                baseValidDTO.toBuilder().recipientId("invalid recipient id with spaces").build(),
-                "recipientId", "The recipientId field cannot contain any blank spaces"),
-            Arguments.of(
-                baseValidDTO.toBuilder().messageUrl("invalid message url with spaces").build(),
-                "messageUrl", "The messageUrl field cannot contain any blank spaces"),
-            Arguments.of(
-                baseValidDTO.toBuilder().originId("invalid origin id with spaces").build(),
-                "originId", "The originId field cannot contain any blank spaces"),
-
             // ==================== @NotBlank VALIDATIONS ====================
+            Arguments.of(baseValidDTO.toBuilder().messageId(" ").build(),
+                "messageId", "The messageId field is required"),
+            Arguments.of(baseValidDTO.toBuilder().recipientId(" ").build(),
+                "recipientId", "The recipientId field is required"),
+            Arguments.of(baseValidDTO.toBuilder().triggerDateTime(" ").build(),
+                "triggerDateTime", "The triggerDateTime field is required"),
             Arguments.of(baseValidDTO.toBuilder().senderDescription(" ").build(),
                 "senderDescription", "The senderDescription field is required"),
+            Arguments.of(baseValidDTO.toBuilder().messageUrl(" ").build(),
+                "messageUrl", "The messageUrl field is required"),
+            Arguments.of(baseValidDTO.toBuilder().originId(" ").build(),
+                "originId", "The originId field is required"),
             Arguments.of(baseValidDTO.toBuilder().title(" ").build(),
                 "title", "The title field is required"),
             Arguments.of(baseValidDTO.toBuilder().content(" ").build(),
