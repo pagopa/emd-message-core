@@ -85,7 +85,11 @@ public class MessageDTO {
     /**
      * Flag indicating whether this notification is associated with a PagoPA payment transaction.
      */
-    private Boolean associatedPayment;
+    private Boolean associatedPayment = false;
+
+    public void setAssociatedPayment(Boolean associatedPayment) {
+        this.associatedPayment = associatedPayment != null ? associatedPayment : false;
+    }
 
     /**
      * Expiry date for the 5-day deadline. <br>

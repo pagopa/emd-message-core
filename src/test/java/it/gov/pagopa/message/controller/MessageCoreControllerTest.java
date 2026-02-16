@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -137,6 +138,70 @@ class MessageCoreControllerTest {
                 "{\"code\":\"INVALID_REQUEST\",\"message\":\"[analogSchedulingDate]: analogSchedulingDate is required when workflowType is ANALOG\"}"));
             });
     }
+
+
+    @ParameterizedTest
+    @MethodSource("provideAssociatedPaymentTestCases")
+    void sendMessage_AssociatedPayment_DefaultsToFalse(MessageDTO messageDTO, String scenario) {
+        // ArgumentCaptor to catch argument passed to service layer
+        ArgumentCaptor<MessageDTO> captor = ArgumentCaptor.forClass(MessageDTO.class);
+        Mockito.when(messageCoreService.send(Mockito.any(MessageDTO.class)))
+            .thenReturn(Mono.just(true));
+
+
+        webTestClient.post()
+            .uri("/emd/message-core/sendMessage")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(messageDTO)
+            .exchange()
+            .expectStatus().isOk();
+
+        // Assert: check that the service layer received a MessageDTO with associatedPayment set to false
+        Mockito.verify(messageCoreService).send(captor.capture());
+        MessageDTO capturedDTO = captor.getValue();
+
+        Assertions.assertNotNull(capturedDTO.getAssociatedPayment(),
+            "associatedPayment should not be null when " + scenario);
+        Assertions.assertEquals(false, capturedDTO.getAssociatedPayment(),
+            "associatedPayment should default to false when " + scenario);
+    }
+
+    private static Stream<Arguments> provideAssociatedPaymentTestCases() {
+        MessageDTO baseDTOWithNull = MessageDTO.builder()
+            .messageId("messageId")
+            .recipientId("recipientId")
+            .triggerDateTime("2023-12-25T10:30:00Z")
+            .senderDescription("sender")
+            .messageUrl("messageUrl")
+            .originId("originId")
+            .title("title")
+            .content("message")
+            .associatedPayment(null)  // explicitly null
+            .workflowType(WorkflowType.DIGITAL)
+            .channel(Channel.SEND)
+            .build();
+
+        MessageDTO baseDTOOmitted = MessageDTO.builder()
+            .messageId("messageId")
+            .recipientId("recipientId")
+            .triggerDateTime("2023-12-25T10:30:00Z")
+            .senderDescription("sender")
+            .messageUrl("messageUrl")
+            .originId("originId")
+            .title("title")
+            .content("message")
+            // associatedPayment omitted
+            .workflowType(WorkflowType.DIGITAL)
+            .channel(Channel.SEND)
+            .build();
+
+        return Stream.of(
+            Arguments.of(baseDTOWithNull, "set to null"),
+            Arguments.of(baseDTOOmitted, "omitted")
+        );
+    }
+
 
     // Validation tests for @Size, @Pattern and @NotNull constraints
     @ParameterizedTest
