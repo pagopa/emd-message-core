@@ -47,7 +47,7 @@ public class WebClientConfig {
      * 50 is a safe starting point for internal microservice calls; tune per-service
      * via separate {@code ConnectionProvider} beans with {@code @Qualifier} if needed.
      */
-    private static final int MAX_CONNECTIONS = 50;
+    private static final int MAX_CONNECTIONS = 300;
 
     /**
      * Maximum number of requests that may queue waiting for a connection when the
@@ -62,16 +62,26 @@ public class WebClientConfig {
     /** TCP connect timeout in milliseconds. */
     private static final int CONNECT_TIMEOUT_MS = 5_000;
 
-    /** Read / write timeout in seconds applied via Netty pipeline handlers. */
-    private static final int IO_TIMEOUT_SECONDS = 10;
+    /**
+     * Read / write timeout in seconds applied via Netty pipeline handlers.
+     *
+     * <p>Set equal to {@link #RESPONSE_TIMEOUT} so that both the per-event inactivity
+     * guard and the end-to-end cap are consistent. Having IO_TIMEOUT > RESPONSE_TIMEOUT
+     * would make the Netty handlers dead-letter code (they would never fire before
+     * the overall response cap).
+     */
+    private static final int IO_TIMEOUT_SECONDS = 8;
 
     /**
-     * Total request timeout (handshake + write + read), end-to-end.
+     * End-to-end response timeout (hard cap for the whole request).
      *
-     * <p>Read/write timeouts only fire on per-event inactivity; a slow server
-     * dripping bytes can keep a request hanging indefinitely. This is the hard cap.
+     * <p><strong>Graceful-shutdown budget constraint:</strong> This value must satisfy
+     * {@code N × RESPONSE_TIMEOUT + DB_overhead ≤ spring.lifecycle.timeout (20s)},
+     * where N is the maximum number of <em>sequential</em> WebClient calls in a single
+     * reactive pipeline. For this service N=1 (single GET to emd-citizen), so:
+     * {@code 1 × 8s + 2s DB = 10s ≤ 20s}. Using 8s leaves a comfortable 10s margin.
      */
-    private static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(8);
 
     /**
      * Maximum time a request may wait for a free connection from the pool when

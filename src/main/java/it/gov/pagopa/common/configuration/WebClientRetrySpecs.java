@@ -2,6 +2,7 @@ package it.gov.pagopa.common.configuration;
 
 import io.netty.channel.ConnectTimeoutException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.util.retry.Retry;
 
 import java.net.ConnectException;
@@ -34,21 +35,37 @@ public final class WebClientRetrySpecs {
     }
 
     /**
-     * Permissive policy: retries on <strong>any</strong>
-     * {@link WebClientRequestException} (transport-level failure).
+     * Permissive policy for <strong>idempotent operations</strong> (GET, PUT, DELETE).
      *
-     * <p><strong>Use only for idempotent operations</strong> (GET, PUT, DELETE).
-     * Applying this to a POST risks duplicating server-side side-effects
-     * because some {@code WebClientRequestException} subtypes (e.g. premature
-     * close after the request bytes have been flushed) cannot prove that the
-     * request did not reach the server.
+     * <p>Retries on:
+     * <ul>
+     *   <li><b>Transport errors</b> — any {@link WebClientRequestException}
+     *       (TCP drop, stale connection reset, read/write timeout …)</li>
+     *   <li><b>Transient HTTP 5xx</b> — 502 Bad Gateway, 503 Service Unavailable,
+     *       504 Gateway Timeout. These are expected during AKS rolling updates when
+     *       a pod is restarting and the upstream infrastructure briefly returns
+     *       gateway errors before re-routing traffic.</li>
+     * </ul>
+     *
+     * <p>Does <em>not</em> retry 4xx or non-transient 5xx (e.g. 500 Internal Server Error).
      *
      * @return a fresh {@link Retry} spec — must NOT be reused across pipelines
      */
     public static Retry transientNetwork() {
         return Retry.backoff(MAX_RETRY_ATTEMPTS, MIN_BACKOFF)
                 .jitter(JITTER)
-                .filter(ex -> ex instanceof WebClientRequestException);
+                .filter(ex -> {
+                    // Transport-level failure (TCP drop, stale connection, timeout …)
+                    if (ex instanceof WebClientRequestException) {
+                        return true;
+                    }
+                    // Transient gateway errors — common during AKS rolling updates
+                    if (ex instanceof WebClientResponseException responseEx) {
+                        int status = responseEx.getStatusCode().value();
+                        return status == 502 || status == 503 || status == 504;
+                    }
+                    return false;
+                });
     }
 
     /**

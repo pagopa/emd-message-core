@@ -9,6 +9,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import static it.gov.pagopa.message.constants.MessageCoreConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
 
@@ -45,11 +46,16 @@ public class MessageProducerServiceImpl implements MessageProducerService {
     public Mono<Void> enqueueMessage(MessageDTO messageDTO, String messageId) {
         log.info("[MESSAGE-PRODUCER][ENQUEUE] Enqueuing message with ID: {}", messageId);
 
+        // subscribeOn(boundedElastic) is required because streamBridge.send() is a blocking I/O call.
+        // Without it, the execution would land on the Reactor event-loop (reactor-http-nio) thread,
+        // stalling it and degrading latency for ALL concurrent requests on that thread.
         return Mono.fromRunnable(() -> {
-                Message<MessageDTO> message = createMessage(messageDTO, messageId);
-                log.info("[MESSAGE-PRODUCER][ENQUEUE] Message with ID: {} successfully created. Sending to message queue.", messageId);
-                messageProducer.scheduleMessage(message);
-        });
+                    Message<MessageDTO> message = createMessage(messageDTO, messageId);
+                    log.info("[MESSAGE-PRODUCER][ENQUEUE] Message with ID: {} successfully created. Sending to message queue.", messageId);
+                    messageProducer.scheduleMessage(message);
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .then();
     }
 
     /**
