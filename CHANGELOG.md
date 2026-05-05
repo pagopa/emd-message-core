@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.5](https://github.com/pagopa/emd-message-core/compare/v1.3.4...v1.3.5) (2026-05-05)
+
+
+### Bug Fixes
+
+* MMC-520 add on log if message sent or discaded has a payment associated ([#100](https://github.com/pagopa/emd-message-core/issues/100)) ([adb6387](https://github.com/pagopa/emd-message-core/commit/adb6387d8a67f6c98f9ef1ece6b53d5d7cf568ce))
+
 ## [1.3.4](https://github.com/pagopa/emd-message-core/compare/v1.3.3...v1.3.4) (2026-05-05)
 
 
