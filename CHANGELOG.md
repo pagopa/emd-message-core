@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/pagopa/emd-message-core/compare/v1.3.3...v1.3.4) (2026-05-05)
+
+
+### Bug Fixes
+
+* [MMC-525][MMC-539] WebClient stale connections pool config and graceful shutdown ([#87](https://github.com/pagopa/emd-message-core/issues/87)) ([2f7e0fa](https://github.com/pagopa/emd-message-core/commit/2f7e0fa2df3d05b19c913bdd76fcd3b386df7769))
+
 ## [1.3.3](https://github.com/pagopa/emd-message-core/compare/v1.3.2...v1.3.3) (2026-03-12)
 
 
