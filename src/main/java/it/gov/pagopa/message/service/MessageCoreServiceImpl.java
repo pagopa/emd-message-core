@@ -52,6 +52,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     public Mono<Boolean> send(MessageDTO messageDTO) {
         String messageId = inputSanitization(messageDTO.getMessageId());
         String recipientIdHashed = createSHA256(inputSanitization(messageDTO.getRecipientId()));
+        Boolean hasPayment = messageDTO.getAssociatedPayment();
         log.info("[MESSAGE-CORE][SEND] Received message: {}", messageId);
 
         return citizenConnector.checkFiscalCode(messageDTO.getRecipientId())
@@ -59,10 +60,10 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     if ("OK".equals(response)) {
                         log.info("[MESSAGE-CORE][SEND] Fiscal code check passed for recipient: {}", recipientIdHashed);
                         return messageProducerService.enqueueMessage(messageDTO,messageId)
-                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message {} enqueued successfully for recipient: {}",messageId,recipientIdHashed))
+                                .doOnSuccess(aVoid -> log.info("[MESSAGE-CORE][SEND] Message {} enqueued successfully for recipient: {} associatedPayment: {}", messageId, recipientIdHashed, hasPayment))
                                 .thenReturn(true);
                     } else {
-                        log.warn("[MESSAGE-CORE][SEND] Fiscal code check failed for recipient: {}", recipientIdHashed);
+                        log.warn("[MESSAGE-CORE][SEND] Fiscal code check failed for recipient: {} associatedPayment: {}", recipientIdHashed, hasPayment);
                         return Mono.just(false);
                     }
                 })
