@@ -79,7 +79,7 @@ class MessageCoreControllerTest {
             .recipientId("recipientId")
             .triggerDateTime("2023-12-25T10:30:00Z")
             .senderDescription("sender")
-            .messageUrl("messageUrl")
+            .messageUrl("https://messageUrl.test")
             .originId("originId")
             .title("title")
             .content("message")
@@ -113,7 +113,7 @@ class MessageCoreControllerTest {
             .recipientId("recipientId")
             .triggerDateTime("2023-12-25T10:30:00Z")
             .senderDescription("sender")
-            .messageUrl("messageUrl")
+            .messageUrl("https://messageUrl.test")
             .originId("originId")
             .title("title")
             .content("message")
@@ -173,7 +173,7 @@ class MessageCoreControllerTest {
             .recipientId("recipientId")
             .triggerDateTime("2023-12-25T10:30:00Z")
             .senderDescription("sender")
-            .messageUrl("messageUrl")
+            .messageUrl("https://messageUrl.test")
             .originId("originId")
             .title("title")
             .content("message")
@@ -187,7 +187,7 @@ class MessageCoreControllerTest {
             .recipientId("recipientId")
             .triggerDateTime("2023-12-25T10:30:00Z")
             .senderDescription("sender")
-            .messageUrl("messageUrl")
+            .messageUrl("https://messageUrl.test")
             .originId("originId")
             .title("title")
             .content("message")
@@ -274,7 +274,7 @@ class MessageCoreControllerTest {
                 "messageUrl", "The messageUrl field must be between 1 and 2048"
             ),
             Arguments.of(
-                baseValidDTO.toBuilder().messageUrl("d".repeat(2049)).build(), // 2049 caratteri
+                baseValidDTO.toBuilder().messageUrl("https://test.test"+"d".repeat(2049)).build(), // 2049 caratteri
                 "messageUrl", "The messageUrl field must be between 1 and 2048"
             ),
             
@@ -333,6 +333,12 @@ class MessageCoreControllerTest {
                     .analogSchedulingDate("2023-99-99T99:99:99Z").build(),
                 "analogSchedulingDate", "The date format must be ISO 8601 (es. YYYY-MM-DDTHH:mm:ssZ)"
             ),
+
+            Arguments.of(
+                baseValidDTO.toBuilder()
+                    .messageUrl("test.it").build(),
+                "messageUrl", "The messageUrl field must be a valid URL"
+            ),
             
             // ==================== @NotNull VALIDATIONS ====================
 
@@ -372,7 +378,7 @@ class MessageCoreControllerTest {
                 "workflowType", "The workflowType field is required"
             ),
 
-            // ==================== @NotBlank VALIDATIONS ====================
+            // ==================== @NotBlankUnicode VALIDATIONS ====================
             Arguments.of(baseValidDTO.toBuilder().messageId(" ").build(),
                 "messageId", "The messageId field is required"),
             Arguments.of(baseValidDTO.toBuilder().recipientId(" ").build(),
@@ -388,6 +394,24 @@ class MessageCoreControllerTest {
             Arguments.of(baseValidDTO.toBuilder().title(" ").build(),
                 "title", "The title field is required"),
             Arguments.of(baseValidDTO.toBuilder().content(" ").build(),
+                "content", "The content field is required"),
+
+            // ==================== @NotBlankUnicode VALIDATIONS for unicode spaces ====================
+            Arguments.of(baseValidDTO.toBuilder().messageId("      ").build(),
+            "messageId", "The messageId field is required"),
+            Arguments.of(baseValidDTO.toBuilder().recipientId("      ").build(),
+                "recipientId", "The recipientId field is required"),
+            Arguments.of(baseValidDTO.toBuilder().triggerDateTime("      ").build(),
+                "triggerDateTime", "The triggerDateTime field is required"),
+            Arguments.of(baseValidDTO.toBuilder().senderDescription("      ").build(),
+                "senderDescription", "The senderDescription field is required"),
+            Arguments.of(baseValidDTO.toBuilder().messageUrl("      ").build(),
+                "messageUrl", "The messageUrl field is required"),
+            Arguments.of(baseValidDTO.toBuilder().originId("      ").build(),
+                "originId", "The originId field is required"),
+            Arguments.of(baseValidDTO.toBuilder().title("      ").build(),
+                "title", "The title field is required"),
+            Arguments.of(baseValidDTO.toBuilder().content("      ").build(),
                 "content", "The content field is required")
         );
 
