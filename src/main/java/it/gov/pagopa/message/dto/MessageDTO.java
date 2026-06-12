@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 
 /**
  * DTO with all the information needed to send a notification message
@@ -56,7 +57,7 @@ public class MessageDTO {
     private String senderDescription;
 
 
-    @Pattern(regexp = "^https?://[^\\s/$.?#].\\S*$", message = "The messageUrl field must be a valid URL")
+    @URL(message = "The messageUrl field must be a valid URL")
     @Size(min = 1, max = 2048, message = "The messageUrl field must be between 1 and 2048")
     @NotBlankUnicode(message = "The messageUrl field is required")
     private String messageUrl;
