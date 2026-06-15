@@ -1,10 +1,14 @@
 package it.gov.pagopa.common.web.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
+import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.codec.DecodingException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.FieldError;
@@ -17,6 +21,7 @@ import org.springframework.web.server.MissingRequestValueException;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 @RestControllerAdvice
 @Slf4j
@@ -90,6 +95,77 @@ public class ValidationExceptionHandler {
         log.debug("Something went wrong due to a missing request value", e);
 
         return new ErrorDTO(templateValidationErrorDTO.getCode(), templateValidationErrorDTO.getMessage());
+    }
+
+    /**
+     * Handles errors that occur when the request body cannot be decoded.
+     *
+     * @param ex the DecodingException containing the decoding error details
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO containing details about the decoding error
+     */
+    @ExceptionHandler(DecodingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleDecodingException(DecodingException ex, ServerHttpRequest request) {
+
+        String message = templateValidationErrorDTO.getMessage();
+        Throwable cause = ex.getCause();
+
+        // DecodingException wrap InvalidFormatException
+        if (cause instanceof InvalidFormatException ife) {
+            String fieldName = ife.getPath().isEmpty() ? "unknown"
+                : ife.getPath().getFirst().getFieldName();
+
+            if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+                String validValue = Arrays.stream(ife.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+                message = String.format(
+                    "[%s]: must be one of [%s]",
+                    fieldName, validValue
+                );
+            } else {
+                message = String.format(
+                    "[%s]: invalid value for type %s",
+                    fieldName,
+                    ife.getTargetType() != null ? ife.getTargetType().getSimpleName() : "unknown"
+                );
+            }
+        }
+
+        log.info("A DecodingException occurred handling request {}: HttpStatus 400 - {}",
+            ErrorManager.getRequestDetails(request), message);
+        log.debug("Something went wrong while reading http request body", ex);
+
+        return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
+    }
+
+    /**
+     * Handles UnsupportedMediaTypeStatusException that occur during request processing.
+     *
+     * @param ex the UnsupportedMediaTypeStatusException
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO indicating an unsupported media type
+     */
+    @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public ErrorDTO handleUnsupportedMediaTypeStatusException(
+        UnsupportedMediaTypeStatusException ex, ServerHttpRequest request) {
+
+        String supportedMedia = ex.getSupportedMediaTypes().stream()
+            .map(MediaType::toString)
+            .collect(Collectors.joining(", "));
+
+        String message = String.format(
+            "Content-Type '%s' not supported. Accepted: [%s]",
+            ex.getContentType(), supportedMedia
+        );
+
+        log.info("A UnsupportedMediaTypeStatusException occurred handling request {}: HttpStatus 415 - {}",
+            ErrorManager.getRequestDetails(request), message);
+        log.debug("Something went wrong due to unsupported media type", ex);
+
+        return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
     }
 
 }
