@@ -1,6 +1,5 @@
 package it.gov.pagopa.message.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import it.gov.pagopa.message.config.JacksonConfig;
 import it.gov.pagopa.message.dto.MessageDTO;
