@@ -1,9 +1,14 @@
 package it.gov.pagopa.message.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import it.gov.pagopa.message.config.JacksonConfig;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.enums.Channel;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -17,13 +22,16 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
+import static it.gov.pagopa.message.utils.TestUtils.OBJECT_MAPPER;
 
 @WebFluxTest(MessageCoreControllerImpl.class)
+@Import(JacksonConfig.class)
 class MessageCoreControllerTest {
 
     @MockBean
@@ -415,6 +423,82 @@ class MessageCoreControllerTest {
                 "content", "The content field is required")
         );
 
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideStringFieldsForCoercionTest")
+    void sendMessage_Ko_NumericValueOnStringField_test(String fieldName) throws JsonProcessingException {
+        Map<String, Object> payload = buildPayloadWithOverride(fieldName, 1412412412L);
+
+        String rawJsonPayload = OBJECT_MAPPER.writeValueAsString(payload);
+
+        webTestClient.post()
+            .uri("/emd/message-core/sendMessage")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(rawJsonPayload)
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody(String.class)
+            .consumeWith(response -> {
+                String resultResponse = response.getResponseBody();
+                Assertions.assertNotNull(resultResponse);
+                Assertions.assertTrue(resultResponse.contains("[" + fieldName + "]"),
+                    "Response should contain field name: [" + fieldName + "]");
+                Assertions.assertTrue(resultResponse.contains("invalid value for type String"),
+                    "Response should indicate invalid type for String field");
+            });
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideStringFieldsForCoercionTest")
+    void sendMessage_Ko_BooleanValueOnStringField_test(String fieldName) throws JsonProcessingException {
+        Map<String, Object> payload = buildPayloadWithOverride(fieldName, true);
+
+        String rawJsonPayload = OBJECT_MAPPER.writeValueAsString(payload);
+
+        webTestClient.post()
+            .uri("/emd/message-core/sendMessage")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(rawJsonPayload)
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody(String.class)
+            .consumeWith(response -> {
+                String resultResponse = response.getResponseBody();
+                Assertions.assertNotNull(resultResponse);
+                Assertions.assertTrue(resultResponse.contains("[" + fieldName + "]"),
+                    "Response should contain field name: [" + fieldName + "]");
+                Assertions.assertTrue(resultResponse.contains("invalid value for type String"),
+                    "Response should indicate invalid type for String field");
+            });
+    }
+
+    private static Map<String, Object> buildPayloadWithOverride(String fieldName, Object overrideValue) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("messageId", "messageId");
+        payload.put("recipientId", "recipientId");
+        payload.put("triggerDateTime", "2023-12-25T10:30:00Z");
+        payload.put("senderDescription", "sender");
+        payload.put("messageUrl", "https://messageUrl.test");
+        payload.put("originId", "originId");
+        payload.put("title", "title");
+        payload.put("content", "message");
+        payload.put("associatedPayment", true);
+        payload.put("workflowType", "DIGITAL");
+        payload.put("channel", "SEND");
+
+        // Override only the field under test with the given value
+        payload.put(fieldName, overrideValue);
+        return payload;
+    }
+
+    private static Stream<String> provideStringFieldsForCoercionTest() {
+        return Stream.of(
+            "messageId", "recipientId", "triggerDateTime",
+            "senderDescription", "messageUrl", "originId", "title", "content"
+        );
     }
 
 }
