@@ -120,7 +120,7 @@ public class ValidationExceptionHandler {
 
             if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
                 String validValue = Arrays.stream(ife.getTargetType().getEnumConstants())
-                    .map(obj -> String.valueOf(obj))
+                    .map(String::valueOf)
                     .collect(Collectors.joining(", "));
                 message = String.format(
                     "[%s]: must be one of [%s]",
@@ -155,7 +155,7 @@ public class ValidationExceptionHandler {
         UnsupportedMediaTypeStatusException ex, ServerHttpRequest request) {
 
         String supportedMedia = ex.getSupportedMediaTypes().stream()
-            .map(mediaType -> String.valueOf(mediaType))
+            .map(String::valueOf)
             .collect(Collectors.joining(", "));
 
         String message = String.format(
