@@ -1,9 +1,8 @@
 package it.gov.pagopa.message.config;
 
-import com.fasterxml.jackson.databind.cfg.CoercionAction;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
-import com.fasterxml.jackson.databind.type.LogicalType;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import tools.jackson.databind.cfg.CoercionAction;
+import tools.jackson.databind.cfg.CoercionInputShape;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,9 +20,9 @@ public class JacksonConfig {
      * @return a customizer that applies the coercion restrictions to the global {@code ObjectMapper}
      */
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer coercionCustomizer() {
-        return builder -> builder.postConfigurer(objectMapper ->
-            objectMapper.coercionConfigFor(LogicalType.Textual)
+    public JsonMapperBuilderCustomizer coercionCustomizer() {
+        return builder -> builder
+            .withCoercionConfigDefaults(config -> config
                 .setCoercion(CoercionInputShape.Integer, CoercionAction.Fail)
                 .setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail)
         );
