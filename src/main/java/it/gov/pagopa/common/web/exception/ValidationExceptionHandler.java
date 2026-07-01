@@ -1,6 +1,6 @@
 package it.gov.pagopa.common.web.exception;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.exc.InvalidFormatException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
@@ -8,9 +8,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.codec.DecodingException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -113,12 +112,15 @@ public class ValidationExceptionHandler {
 
         // DecodingException wrap InvalidFormatException
         if (cause instanceof InvalidFormatException ife) {
-            String fieldName = ife.getPath().isEmpty() ? "unknown"
-                : ife.getPath().getFirst().getFieldName();
+                String fieldName = ife.getPath().stream()
+                    .map(ref -> ref.getPropertyName() != null ? ref.getPropertyName() : "[" + ref.getIndex() + "]")
+                    .collect(Collectors.joining("."));
+                    
+                    fieldName = fieldName.isEmpty() ? "unknown" : fieldName;
 
             if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
                 String validValue = Arrays.stream(ife.getTargetType().getEnumConstants())
-                    .map(Object::toString)
+                    .map(obj -> String.valueOf(obj))
                     .collect(Collectors.joining(", "));
                 message = String.format(
                     "[%s]: must be one of [%s]",
@@ -153,7 +155,7 @@ public class ValidationExceptionHandler {
         UnsupportedMediaTypeStatusException ex, ServerHttpRequest request) {
 
         String supportedMedia = ex.getSupportedMediaTypes().stream()
-            .map(MediaType::toString)
+            .map(mediaType -> String.valueOf(mediaType))
             .collect(Collectors.joining(", "));
 
         String message = String.format(
