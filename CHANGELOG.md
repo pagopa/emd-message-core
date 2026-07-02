@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.6](https://github.com/pagopa/emd-message-core/compare/v1.3.5...v1.3.6) (2026-06-24)
+
+
+### Bug Fixes
+
+* MMC-679 add validation spaces and format uri for messageUrl ([#105](https://github.com/pagopa/emd-message-core/issues/105)) ([e57e1ec](https://github.com/pagopa/emd-message-core/commit/e57e1ec80f9e4bc32954ba05225ad5d966a406a9))
+* MMC-680 add ExceptionHandlers for Decoding and UnsupportedMediaTypeStatus exceptions ([#104](https://github.com/pagopa/emd-message-core/issues/104)) ([575fdab](https://github.com/pagopa/emd-message-core/commit/575fdabb7b042b12315794609bd8dd635e455fc6))
+
 ## [1.3.5](https://github.com/pagopa/emd-message-core/compare/v1.3.4...v1.3.5) (2026-05-05)
 
 
