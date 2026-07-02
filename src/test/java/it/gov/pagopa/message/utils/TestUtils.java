@@ -1,5 +1,6 @@
 package it.gov.pagopa.message.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.utils.faker.MessageDTOFaker;
 import it.gov.pagopa.message.utils.faker.QueueMessageFaker;
@@ -16,4 +17,5 @@ public class TestUtils {
     public static final long RETRY = 1;
     public static final String FISCAL_CODE = MESSAGE_DTO.getRecipientId();
     public static final Message<MessageDTO> QUEUE_MESSAGE = QueueMessageFaker.mockInstance(MESSAGE_DTO);
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 }
