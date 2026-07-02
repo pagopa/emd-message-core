@@ -5,7 +5,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -44,7 +44,7 @@ abstract class BaseIT {
         kafka.getBootstrapServers());
 
     // MongoDB
-    registry.add("spring.data.mongodb.database", () -> "test-db");
+    registry.add("spring.mongodb.database", () -> "test-db");
 
     // Kafka - Basic configuration
     registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);

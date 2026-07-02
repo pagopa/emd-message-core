@@ -44,7 +44,7 @@ public class MessageCoreFlowIT extends BaseIT {
 
   @Container
   static MockServerContainer mockServer = new MockServerContainer(
-      DockerImageName.parse("mockserver/mockserver:latest")
+      DockerImageName.parse("mockserver/mockserver:7.1.0")
   );
 
   private MockServerClient mockServerClient;
