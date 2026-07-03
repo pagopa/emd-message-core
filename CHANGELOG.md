@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.7](https://github.com/pagopa/emd-message-core/compare/v1.3.6...v1.3.7) (2026-07-03)
+
+
+### Bug Fixes
+
+* **deps:** bump org.springframework.cloud:spring-cloud-dependencies from 2023.0.2 to 2025.1.2 ([#113](https://github.com/pagopa/emd-message-core/issues/113)) ([1654d9d](https://github.com/pagopa/emd-message-core/commit/1654d9d0f37e99bc81fef8da00f2fe4b1d13b8f9))
+* **deps:** bump org.springframework.security:spring-security-crypto from 6.3.8 to 7.1.0 ([#112](https://github.com/pagopa/emd-message-core/issues/112)) ([8270e6f](https://github.com/pagopa/emd-message-core/commit/8270e6f38ab33fb68637619cc4751224d95e928e))
+* **deps:** bump the non-major-updates group with 8 updates ([#111](https://github.com/pagopa/emd-message-core/issues/111)) ([b429238](https://github.com/pagopa/emd-message-core/commit/b4292388554b1ac5a87e5a61f331aecce487e71c))
+
 ## [1.3.6](https://github.com/pagopa/emd-message-core/compare/v1.3.5...v1.3.6) (2026-06-24)
 
 
