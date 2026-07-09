@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.8](https://github.com/pagopa/emd-message-core/compare/v1.3.7...v1.3.8) (2026-07-09)
+
+
+### Bug Fixes
+
+* MMC-814 Add chenagelog title and removed comment of success ad fail of semantic ([#123](https://github.com/pagopa/emd-message-core/issues/123)) ([528293f](https://github.com/pagopa/emd-message-core/commit/528293fee2decf9a000ee276b7a011b59182591d))
+
 ## [1.3.7](https://github.com/pagopa/emd-message-core/compare/v1.3.6...v1.3.7) (2026-07-09)
 
 
