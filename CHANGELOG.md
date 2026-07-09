@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.10](https://github.com/pagopa/emd-message-core/compare/v1.3.9...v1.3.10) (2026-07-09)
+
+
+### Bug Fixes
+
+* MMC-814 Add creation image format to use on deploy of uat ([#125](https://github.com/pagopa/emd-message-core/issues/125)) ([dbd07c7](https://github.com/pagopa/emd-message-core/commit/dbd07c77b6d1304fe5bfe25ebcaa14cce997b948))
+
 ## [1.3.9](https://github.com/pagopa/emd-message-core/compare/v1.3.8...v1.3.9) (2026-07-09)
 
 
