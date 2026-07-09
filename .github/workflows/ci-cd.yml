@@ -110,7 +110,7 @@ jobs:
     if: needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-22.04
     outputs:
-      image: ${{ steps.meta.outputs.tags }}
+      image: ghcr.io/${{ github.repository }}:v${{ needs.release.outputs.new_release_version }}@${{ steps.build.outputs.digest }}
     steps:
       - name: 🔖 Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -140,7 +140,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ needs.release.outputs.new_release_version }}
+            type=raw,value=v${{ needs.release.outputs.new_release_version }}
 
       - name: 🛃 Log in to Github Container registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef #3.6.0
@@ -150,6 +150,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN  }}
 
       - name: 📦 Build and push Docker image
+        id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 #6.18.0
         with:
           context: .
@@ -207,5 +208,5 @@ jobs:
         uses: pagopa/mil-actions/trigger-remote-workflow@73bd024abeec34d2dc0ac43999301015e817a472
         with:
           remote_gh_token: ${{ secrets.EMD_BOT_RW_TOKEN }}
-          remote_repo: Marco0530/my-tests-repo
-          remote_workflow: run-tests.yml
+          remote_repo: pagopa/emd-testing
+          remote_workflow: run-test.yml
