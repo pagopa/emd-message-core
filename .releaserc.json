@@ -6,6 +6,7 @@
       {
         "preset": "angular",
         "releaseRules": [
+          { "type": "breaking", "release": "major" },
           { "type": "docs", "release": "patch" },
           { "type": "deps", "release": "patch" }
         ]
