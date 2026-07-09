@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.9](https://github.com/pagopa/emd-message-core/compare/v1.3.8...v1.3.9) (2026-07-09)
+
+
+### Bug Fixes
+
+* MMC-814 Add github token on publish docker image ([#124](https://github.com/pagopa/emd-message-core/issues/124)) ([4f24477](https://github.com/pagopa/emd-message-core/commit/4f244777bf48e84d3d7f40178fbd5a5eef3a6ec2))
+
 ## [1.3.8](https://github.com/pagopa/emd-message-core/compare/v1.3.7...v1.3.8) (2026-07-09)
 
 
