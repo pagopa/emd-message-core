@@ -1,3 +1,14 @@
+## [1.3.7](https://github.com/pagopa/emd-message-core/compare/v1.3.6...v1.3.7) (2026-07-09)
+
+
+### Bug Fixes
+
+* **deps:** bump org.springframework.cloud:spring-cloud-dependencies from 2023.0.2 to 2025.1.2 ([#113](https://github.com/pagopa/emd-message-core/issues/113)) ([1654d9d](https://github.com/pagopa/emd-message-core/commit/1654d9d0f37e99bc81fef8da00f2fe4b1d13b8f9))
+* **deps:** bump org.springframework.security:spring-security-crypto from 6.3.8 to 7.1.0 ([#112](https://github.com/pagopa/emd-message-core/issues/112)) ([8270e6f](https://github.com/pagopa/emd-message-core/commit/8270e6f38ab33fb68637619cc4751224d95e928e))
+* **deps:** bump the non-major-updates group with 8 updates ([#111](https://github.com/pagopa/emd-message-core/issues/111)) ([b429238](https://github.com/pagopa/emd-message-core/commit/b4292388554b1ac5a87e5a61f331aecce487e71c))
+* MMC-814 Add ci-cd action and update realease-please to semantic ([#121](https://github.com/pagopa/emd-message-core/issues/121)) ([0768f9e](https://github.com/pagopa/emd-message-core/commit/0768f9e70377e0d1d368909cee760feed446fa12))
+* MMC-814 set ci to false on sematic and fix secrets of github token ([#122](https://github.com/pagopa/emd-message-core/issues/122)) ([730dec7](https://github.com/pagopa/emd-message-core/commit/730dec7057ad8325f4d200885ea6afc4d7f748f5))
+
 # Changelog
 
 ## [1.3.6](https://github.com/pagopa/emd-message-core/compare/v1.3.5...v1.3.6) (2026-06-24)
