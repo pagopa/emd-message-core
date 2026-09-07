@@ -14,6 +14,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.annotation.Nulls;
 @AllArgsConstructor
 @Data
 @Builder(toBuilder = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @ValidAnalogScheduling
 public class MessageDTO {
 

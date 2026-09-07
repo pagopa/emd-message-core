@@ -170,4 +170,31 @@ public class ValidationExceptionHandler {
         return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
     }
 
+    /**
+     * Handles ServerWebInputException that occurs when a query parameter has an invalid type
+     * (e.g., a string provided for a LocalDateTime parameter).
+     *
+     * @param e the ServerWebInputException
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO indicating a type mismatch or invalid input
+     */
+    @ExceptionHandler(org.springframework.web.server.ServerWebInputException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleServerWebInputException(
+            org.springframework.web.server.ServerWebInputException e, ServerHttpRequest request) {
+        
+        String message = e.getReason(); // Di default è "Type mismatch."
+        
+        // Se l'errore è dovuto a un fallimento di conversione (TypeMismatchException)
+        if (e.getCause() instanceof org.springframework.beans.TypeMismatchException tme) {
+            message = String.format("Invalid value for parameter: [%s]", tme.getPropertyName());
+        }
+
+        log.info("A ServerWebInputException occurred handling request {}: HttpStatus 400 - {}",
+                ErrorManager.getRequestDetails(request), message);
+        log.debug("Something went wrong due to invalid web input", e);
+
+        return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
+    }
+
 }

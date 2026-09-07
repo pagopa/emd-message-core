@@ -3,9 +3,12 @@ package it.gov.pagopa.message.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import it.gov.pagopa.message.config.JacksonConfig;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.enums.Channel;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
+
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -498,6 +501,112 @@ class MessageCoreControllerTest {
             "messageId", "recipientId", "triggerDateTime",
             "senderDescription", "messageUrl", "originId", "title", "content"
         );
+    }
+
+    // =========================================================================
+    // SEARCH MESSAGES TESTS
+    // =========================================================================
+
+    @Test
+    void searchMessages_Ok() {
+        MessageSearchResponseDTO expectedResponse = MessageSearchResponseDTO.builder()
+                .content(java.util.List.of())
+                .page(0)
+                .size(10)
+                .totalElements(0L)
+                .totalPages(0)
+                .build();
+
+        Mockito.when(messageCoreService.searchMessages(
+                Mockito.any(), Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any(), 
+                Mockito.anyInt(), Mockito.anyInt(), Mockito.any()))
+            .thenReturn(Mono.just(expectedResponse));
+
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("messageId", "MSG123")
+                        .queryParam("page", 0)
+                        .queryParam("size", 10)
+                        .build())
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(MessageSearchResponseDTO.class)
+                .isEqualTo(expectedResponse);
+    }
+
+    @Test
+    void searchMessages_WithAllFilters_Ok() {
+        String messageId = "msgId";
+        String recipientId = "recipientId";
+        String originId = "originId";
+        String startDate = "2023-12-25T10:30:00";
+        String endDate = "2023-12-26T10:30:00";
+
+        Mockito.when(messageCoreService.searchMessages(
+                Mockito.eq(messageId), Mockito.eq(recipientId), Mockito.eq(originId),
+                Mockito.any(LocalDateTime.class), Mockito.any(LocalDateTime.class),
+                Mockito.eq(0), Mockito.eq(10), Mockito.any()))
+            .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
+
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("messageId", messageId)
+                        .queryParam("recipientId", recipientId)
+                        .queryParam("originId", originId)
+                        .queryParam("startDate", startDate)
+                        .queryParam("endDate", endDate)
+                        .queryParam("fields", "messageId,recipientId")
+                        .build())
+                .exchange()
+                .expectStatus().isOk();
+
+        // Verifichiamo che i parametri siano stati passati correttamente al service
+        Mockito.verify(messageCoreService).searchMessages(
+                Mockito.eq(messageId), 
+                Mockito.eq(recipientId), 
+                Mockito.eq(originId), 
+                Mockito.any(LocalDateTime.class), 
+                Mockito.any(LocalDateTime.class), 
+                Mockito.eq(0), 
+                Mockito.eq(10), 
+                Mockito.argThat(list -> list.contains("messageId") && list.contains("recipientId"))
+        );
+    }
+
+    @Test
+    void searchMessages_InvalidDateFormat_BadRequest() {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("startDate", "invalid-date")
+                        .build())
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void searchMessages_Pagination_Ok() {
+        int page = 5;
+        int size = 20;
+
+        Mockito.when(messageCoreService.searchMessages(
+                Mockito.any(), Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any(), 
+                Mockito.eq(page), Mockito.eq(size), Mockito.any()))
+            .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
+
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("page", page)
+                        .queryParam("size", size)
+                        .build())
+                .exchange()
+                .expectStatus().isOk();
     }
 
 }
