@@ -46,14 +46,9 @@ public interface MessageCoreController {
      * Search Messages by exact {@code messageId}, {@code recipientId}, {@code originId} or messages sent
      * between {@code startDate} and {@code endDate} and returning a paginated result.
      * <p>
-     * At least one filter should be provided. When {@code entityId} is present it takes precedence
-     * over {@code businessName}. The {@code size} is capped by a configured maximum to protect
-     * database resources.
-     * <p>
      * The content of each result only contains the fields requested via {@code fields} (matching
      * the properties of {@link MessageSearchResponseDTO}), reducing the response payload size.
-     * When {@code fields} is omitted, the default grid fields are returned: {@code businessName},
-     * {@code entityId}, {@code isPaymentEnabled}, {@code tppId}, {@code state}, {@code lastUpdateDate}.
+     * When {@code fields} is omitted, the default grid fields are returned.
      *
      * @param messageId     optional exact message identifier filter
      * @param recipientId   optional exact recipient identifier filter
