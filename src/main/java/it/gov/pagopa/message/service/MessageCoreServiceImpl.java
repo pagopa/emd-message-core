@@ -1,14 +1,26 @@
 package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
+import it.gov.pagopa.message.constants.MessageCoreConstants;
 import it.gov.pagopa.message.connector.CitizenConnector;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageMapperObjectToDTO;
+import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.common.utils.CommonUtilities.createSHA256;
 import static it.gov.pagopa.common.utils.CommonUtilities.inputSanitization;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <p>Implementation of {@link MessageCoreService}.</p>
@@ -23,10 +35,33 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final MessageProducerServiceImpl messageProducerService;
 
+    private final MessageMapperObjectToDTO messageMapperObjectToDTO;
+
+
+    
+    /**
+     * Maximum page size accepted for search operations. Requests exceeding this value are
+     * capped to protect database resources.
+     */
+    @Value ("${app.tpp.search.max-page-size:100}")
+    private int maxPageSize;
+
+    /**
+     * Default page size used when the client does not provide a valid {@code size}.
+     */
+    @Value ("${app.tpp.search.default-page-size:10}")
+    private int defaultPageSize;
+    
+    private final MessageRepository messageRepository;
+
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
-                                  MessageProducerServiceImpl messageProducerService) {
+                                  MessageProducerServiceImpl messageProducerService,
+                                  MessageRepository messageRepository,
+                                  MessageMapperObjectToDTO messageMapperObjectToDTO) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
+        this.messageRepository = messageRepository;
+        this.messageMapperObjectToDTO = messageMapperObjectToDTO;
     }
 
 
@@ -68,6 +103,83 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     }
                 })
                 .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", recipientIdHashed, error.getMessage()));
+    }
+
+    @Override
+    public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, int page, int size, List<String> fields) {
+        
+        return Mono.defer(() -> {
+            int safePage = Math.max(page, 0);
+            int safeSize = normalizePageSize(size);
+            Set<String> safeFields = resolveSearchFields(fields);
+
+            log.info("[MESSAGE-CORE][SEARCH] Received search request - ", messageId != null && ! messageId.isBlank(), 
+                    startDate != null, endDate != null, safePage, safeSize, safeFields);
+
+                    Mono<List<MessageDTO>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, safePage, safeSize, safeFields)
+                    //Mappa gli elementi recuperati dal DB nel DTO
+                    .map(message -> messageMapperObjectToDTO.map(message, safeFields))
+                    .collectList();
+
+            Mono<Long> countMono = messageRepository.countMessages(messageId, recipientId, originId, startDate, endDate);
+
+            return Mono.zip(contentMono, countMono)
+                    .map(tuple -> {
+                        List<MessageDTO> content = tuple.getT1();
+                        long totalElements = tuple.getT2();
+                        int totalPages = (int) Math.ceil((double) totalElements / safeSize);
+                        return MessageSearchResponseDTO.builder()
+                                .content(content)
+                                .page(safePage)
+                                .size(safeSize)
+                                .totalElements(totalElements)
+                                .totalPages(totalPages)
+                                .build();
+                    });
+        })
+        .doOnSuccess(result -> log.info("[MESSAGE-CORE][SEARCH] Search completed - returned {} elements, totalElements: {}, totalPages: {}",
+                result.getContent().size(), result.getTotalElements(), result.getTotalPages()))
+        .doOnError(error -> log.error("[MESSAGE-CORE][SEARCH] Error while searching messages: {}", error.getMessage()));
+    }
+
+    /**
+     * Resolves the effective set of fields to project/return for the {@code searchTpps}
+     * operation. Falls back to the default grid fields when none are provided, otherwise
+     * validates the requested fields against the allowed set, throwing an
+     * {@code INVALID_SEARCH_FIELD} exception if any unknown field is requested.
+     * <p>
+     * Called from within a {@code Mono.defer}, so any exception thrown here is correctly
+     * captured and propagated as a reactive error signal instead of being thrown synchronously.
+     *
+     * @param fields the raw fields requested by the caller (nullable/empty)
+     * @return the validated, effective set of fields to use
+     */
+    private Set<String> resolveSearchFields(List<String> fields) {
+        if (fields == null || fields.isEmpty()) {
+            return MessageCoreConstants.SearchFields.DEFAULT_GRID_FIELDS;
+        }
+
+        Set<String> requestedFields = new HashSet<>(fields);
+        Set<String> invalidFields = requestedFields.stream()
+                .filter(field -> !MessageCoreConstants.SearchFields.ALLOWED.contains(field))
+                .collect(Collectors.toSet());
+
+
+        return requestedFields;
+    }
+
+    /**
+     * Normalizes the requested page size, falling back to the default when non-positive and
+     * capping to the configured maximum otherwise.
+     *
+     * @param size the requested page size
+     * @return a safe page size within {@code [1, maxPageSize]}
+     */
+    private int normalizePageSize(int size) {
+        if (size <= 0) {
+            return defaultPageSize;
+        }
+        return Math.min(size, maxPageSize);
     }
 
 }
