@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -24,7 +23,7 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
     private static final String FIELD_MESSAGE_ID = "messageId";
     private static final String FIELD_RECIPIENT_ID = "recipientId"; // Codice Fiscale
     private static final String FIELD_ORIGIN_ID = "originId";
-    private static final String FIELD_INSERTION_DATE = "insertionDate"; // Assunto come campo data
+    private static final String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
 
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
@@ -38,7 +37,7 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
     @Override
     public Flux<Message> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, int page, int size, Set<String> fields) {
         Query query = buildCriteriaQuery(messageId, recipientId, originId, startDate, endDate)
-                .with(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, FIELD_INSERTION_DATE)));
+                .with(PageRequest.of(page, size));
 
         if (!CollectionUtils.isEmpty(fields)) {
             fields.forEach(field -> query.fields().include(field));
@@ -63,24 +62,24 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
 
-        // 1. Filtro per Message ID (Esatto)
+        // Filtro per Message ID
         if (StringUtils.hasText(messageId)) {
             criteriaList.add(Criteria.where(FIELD_MESSAGE_ID).is(messageId));
         }
 
-        // 2. Filtro per Codice Fiscale (Esatto)
+        // Filtro per Codice Fiscale
         if (StringUtils.hasText(recipientId)) {
             criteriaList.add(Criteria.where(FIELD_RECIPIENT_ID).is(recipientId));
         }
 
-        // 3. Filtro per Origin ID (Esatto)
+        // 3. Filtro per Origin ID
         if (StringUtils.hasText(originId)) {
             criteriaList.add(Criteria.where(FIELD_ORIGIN_ID).is(originId));
         }
 
-        // 4. Filtro per Intervallo Temporale (Ricerca avanzata)
+        // 4. Filtro per Intervallo Temporale
         if (startDate != null || endDate != null) {
-            Criteria dateCriteria = Criteria.where(FIELD_INSERTION_DATE);
+            Criteria dateCriteria = Criteria.where(FIELD_REGISTRATION_DATE);
             if (startDate != null) {
                 dateCriteria.gte(startDate);
             }
