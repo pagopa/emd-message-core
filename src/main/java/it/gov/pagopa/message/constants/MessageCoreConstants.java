@@ -29,11 +29,13 @@ public class MessageCoreConstants {
      */
     public static final class SearchFields {
 
+        public static final String ENTITY_ID = "entityId";
         public static final String MESSAGE_ID = "messageId";
         public static final String RECIPIENT_ID = "recipientId";
         public static final String TRIGGER_DATE_TIME = "triggerDateTime";
         public static final String SENDER_DESCRIPTION = "senderDescription";
         public static final String MESSAGE_URL = "messageUrl";
+        public static final String MESSAGE_STATE = "messageState";
         public static final String ORIGIN_ID = "originId";
         public static final String TITLE = "title";
         public static final String CONTENT = "content";
@@ -58,9 +60,7 @@ public class MessageCoreConstants {
          * provided, matching the columns shown in the message grid.
          */
         public static final Set<String> DEFAULT_GRID_FIELDS = Set.of(
-                MESSAGE_ID, RECIPIENT_ID, TRIGGER_DATE_TIME, SENDER_DESCRIPTION,
-                MESSAGE_URL, ORIGIN_ID, TITLE, CONTENT, ASSOCIATED_PAYMENT,
-                ANALOG_SCHEDULING_DATE, CHANNEL, WORKFLOW_TYPE, ID_PSP
+                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, ENTITY_ID, WORKFLOW_TYPE, TRIGGER_DATE_TIME
         );
 
         private SearchFields() {}

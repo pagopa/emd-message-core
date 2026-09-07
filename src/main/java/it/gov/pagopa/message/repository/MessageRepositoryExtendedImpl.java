@@ -21,9 +21,9 @@ import reactor.core.publisher.Mono;
 public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended {
     
     private static final String FIELD_MESSAGE_ID = "messageId";
-    private static final String FIELD_RECIPIENT_ID = "recipientId"; // Codice Fiscale
+    private static final String FIELD_RECIPIENT_ID = "recipientId";
     private static final String FIELD_ORIGIN_ID = "originId";
-    private static final String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
+    private static final String FIELD_REGISTRATION_DATE = "triggerDateTime";
 
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
@@ -72,19 +72,19 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
             criteriaList.add(Criteria.where(FIELD_RECIPIENT_ID).is(recipientId));
         }
 
-        // 3. Filtro per Origin ID
+        // Filtro per Origin ID
         if (StringUtils.hasText(originId)) {
             criteriaList.add(Criteria.where(FIELD_ORIGIN_ID).is(originId));
         }
 
-        // 4. Filtro per Intervallo Temporale
+        // Filtro per Intervallo Temporale
         if (startDate != null || endDate != null) {
             Criteria dateCriteria = Criteria.where(FIELD_REGISTRATION_DATE);
             if (startDate != null) {
-                dateCriteria.gte(startDate);
+                dateCriteria.gte(startDate.toString());
             }
             if (endDate != null) {
-                dateCriteria.lte(endDate);
+                dateCriteria.lte(endDate.toString());
             }
             criteriaList.add(dateCriteria);
         }

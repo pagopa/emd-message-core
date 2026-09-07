@@ -164,6 +164,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                 .filter(field -> !MessageCoreConstants.SearchFields.ALLOWED.contains(field))
                 .collect(Collectors.toSet());
 
+        // TODO - IMPLEMENTARE GESTIONE ERRORE INVALID_SEARCH_FIELD
 
         return requestedFields;
     }
