@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,7 +62,7 @@ public interface MessageCoreController {
      * @return a {@link Mono} containing a {@link ResponseEntity} with the paginated
      *          {@link MessageSearchResponseDTO}
      */
-    @GetMapping("/search")
+    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(
             @RequestParam(required = false) String messageId,
             @RequestParam(required = false) String recipientId,
