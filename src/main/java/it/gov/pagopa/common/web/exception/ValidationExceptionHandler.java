@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.MissingRequestValueException;
+import org.springframework.web.server.UnsupportedMediaTypeStatusException;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -137,6 +139,34 @@ public class ValidationExceptionHandler {
         log.info("A DecodingException occurred handling request {}: HttpStatus 400 - {}",
             ErrorManager.getRequestDetails(request), message);
         log.debug("Something went wrong while reading http request body", ex);
+
+        return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
+    }
+
+    /**
+     * Handles UnsupportedMediaTypeStatusException that occur during request processing.
+     *
+     * @param ex the UnsupportedMediaTypeStatusException
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO indicating an unsupported media type
+     */
+    @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public ErrorDTO handleUnsupportedMediaTypeStatusException(
+        UnsupportedMediaTypeStatusException ex, ServerHttpRequest request) {
+
+        String supportedMedia = ex.getSupportedMediaTypes().stream()
+            .map(String::valueOf)
+            .collect(Collectors.joining(", "));
+
+        String message = String.format(
+            "Content-Type '%s' not supported. Accepted: [%s]",
+            ex.getContentType(), supportedMedia
+        );
+
+        log.info("A UnsupportedMediaTypeStatusException occurred handling request {}: HttpStatus 415 - {}",
+            ErrorManager.getRequestDetails(request), message);
+        log.debug("Something went wrong due to unsupported media type", ex);
 
         return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
     }
