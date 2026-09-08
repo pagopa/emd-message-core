@@ -87,7 +87,7 @@ public class MessageCoreConstants {
          * provided, matching the columns shown in the message grid.
          */
         public static final Set<String> DEFAULT_GRID_FIELDS = Set.of(
-                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, ENTITY_ID, WORKFLOW_TYPE, TRIGGER_DATE_TIME
+                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, ENTITY_ID, WORKFLOW_TYPE, TRIGGER_DATE_TIME, ASSOCIATED_PAYMENT
         );
 
         private SearchFields() {}
