@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -36,8 +37,12 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
      */
     @Override
     public Flux<Message> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, int page, int size, Set<String> fields) {
+        
+        // Recent messages first
+        Sort sort = Sort.by(Sort.Direction.DESC, FIELD_REGISTRATION_DATE);
+
         Query query = buildCriteriaQuery(messageId, recipientId, originId, startDate, endDate)
-                .with(PageRequest.of(page, size));
+                .with(PageRequest.of(page, size, sort));
 
         if (!CollectionUtils.isEmpty(fields)) {
             fields.forEach(field -> query.fields().include(field));

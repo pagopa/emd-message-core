@@ -112,6 +112,33 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                 .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", recipientIdHashed, error.getMessage()));
     }
 
+    /**
+     * Performs a paginated search for messages applying optional filters and field projection.
+     * <p>
+     * The internal logic executes the following steps:
+     * <ul>
+     *     <li>Normalizes pagination parameters (page and size) to ensure they fall within safe bounds.</li>
+     *     <li>Resolves and validates the requested {@code fields} for response projection.</li>
+     *     <li>Executes concurrent reactive calls for data retrieval and total record count using {@link Mono#zip}.</li>
+     *     <li>Maps database entities to {@link MessageDTO} objects, including only the allowed fields.</li>
+     *     <li>Calculates pagination metadata such as total elements and total pages.</li>
+     * </ul>
+     * </p>
+     *
+     * @param messageId     optional unique message identifier (exact match)
+     * @param recipientId   optional recipient identifier (exact match)
+     * @param originId      optional source system identifier (exact match)
+     * @param startDate     optional inclusive start date for the registration range
+     * @param endDate       optional inclusive end date for the registration range
+     * @param page          the zero-based page index to retrieve
+     * @param size          the requested number of items per page (subject to capping)
+     * @param fields        list of specific fields to include in the response; if null or empty, default fields are used
+     * @return a {@link Mono} emitting the {@link MessageSearchResponseDTO} containing the results and pagination metadata
+     * @throws it.gov.pagopa.message.config.ExceptionMap (or specific exception) if the requested {@code fields} are invalid
+     * 
+     * @see it.gov.pagopa.message.repository.MessageRepository#searchMessages
+     * @see it.gov.pagopa.message.repository.MessageRepository#countMessages
+     */
     @Override
     public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, int page, int size, List<String> fields) {
         
