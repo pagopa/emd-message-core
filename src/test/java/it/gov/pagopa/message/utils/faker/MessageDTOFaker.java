@@ -15,7 +15,7 @@ public class MessageDTOFaker {
                 .triggerDateTime("2023-12-25T10:30:00Z")
                 .analogSchedulingDate("2023-12-25T10:30:00Z")
                 .senderDescription("sender")
-                .messageUrl("messageUrl")
+                .messageUrl("https://messageUrl.test")
                 .originId("originId")
                 .title("title")
                 .content("message")
