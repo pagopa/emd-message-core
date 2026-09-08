@@ -5,15 +5,17 @@ import it.gov.pagopa.message.enums.Channel;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.validator.NotBlankUnicode;
 import it.gov.pagopa.message.validator.ValidAnalogScheduling;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 
 /**
  * DTO with all the information needed to send a notification message
@@ -21,7 +23,6 @@ import org.hibernate.validator.constraints.URL;
  */
 @AllArgsConstructor
 @Data
-@NoArgsConstructor
 @Builder(toBuilder = true)
 @ValidAnalogScheduling
 public class MessageDTO {
@@ -89,6 +90,11 @@ public class MessageDTO {
     @Builder.Default
     private Boolean associatedPayment = false;
 
+    /**
+     * @JsonSetter(nulls = Nulls.SKIP) is used to handle null values during deserialization. 
+     * If the associatedPayment field is null it will use the default value of false 
+     */
+    @JsonSetter(nulls = Nulls.SKIP)
     public void setAssociatedPayment(Boolean associatedPayment) {
         this.associatedPayment = associatedPayment != null ? associatedPayment : false;
     }
@@ -116,6 +122,14 @@ public class MessageDTO {
     @NotNull(message = "The workflowType field is required")
     private WorkflowType workflowType;
     
+    /**
+     * Tells to the Jackson library to use this constructor when deserializing JSON into a MessageDTO object.
+     */
+    @JsonCreator
+    public MessageDTO() {
+        this.associatedPayment = false;
+    }
+
     @Override
     public String toString() {
 
