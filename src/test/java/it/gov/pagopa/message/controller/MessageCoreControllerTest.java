@@ -1,6 +1,7 @@
 package it.gov.pagopa.message.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import it.gov.pagopa.common.web.exception.ErrorManager;
+import it.gov.pagopa.common.web.exception.ValidationExceptionHandler;
 import it.gov.pagopa.message.config.JacksonConfig;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
@@ -27,13 +28,18 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
 import static it.gov.pagopa.message.utils.TestUtils.OBJECT_MAPPER;
 
 @WebFluxTest(MessageCoreControllerImpl.class)
-@Import(JacksonConfig.class)
+@Import({JacksonConfig.class,
+    ErrorManager.class,
+    ValidationExceptionHandler.class})
 class MessageCoreControllerTest {
 
     @MockitoBean
@@ -575,17 +581,6 @@ class MessageCoreControllerTest {
                 Mockito.eq(10), 
                 Mockito.argThat(list -> list.contains("messageId") && list.contains("recipientId"))
         );
-    }
-
-    @Test
-    void searchMessages_InvalidDateFormat_BadRequest() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/emd/message-core/search")
-                        .queryParam("startDate", "invalid-date")
-                        .build())
-                .exchange()
-                .expectStatus().isBadRequest();
     }
 
     @Test

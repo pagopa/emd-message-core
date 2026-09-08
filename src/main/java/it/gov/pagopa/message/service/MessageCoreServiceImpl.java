@@ -2,6 +2,9 @@ package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.constants.MessageCoreConstants;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
+import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnector;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageMapperObjectToDTO;
@@ -37,6 +40,8 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final MessageMapperObjectToDTO messageMapperObjectToDTO;
 
+    private final ExceptionMap exceptionMap;
+
 
     
     /**
@@ -57,11 +62,13 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
                                   MessageProducerServiceImpl messageProducerService,
                                   MessageRepository messageRepository,
-                                  MessageMapperObjectToDTO messageMapperObjectToDTO) {
+                                  MessageMapperObjectToDTO messageMapperObjectToDTO,
+                                  ExceptionMap exceptionMap) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
         this.messageRepository = messageRepository;
         this.messageMapperObjectToDTO = messageMapperObjectToDTO;
+        this.exceptionMap = exceptionMap;
     }
 
 
@@ -164,7 +171,10 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                 .filter(field -> !MessageCoreConstants.SearchFields.ALLOWED.contains(field))
                 .collect(Collectors.toSet());
 
-        // TODO - IMPLEMENTARE GESTIONE ERRORE INVALID_SEARCH_FIELD
+        if (!invalidFields.isEmpty()) {
+            throw exceptionMap.throwException(ExceptionName.INVALID_SEARCH_FIELD,
+                    ExceptionMessage.INVALID_SEARCH_FIELD + ": " + invalidFields);
+        }
 
         return requestedFields;
     }

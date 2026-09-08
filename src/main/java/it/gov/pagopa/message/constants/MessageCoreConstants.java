@@ -23,6 +23,33 @@ public class MessageCoreConstants {
     }
 
     /**
+     * Container class for Message exception codes used in structured error responses.
+     */
+    public static final class ExceptionCode {
+
+        public static final String INVALID_SEARCH_FIELD = "INVALID_SEARCH_FIELD";
+        private ExceptionCode() {}
+    }
+
+    /**
+     * Container class for Message exception messages used in error responses and logging.
+     */
+    public static final class ExceptionMessage {
+
+        public static final String INVALID_SEARCH_FIELD = "One or more requested 'fields' are not allowed for search projection";
+        private ExceptionMessage() {}
+    }
+
+    /**
+     * Container class for Message exception names used in exception mapping and factory patterns.
+     */
+    public static final class ExceptionName {
+
+        public static final String INVALID_SEARCH_FIELD = "INVALID_SEARCH_FIELD";
+        private ExceptionName() {}
+    }
+
+    /**
      * Container class defining the fields available in {@code MessageDTO} that
      * can be requested for projection in the {@code searchMessages} operation, together with the
      * default set of fields returned when no override is provided (the ones shown in the grid).

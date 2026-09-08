@@ -4,6 +4,7 @@ import tools.jackson.databind.exc.InvalidFormatException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.codec.DecodingException;
@@ -17,10 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.MissingRequestValueException;
-
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 @RestControllerAdvice
 @Slf4j
@@ -138,61 +137,6 @@ public class ValidationExceptionHandler {
         log.info("A DecodingException occurred handling request {}: HttpStatus 400 - {}",
             ErrorManager.getRequestDetails(request), message);
         log.debug("Something went wrong while reading http request body", ex);
-
-        return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
-    }
-
-    /**
-     * Handles UnsupportedMediaTypeStatusException that occur during request processing.
-     *
-     * @param ex the UnsupportedMediaTypeStatusException
-     * @param request the ServerHttpRequest being processed
-     * @return an ErrorDTO indicating an unsupported media type
-     */
-    @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
-    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-    public ErrorDTO handleUnsupportedMediaTypeStatusException(
-        UnsupportedMediaTypeStatusException ex, ServerHttpRequest request) {
-
-        String supportedMedia = ex.getSupportedMediaTypes().stream()
-            .map(String::valueOf)
-            .collect(Collectors.joining(", "));
-
-        String message = String.format(
-            "Content-Type '%s' not supported. Accepted: [%s]",
-            ex.getContentType(), supportedMedia
-        );
-
-        log.info("A UnsupportedMediaTypeStatusException occurred handling request {}: HttpStatus 415 - {}",
-            ErrorManager.getRequestDetails(request), message);
-        log.debug("Something went wrong due to unsupported media type", ex);
-
-        return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
-    }
-
-    /**
-     * Handles ServerWebInputException that occurs when a query parameter has an invalid type
-     * (e.g., a string provided for a LocalDateTime parameter).
-     *
-     * @param e the ServerWebInputException
-     * @param request the ServerHttpRequest being processed
-     * @return an ErrorDTO indicating a type mismatch or invalid input
-     */
-    @ExceptionHandler(org.springframework.web.server.ServerWebInputException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDTO handleServerWebInputException(
-            org.springframework.web.server.ServerWebInputException e, ServerHttpRequest request) {
-        
-        String message = e.getReason(); // Di default è "Type mismatch."
-        
-        // Se l'errore è dovuto a un fallimento di conversione (TypeMismatchException)
-        if (e.getCause() instanceof org.springframework.beans.TypeMismatchException tme) {
-            message = String.format("Invalid value for parameter: [%s]", tme.getPropertyName());
-        }
-
-        log.info("A ServerWebInputException occurred handling request {}: HttpStatus 400 - {}",
-                ErrorManager.getRequestDetails(request), message);
-        log.debug("Something went wrong due to invalid web input", e);
 
         return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
     }
