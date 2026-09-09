@@ -57,27 +57,17 @@ class MessageRepositoryExtendedImplTest {
                 .thenReturn(Flux.just(new Message()));
 
         // When
-        Flux<Message> result = messageRepository.searchMessages(
-                messageId,
-                recipientId,
-                originId,
-                startDate,
-                endDate,
-                page,
-                size,
-                fields
-        );
+        Flux<Message> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate,
+                page,size,fields);
 
         // Then
         StepVerifier.create(result)
                 .expectNextCount(1)
                 .verifyComplete();
 
-        ArgumentCaptor<Query> queryCaptor =
-                ArgumentCaptor.forClass(Query.class);
+        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
 
-        verify(reactiveMongoTemplate)
-                .find(queryCaptor.capture(), eq(Message.class));
+        verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
 
         Query capturedQuery = queryCaptor.getValue();
         Document queryObject = capturedQuery.getQueryObject();
@@ -85,13 +75,9 @@ class MessageRepositoryExtendedImplTest {
         // =========================
         // Verifica struttura query
         // =========================
-        assertTrue(
-                queryObject.containsKey("$and"),
-                "Deve contenere un operatore $and"
-        );
+        assertTrue( queryObject.containsKey("$and"), "Deve contenere un operatore $and");
 
-        List<Document> andConditions =
-                (List<Document>) queryObject.get("$and");
+        List<Document> andConditions =(List<Document>) queryObject.get("$and");
 
         assertNotNull(andConditions);
         assertEquals(4, andConditions.size());
@@ -102,8 +88,7 @@ class MessageRepositoryExtendedImplTest {
         assertTrue(andConditions.stream()
                 .anyMatch(condition ->
                         messageId.equals(
-                                condition.getString("messageId")
-                        )
+                                condition.getString("messageId"))
                 )
         );
 
@@ -113,8 +98,7 @@ class MessageRepositoryExtendedImplTest {
         assertTrue(andConditions.stream()
                 .anyMatch(condition ->
                         recipientId.equals(
-                                condition.getString("recipientId")
-                        )
+                                condition.getString("recipientId"))
                 )
         );
 
@@ -124,8 +108,7 @@ class MessageRepositoryExtendedImplTest {
         assertTrue(andConditions.stream()
                 .anyMatch(condition ->
                         originId.equals(
-                                condition.getString("originId")
-                        )
+                                condition.getString("originId"))
                 )
         );
 

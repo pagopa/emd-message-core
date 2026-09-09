@@ -65,12 +65,12 @@ public interface MessageCoreController {
      */
     @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(
-            @RequestParam(required = false) String messageId,
-            @RequestParam(required = false) String recipientId,
-            @RequestParam(required = false) String originId,
-            @RequestParam (required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam (required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) List<String> fields);
+            @RequestParam(name = "messageId", required = false) String messageId,
+            @RequestParam(name = "recipientId", required = false) String recipientId,
+            @RequestParam(name = "originId", required = false) String originId,
+            @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "fields", required = false) List<String> fields);
 }

@@ -5,21 +5,22 @@ import it.gov.pagopa.common.web.dto.ErrorDTO;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.core.MethodParameter;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.codec.DecodingException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.jspecify.annotations.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.MissingRequestValueException;
+import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.util.Optional;
@@ -173,36 +174,63 @@ public class ValidationExceptionHandler {
         return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorDTO> handleMethodArgumentTypeMismatchException(
-            MethodArgumentTypeMismatchException ex,
+    @ExceptionHandler(ServerWebInputException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleServerWebInputException(
+            ServerWebInputException ex,
             ServerHttpRequest request) {
 
-        String parameterName = ex.getName();
-        Object value = ex.getValue();
-        Class<?> requiredType = ex.getRequiredType();
+        MethodParameter methodParameter = ex.getMethodParameter();
+
+        if (methodParameter == null ||
+                methodParameter.getParameterAnnotation(RequestParam.class) == null) {
+
+            Throwable cause = ex.getCause();
+
+            if (cause instanceof DecodingException decodingException) {
+                return handleDecodingException(decodingException, request);
+            }
+
+            return new ErrorDTO(
+                    templateValidationErrorDTO.getCode(),
+                    templateValidationErrorDTO.getMessage()
+            );
+        }
+
+        RequestParam requestParam = methodParameter.getParameterAnnotation(RequestParam.class);
+
+        String parameterName = requestParam.name();
+
+        if (parameterName.isBlank()) {
+            parameterName = requestParam.value();
+        }
+
+        if (parameterName.isBlank()) {
+            parameterName = methodParameter.getParameterName();
+        }
+
+        String invalidValue = request.getQueryParams().getFirst(parameterName);
+
+        Class<?> parameterType = methodParameter.getParameterType();
+
+        String expectedType = parameterType != null ? parameterType.getSimpleName() : "unknown";
 
         String message = String.format(
                 "[%s]: invalid value '%s', expected type %s",
                 parameterName,
-                value,
-                requiredType != null ? requiredType.getSimpleName() : "unknown"
+                invalidValue,
+                expectedType
         );
 
-        log.info(
-                "A MethodArgumentTypeMismatchException occurred handling request {}: HttpStatus 400 - {}",
-                ErrorManager.getRequestDetails(request),
+        log.info( "A ServerWebInputException occurred handling request {}: " + "HttpStatus 400 - {}",
+                ErrorManager.getRequestDetails(request),message);
+
+        log.debug("Something went wrong while converting request parameter", ex);
+
+        return new ErrorDTO(
+                templateValidationErrorDTO.getCode(),
                 message
         );
-
-        log.debug("Invalid request parameter", ex);
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorDTO(
-                        templateValidationErrorDTO.getCode(),
-                        message
-                ));
     }
 
 }
