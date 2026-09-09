@@ -56,7 +56,6 @@ public class ResponseMessageMapperObjectToDTO {
         if (fields.contains(SearchFields.CHANNEL)) builder.channel(message.getChannel());
         if (fields.contains(SearchFields.ANALOG_SCHEDULING_DATE)) builder.analogSchedulingDate(message.getAnalogSchedulingDate());
         if (fields.contains(SearchFields.WORKFLOW_TYPE)) builder.workflowType(message.getWorkflowType());
-        if (fields.contains(SearchFields.ID_PSP)) builder.idPsp(message.getIdPsp());
         if (fields.contains(SearchFields.MESSAGE_STATE)) builder.messageState(message.getMessageState());
         if (fields.contains(SearchFields.REGISTRATION_DATE)) builder.messageRegistrationDate(message.getMessageRegistrationDate());
 
