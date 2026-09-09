@@ -25,6 +25,8 @@ public class ResponseMessageMapperObjectToDTO {
                 .channel(message.getChannel())
                 .analogSchedulingDate(message.getAnalogSchedulingDate())
                 .workflowType(message.getWorkflowType())
+                .messageState(message.getMessageState())
+                .messageRegistrationDate(message.getMessageRegistrationDate())
                 .build();
 
     }
