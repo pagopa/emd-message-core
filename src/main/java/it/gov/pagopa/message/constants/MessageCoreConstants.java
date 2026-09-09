@@ -60,6 +60,7 @@ public class MessageCoreConstants {
         public static final String MESSAGE_ID = "messageId";
         public static final String RECIPIENT_ID = "recipientId";
         public static final String TRIGGER_DATE_TIME = "triggerDateTime";
+        public static final String REGISTRATION_DATE = "messageRegistrationDate";
         public static final String SENDER_DESCRIPTION = "senderDescription";
         public static final String MESSAGE_URL = "messageUrl";
         public static final String MESSAGE_STATE = "messageState";
@@ -77,9 +78,9 @@ public class MessageCoreConstants {
          * All the fields that can be requested through the {@code fields} search parameter.
          */
         public static final Set<String> ALLOWED = Set.of(
-                MESSAGE_ID, RECIPIENT_ID, TRIGGER_DATE_TIME, SENDER_DESCRIPTION,
+                MESSAGE_STATE, MESSAGE_ID, RECIPIENT_ID, TRIGGER_DATE_TIME, SENDER_DESCRIPTION,
                 MESSAGE_URL, ORIGIN_ID, TITLE, CONTENT, ASSOCIATED_PAYMENT,
-                ANALOG_SCHEDULING_DATE, CHANNEL, WORKFLOW_TYPE, ID_PSP
+                ANALOG_SCHEDULING_DATE, CHANNEL, WORKFLOW_TYPE, ID_PSP, ENTITY_ID, REGISTRATION_DATE
         );
 
         /**
@@ -87,7 +88,7 @@ public class MessageCoreConstants {
          * provided, matching the columns shown in the message grid.
          */
         public static final Set<String> DEFAULT_GRID_FIELDS = Set.of(
-                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, ENTITY_ID, WORKFLOW_TYPE, TRIGGER_DATE_TIME, ASSOCIATED_PAYMENT
+                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, ID_PSP, REGISTRATION_DATE, ASSOCIATED_PAYMENT
         );
 
         private SearchFields() {}

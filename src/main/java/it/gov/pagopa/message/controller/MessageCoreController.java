@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,8 +68,8 @@ public interface MessageCoreController {
             @RequestParam(required = false) String messageId,
             @RequestParam(required = false) String recipientId,
             @RequestParam(required = false) String originId,
-            @RequestParam (required = false) LocalDateTime startDate,
-            @RequestParam (required = false) LocalDateTime endDate,
+            @RequestParam (required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam (required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) List<String> fields);

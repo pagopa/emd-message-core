@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,46 +47,125 @@ class MessageRepositoryExtendedImplTest {
         String originId = "ORIGIN123";
         LocalDateTime startDate = LocalDateTime.now().minusDays(1);
         LocalDateTime endDate = LocalDateTime.now();
+
         int page = 0;
         int size = 10;
+
         Set<String> fields = Set.of("content", "title");
 
         when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
                 .thenReturn(Flux.just(new Message()));
 
         // When
-        Flux<Message> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, page, size, fields);
+        Flux<Message> result = messageRepository.searchMessages(
+                messageId,
+                recipientId,
+                originId,
+                startDate,
+                endDate,
+                page,
+                size,
+                fields
+        );
 
         // Then
         StepVerifier.create(result)
                 .expectNextCount(1)
                 .verifyComplete();
 
-        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
+        ArgumentCaptor<Query> queryCaptor =
+                ArgumentCaptor.forClass(Query.class);
+
+        verify(reactiveMongoTemplate)
+                .find(queryCaptor.capture(), eq(Message.class));
 
         Query capturedQuery = queryCaptor.getValue();
         Document queryObject = capturedQuery.getQueryObject();
 
-        // Verifichiamo che i criteri siano corretti nel JSON di MongoDB
-        assertTrue(queryObject.containsKey("$and"), "Deve contenere un operatore $and");
-        
-        // Verifica la presenza dei campi nel filtro
-        String queryStr = queryObject.toJson();
-        assertTrue(queryStr.contains("messageId"));
-        assertTrue(queryStr.contains("recipientId"));
-        assertTrue(queryStr.contains("originId"));
-        assertTrue(queryStr.contains("triggerDateTime"));
-        
+        // =========================
+        // Verifica struttura query
+        // =========================
+        assertTrue(
+                queryObject.containsKey("$and"),
+                "Deve contenere un operatore $and"
+        );
+
+        List<Document> andConditions =
+                (List<Document>) queryObject.get("$and");
+
+        assertNotNull(andConditions);
+        assertEquals(4, andConditions.size());
+
+        // =========================
+        // Verifica messageId
+        // =========================
+        assertTrue(andConditions.stream()
+                .anyMatch(condition ->
+                        messageId.equals(
+                                condition.getString("messageId")
+                        )
+                )
+        );
+
+        // =========================
+        // Verifica recipientId
+        // =========================
+        assertTrue(andConditions.stream()
+                .anyMatch(condition ->
+                        recipientId.equals(
+                                condition.getString("recipientId")
+                        )
+                )
+        );
+
+        // =========================
+        // Verifica originId
+        // =========================
+        assertTrue(andConditions.stream()
+                .anyMatch(condition ->
+                        originId.equals(
+                                condition.getString("originId")
+                        )
+                )
+        );
+
+        // =========================
+        // Verifica date
+        // =========================
+        Document dateCondition = andConditions.stream()
+                .filter(condition ->
+                        condition.containsKey("messageRegistrationDate")
+                )
+                .findFirst()
+                .orElseThrow();
+
+        Document dateDocument =
+                (Document) dateCondition.get("messageRegistrationDate");
+
+        assertEquals(
+                startDate.toString(),
+                dateDocument.get("$gte")
+        );
+
+        assertEquals(
+                endDate.toString(),
+                dateDocument.get("$lte")
+        );
+
+        // =========================
         // Verifica paginazione
+        // =========================
         assertEquals(size, capturedQuery.getLimit());
         assertEquals(0, capturedQuery.getSkip());
 
-        // Verifica proiezione campi
+        // =========================
+        // Verifica projection
+        // =========================
         Document fieldsObject = capturedQuery.getFieldsObject();
+
         assertEquals(1, fieldsObject.get("content"));
         assertEquals(1, fieldsObject.get("title"));
-        assertEquals(1, fieldsObject.get("messageId")); // Sempre incluso dal codice
+        assertEquals(1, fieldsObject.get("messageId"));
     }
 
     @Test

@@ -24,7 +24,7 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
     private static final String FIELD_MESSAGE_ID = "messageId";
     private static final String FIELD_RECIPIENT_ID = "recipientId";
     private static final String FIELD_ORIGIN_ID = "originId";
-    private static final String FIELD_REGISTRATION_DATE = "triggerDateTime";
+    private static final String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
 
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
