@@ -7,8 +7,9 @@ import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
 import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnector;
 import it.gov.pagopa.message.dto.MessageDTO;
-import it.gov.pagopa.message.dto.MessageMapperObjectToDTO;
+import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +39,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final MessageProducerServiceImpl messageProducerService;
 
-    private final MessageMapperObjectToDTO messageMapperObjectToDTO;
+    private final ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
 
     private final ExceptionMap exceptionMap;
 
@@ -62,7 +63,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
                                   MessageProducerServiceImpl messageProducerService,
                                   MessageRepository messageRepository,
-                                  MessageMapperObjectToDTO messageMapperObjectToDTO,
+                                  ResponseMessageMapperObjectToDTO messageMapperObjectToDTO,
                                   ExceptionMap exceptionMap) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
@@ -150,7 +151,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
             log.info("[MESSAGE-CORE][SEARCH] Received search request - ", messageId != null && ! messageId.isBlank(), 
                     startDate != null, endDate != null, safePage, safeSize, safeFields);
 
-                    Mono<List<MessageDTO>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, safePage, safeSize, safeFields)
+                    Mono<List<ResponseMessageDTO>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, safePage, safeSize, safeFields)
                     //Mappa gli elementi recuperati dal DB nel DTO
                     .map(message -> messageMapperObjectToDTO.map(message, safeFields))
                     .collectList();
@@ -159,7 +160,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
             return Mono.zip(contentMono, countMono)
                     .map(tuple -> {
-                        List<MessageDTO> content = tuple.getT1();
+                        List<ResponseMessageDTO> content = tuple.getT1();
                         long totalElements = tuple.getT2();
                         int totalPages = (int) Math.ceil((double) totalElements / safeSize);
                         return MessageSearchResponseDTO.builder()

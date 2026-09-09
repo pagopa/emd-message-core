@@ -21,7 +21,7 @@ public class MessageSearchResponseDTO {
     /**
      * The list of messages belonging to the current page.
      */
-    private List<MessageDTO> content;
+    private List<ResponseMessageDTO> content;
 
     /**
      * The zero-based index of the current page.

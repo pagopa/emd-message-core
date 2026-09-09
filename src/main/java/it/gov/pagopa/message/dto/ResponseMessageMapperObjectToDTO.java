@@ -8,10 +8,10 @@ import it.gov.pagopa.message.constants.MessageCoreConstants.SearchFields;
 import it.gov.pagopa.message.model.Message;
 
 @Service
-public class MessageMapperObjectToDTO {
+public class ResponseMessageMapperObjectToDTO {
 
-    public MessageDTO map(Message message){
-        return MessageDTO.builder()
+    public ResponseMessageDTO map(Message message){
+        return ResponseMessageDTO.builder()
                 .messageId(message.getMessageId())
                 .recipientId(message.getRecipientId())
                 .triggerDateTime(message.getTriggerDateTime())
@@ -30,16 +30,16 @@ public class MessageMapperObjectToDTO {
     }
 
     /**
-     * Maps a {@link Message} domain object to a {@link MessageDTO}, populating only
+     * Maps a {@link Message} domain object to a {@link ResponseMessageDTO}, populating only
      * the requested {@code fields}. 
      * Il {@code messageId} viene sempre incluso come identificatore univoco.
      *
      * @param message the domain entity to selectively map
      * @param fields  the set of field names to populate
-     * @return a new {@link MessageDTO} instance containing only the requested fields
+     * @return a new {@link ResponseMessageDTO} instance containing only the requested fields
      */
-    public MessageDTO map(Message message, Set<String> fields) {
-        MessageDTO.MessageDTOBuilder builder = MessageDTO.builder()
+    public ResponseMessageDTO map(Message message, Set<String> fields) {
+        ResponseMessageDTO.ResponseMessageDTOBuilder builder = ResponseMessageDTO.builder()
             .messageId(message.getMessageId());
 
         if (fields.contains(SearchFields.RECIPIENT_ID)) builder.recipientId(message.getRecipientId());

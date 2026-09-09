@@ -2,8 +2,9 @@ package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
-import it.gov.pagopa.message.dto.MessageMapperObjectToDTO;
+import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.repository.MessageRepository;
 
@@ -37,7 +38,7 @@ class MessageCoreServiceTest {
     @MockitoBean
     CitizenConnectorImpl citizenConnector;
     @MockitoBean
-    MessageMapperObjectToDTO messageMapperObjectToDTO;
+    ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
     @MockitoBean MessageRepository messageRepository;
     @MockitoBean ExceptionMap exceptionMap;
 
@@ -87,7 +88,7 @@ class MessageCoreServiceTest {
         Message messageMock = new Message();
         messageMock.setMessageId(messageId);
 
-        it.gov.pagopa.message.dto.MessageDTO messageDtoMock = it.gov.pagopa.message.dto.MessageDTO.builder()
+        ResponseMessageDTO messageDtoMock = ResponseMessageDTO.builder()
                 .messageId(messageId)
                 .build();
 
