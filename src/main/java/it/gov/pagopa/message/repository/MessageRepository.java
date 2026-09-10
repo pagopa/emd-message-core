@@ -6,6 +6,6 @@ import reactor.core.publisher.Mono;
 
 public interface MessageRepository extends ReactiveMongoRepository<Message,String>{
     
-    Mono<Message> findById(String messageId);
+    Mono<Message> findByMessageId(String messageId);
     
 }
