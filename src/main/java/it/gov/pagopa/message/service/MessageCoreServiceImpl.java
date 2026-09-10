@@ -1,6 +1,9 @@
 package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
+import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnector;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
@@ -30,16 +33,20 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
 
+    private final ExceptionMap exceptionMap;
+
 
 
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
                                   MessageProducerServiceImpl messageProducerService,
                                   MessageRepository messageRepository,
-                                  ResponseMessageMapperObjectToDTO messageMapperObjectToDTO) {
+                                  ResponseMessageMapperObjectToDTO messageMapperObjectToDTO,
+                                  ExceptionMap exceptionMap) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
         this.messageRepository = messageRepository;
         this.messageMapperObjectToDTO = messageMapperObjectToDTO;
+        this.exceptionMap = exceptionMap;
     }
 
 
@@ -92,11 +99,8 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     log.info("[MESSAGE-CORE][GET] Message {} found in repository.", inputSanitization(messageId));
                     return messageMapperObjectToDTO.map(message);
                 })
-                .doOnSuccess(message -> {
-                    if (message != null) {
-                        log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", inputSanitization(messageId));
-                    }
-                })
+                .switchIfEmpty(Mono.error(exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND)))
+                .doOnSuccess(message -> log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", inputSanitization(messageId)))
                 .doOnError(error -> log.error("[MESSAGE-CORE][GET] Error retrieving message with id {}. Error: {}", inputSanitization(messageId), error.getMessage()));
     }
 

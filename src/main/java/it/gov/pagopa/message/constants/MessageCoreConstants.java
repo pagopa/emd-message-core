@@ -20,4 +20,31 @@ public class MessageCoreConstants {
         private MessageHeader() {}
     }
     private MessageCoreConstants() {}
+
+    /**
+     * Container class for Message exception codes used in structured error responses.
+     */
+    public static final class ExceptionCode {
+
+        public static final String MESSAGE_NOT_FOUND = "MESSAGE_NOT_FOUND";
+        private ExceptionCode() {}
+    }
+
+    /**
+     * Container class for Message exception messages used in error responses and logging.
+     */
+    public static final class ExceptionMessage {
+
+        public static final String MESSAGE_NOT_FOUND = "Message not found";
+        private ExceptionMessage() {}
+    }
+
+    /**
+     * Container class for Message exception names used in exception mapping and factory patterns.
+     */
+    public static final class ExceptionName {
+
+        public static final String MESSAGE_NOT_FOUND = "MESSAGE_NOT_FOUND";
+        private ExceptionName() {}
+    }
 }

@@ -35,7 +35,6 @@ public class MessageCoreControllerImpl implements MessageCoreController {
      */
     public Mono<ResponseEntity<ResponseMessageDTO>> getMessage(String messageId) {
         return messageCoreService.getMessage(messageId)
-                .map(responseMessageDTO -> ResponseEntity.ok(responseMessageDTO))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(responseMessageDTO -> ResponseEntity.ok(responseMessageDTO));
     }
 }
