@@ -85,15 +85,15 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     @Override
     public Mono<ResponseMessageDTO> getMessage(String messageId) {
-        log.info("[MESSAGE-CORE][GET] Retrieving message with ID: {}", messageId);
+        log.info("[MESSAGE-CORE][GET] Retrieving message with ID: {}", inputSanitization(messageId));
 
         return messageRepository.findById(messageId)
                 .map(message -> {
-                    log.info("[MESSAGE-CORE][GET] Message {} found in repository.", messageId);
+                    log.info("[MESSAGE-CORE][GET] Message {} found in repository.", inputSanitization(messageId));
                     return messageMapperObjectToDTO.map(message);
                 })
-                .doOnSuccess(message -> log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", messageId))
-                .doOnError(error -> log.error("[MESSAGE-CORE][GET] Error retrieving message with id {}. Error: {}", messageId, error.getMessage()));
+                .doOnSuccess(message -> log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", inputSanitization(messageId)))
+                .doOnError(error -> log.error("[MESSAGE-CORE][GET] Error retrieving message with id {}. Error: {}", inputSanitization(messageId), error.getMessage()));
     }
 
 }

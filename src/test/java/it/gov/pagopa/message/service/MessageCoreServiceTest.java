@@ -1,6 +1,9 @@
 package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
+import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.repository.MessageRepository;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +26,10 @@ class MessageCoreServiceTest {
     MessageProducerServiceImpl messageProducerService;
     @MockitoBean
     CitizenConnectorImpl citizenConnector;
+    @MockitoBean
+    MessageRepository messageRepository;
+    @MockitoBean
+    ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
 
     @Autowired
     MessageCoreServiceImpl messageCoreService;
