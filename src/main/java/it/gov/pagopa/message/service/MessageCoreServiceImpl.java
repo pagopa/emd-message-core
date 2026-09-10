@@ -90,6 +90,19 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                 .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", recipientIdHashed, error.getMessage()));
     }
 
+    /**
+     * <p>Retrieves a message from the database and maps it to the response DTO.</p>
+     *
+     * <p>Flow:</p>
+     * <ul>
+     *   <li>Queries the database via {@link MessageRepository#findByMessageId(String)}.</li>
+     *   <li>If the message is found, maps the entity to {@link ResponseMessageDTO} using {@link ResponseMessageMapperObjectToDTO}.</li>
+     *   <li>If the message is not found, signals an error by throwing a customized {@code MESSAGE_NOT_FOUND} exception via {@link ExceptionMap}.</li>
+     * </ul>
+     *
+     * @param messageId the unique identifier of the message to retrieve
+     * @return a {@code Mono} emitting the mapped {@link ResponseMessageDTO}
+     */
     @Override
     public Mono<ResponseMessageDTO> getMessage(String messageId) {
         log.info("[MESSAGE-CORE][GET] Retrieving message with ID: {}", inputSanitization(messageId));

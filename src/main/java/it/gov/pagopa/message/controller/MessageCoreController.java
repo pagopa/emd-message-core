@@ -38,6 +38,18 @@ public interface MessageCoreController {
     @PostMapping("/sendMessage")
     Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);
 
+    /**
+     * <p>Retrieves the details of a specific message using its unique identifier.</p>
+     * <p>Delegates to {@link MessageCoreService#getMessage(String)}.</p>
+     * <p>Endpoint: {@code GET /emd/message-core/{messageId}}</p>
+     *
+     * @param messageId the unique identifier of the message to retrieve
+     * @return {@code Mono<ResponseEntity<ResponseMessageDTO>>}
+     *        <ul>
+     *          <li> 200 OK with the {@link ResponseMessageDTO} body if the message is found, </li>
+     *          <li> 404 Not Found with {@code "MESSAGE_NOT_FOUND"} if no message matches the provided ID</li>
+     *        </ul>
+     */
     @GetMapping("/{messageId}")
     Mono<ResponseEntity<ResponseMessageDTO>> getMessage(@PathVariable String messageId);
 }

@@ -22,5 +22,12 @@ public interface MessageCoreService {
      */
     Mono<Boolean> send(MessageDTO messageDTO);
 
+    /**
+     * <p>Retrieves a message from the storage by its unique business identifier.</p>
+     *
+     * @param messageId the unique identifier of the message to retrieve
+     * @return a {@code Mono} emitting the {@link ResponseMessageDTO} if found
+     *         (emits an error signal if the message does not exist)
+     */
     Mono<ResponseMessageDTO> getMessage(String messageId);
 }
