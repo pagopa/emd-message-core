@@ -3,6 +3,9 @@ package it.gov.pagopa.message.service;
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.connector.CitizenConnector;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
+import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -23,10 +26,20 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final MessageProducerServiceImpl messageProducerService;
 
+    private final MessageRepository messageRepository;
+
+    private final ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
+
+
+
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
-                                  MessageProducerServiceImpl messageProducerService) {
+                                  MessageProducerServiceImpl messageProducerService,
+                                  MessageRepository messageRepository,
+                                  ResponseMessageMapperObjectToDTO messageMapperObjectToDTO) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
+        this.messageRepository = messageRepository;
+        this.messageMapperObjectToDTO = messageMapperObjectToDTO;
     }
 
 
@@ -68,6 +81,19 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     }
                 })
                 .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", recipientIdHashed, error.getMessage()));
+    }
+
+    @Override
+    public Mono<ResponseMessageDTO> getMessage(String messageId) {
+        log.info("[MESSAGE-CORE][GET] Retrieving message with ID: {}", messageId);
+
+        return messageRepository.findById(messageId)
+                .map(message -> {
+                    log.info("[MESSAGE-CORE][GET] Message {} found in repository.", messageId);
+                    return messageMapperObjectToDTO.map(message);
+                })
+                .doOnSuccess(message -> log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", messageId))
+                .doOnError(error -> log.error("[MESSAGE-CORE][GET] Error retrieving message with id {}. Error: {}", messageId, error.getMessage()));
     }
 
 }

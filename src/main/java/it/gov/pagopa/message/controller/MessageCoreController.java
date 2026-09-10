@@ -2,11 +2,14 @@ package it.gov.pagopa.message.controller;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
 import it.gov.pagopa.message.service.MessageCoreService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,4 +37,7 @@ public interface MessageCoreController {
      */
     @PostMapping("/sendMessage")
     Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);
+
+    @GetMapping("/{messageId}")
+    Mono<ResponseEntity<ResponseMessageDTO>> getMessage(@PathVariable String messageId);
 }

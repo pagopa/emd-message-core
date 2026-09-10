@@ -2,6 +2,7 @@ package it.gov.pagopa.message.service;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -20,4 +21,6 @@ public interface MessageCoreService {
      * </ul>
      */
     Mono<Boolean> send(MessageDTO messageDTO);
+
+    Mono<ResponseMessageDTO> getMessage(String messageId);
 }
