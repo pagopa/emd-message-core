@@ -74,7 +74,7 @@ public class ExceptionMap {
             return exceptions.get(exceptionKey).apply(message);
         } else {
             log.error("[MESSAGE-CORE][EXCEPTION-MAP] Exception Name Not Found: {}", exceptionKey);
-            return  new RuntimeException();
+            return new RuntimeException();
         }
     }
 

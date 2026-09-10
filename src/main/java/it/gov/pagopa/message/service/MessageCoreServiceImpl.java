@@ -99,8 +99,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     log.info("[MESSAGE-CORE][GET] Message {} found in repository.", inputSanitization(messageId));
                     return messageMapperObjectToDTO.map(message);
                 })
-                .switchIfEmpty(Mono.error(exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND)))
-                .doOnSuccess(message -> log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", inputSanitization(messageId)))
+                .switchIfEmpty(Mono.error(() -> exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND)))                .doOnSuccess(message -> log.info("[MESSAGE-CORE][GET] Message {} retrieved successfully.", inputSanitization(messageId)))
                 .doOnError(error -> log.error("[MESSAGE-CORE][GET] Error retrieving message with id {}. Error: {}", inputSanitization(messageId), error.getMessage()));
     }
 
