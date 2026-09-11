@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
@@ -51,6 +52,8 @@ class MessageRepositoryExtendedImplTest {
         int page = 0;
         int size = 10;
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
         Set<String> fields = Set.of("content", "title");
 
         when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
@@ -72,19 +75,15 @@ class MessageRepositoryExtendedImplTest {
         Query capturedQuery = queryCaptor.getValue();
         Document queryObject = capturedQuery.getQueryObject();
 
-        // =========================
         // Verifica struttura query
-        // =========================
         assertTrue( queryObject.containsKey("$and"), "Deve contenere un operatore $and");
 
-        List<Document> andConditions =(List<Document>) queryObject.get("$and");
+        List<Document> andConditions = (List<Document>) queryObject.get("$and");
 
         assertNotNull(andConditions);
         assertEquals(4, andConditions.size());
 
-        // =========================
         // Verifica messageId
-        // =========================
         assertTrue(andConditions.stream()
                 .anyMatch(condition ->
                         messageId.equals(
@@ -92,9 +91,7 @@ class MessageRepositoryExtendedImplTest {
                 )
         );
 
-        // =========================
         // Verifica recipientId
-        // =========================
         assertTrue(andConditions.stream()
                 .anyMatch(condition ->
                         recipientId.equals(
@@ -102,9 +99,7 @@ class MessageRepositoryExtendedImplTest {
                 )
         );
 
-        // =========================
         // Verifica originId
-        // =========================
         assertTrue(andConditions.stream()
                 .anyMatch(condition ->
                         originId.equals(
@@ -112,9 +107,7 @@ class MessageRepositoryExtendedImplTest {
                 )
         );
 
-        // =========================
         // Verifica date
-        // =========================
         Document dateCondition = andConditions.stream()
                 .filter(condition ->
                         condition.containsKey("messageRegistrationDate")
@@ -122,28 +115,22 @@ class MessageRepositoryExtendedImplTest {
                 .findFirst()
                 .orElseThrow();
 
-        Document dateDocument =
-                (Document) dateCondition.get("messageRegistrationDate");
+        Document dateDocument = (Document) dateCondition.get("messageRegistrationDate");
 
         assertEquals(
-                startDate.toString(),
+                startDate.format(formatter),
                 dateDocument.get("$gte")
         );
-
         assertEquals(
-                endDate.toString(),
+                endDate.format(formatter),
                 dateDocument.get("$lte")
         );
 
-        // =========================
         // Verifica paginazione
-        // =========================
         assertEquals(size, capturedQuery.getLimit());
         assertEquals(0, capturedQuery.getSkip());
 
-        // =========================
         // Verifica projection
-        // =========================
         Document fieldsObject = capturedQuery.getFieldsObject();
 
         assertEquals(1, fieldsObject.get("content"));
