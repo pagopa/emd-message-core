@@ -46,6 +46,7 @@ public class ResponseMessageMapperObjectToDTO {
             .messageId(message.getMessageId());
 
         if (fields.contains(SearchFields.RECIPIENT_ID)) builder.recipientId(message.getRecipientId());
+        if (fields.contains(SearchFields.ENTITY_ID)) builder.entityId(message.getEntityId());
         if (fields.contains(SearchFields.TRIGGER_DATE_TIME)) builder.triggerDateTime(message.getTriggerDateTime());
         if (fields.contains(SearchFields.SENDER_DESCRIPTION)) builder.senderDescription(message.getSenderDescription());
         if (fields.contains(SearchFields.MESSAGE_URL)) builder.messageUrl(message.getMessageUrl());
