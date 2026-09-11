@@ -11,6 +11,7 @@ public class ResponseMessageMapperObjectToDTO {
         return ResponseMessageDTO.builder()
                 .messageId(message.getMessageId())
                 .recipientId(message.getRecipientId())
+                .entityId(message.getEntityId())
                 .triggerDateTime(message.getTriggerDateTime())
                 .senderDescription(message.getSenderDescription())
                 .messageUrl(message.getMessageUrl())

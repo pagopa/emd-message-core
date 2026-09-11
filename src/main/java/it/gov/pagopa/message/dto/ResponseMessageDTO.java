@@ -25,6 +25,8 @@ public class ResponseMessageDTO {
 
     private String recipientId;
 
+    private String entityId;
+
     private String triggerDateTime;
 
     private String senderDescription;
