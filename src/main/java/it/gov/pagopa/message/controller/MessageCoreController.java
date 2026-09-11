@@ -2,14 +2,23 @@ package it.gov.pagopa.message.controller;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
 import it.gov.pagopa.message.service.MessageCoreService;
 import jakarta.validation.Valid;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import reactor.core.publisher.Mono;
 
 /**
@@ -34,4 +43,34 @@ public interface MessageCoreController {
      */
     @PostMapping("/sendMessage")
     Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);
+
+    /**
+     * Search Messages by exact {@code messageId}, {@code recipientId}, {@code originId} or messages sent
+     * between {@code startDate} and {@code endDate} and returning a paginated result.
+     * <p>
+     * The content of each result only contains the fields requested via {@code fields} (matching
+     * the properties of {@link MessageSearchResponseDTO}), reducing the response payload size.
+     * When {@code fields} is omitted, the default grid fields are returned.
+     *
+     * @param messageId     optional exact message identifier filter
+     * @param recipientId   optional exact recipient identifier filter
+     * @param originId      optional exact origin identifier filter
+     * @param startDate     optional start date for message sent range
+     * @param endDate       optional end date for message sent range
+     * @param page         zero-based page index (default 0)
+     * @param size         page size (default 10, capped by the configured maximum)
+     * @param fields       optional override of the fields to return for each TPP
+     * @return a {@link Mono} containing a {@link ResponseEntity} with the paginated
+     *          {@link MessageSearchResponseDTO}
+     */
+    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(
+            @RequestParam(name = "messageId", required = false) String messageId,
+            @RequestParam(name = "recipientId", required = false) String recipientId,
+            @RequestParam(name = "originId", required = false) String originId,
+            @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "fields", required = false) List<String> fields);
 }
