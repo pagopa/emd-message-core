@@ -1,6 +1,7 @@
 package it.gov.pagopa.message.repository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -86,10 +87,10 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
         if (startDate != null || endDate != null) {
             Criteria dateCriteria = Criteria.where(FIELD_REGISTRATION_DATE);
             if (startDate != null) {
-                dateCriteria.gte(startDate.toString());
+                dateCriteria.gte(startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
             }
             if (endDate != null) {
-                dateCriteria.lte(endDate.toString());
+                dateCriteria.lte(endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
             }
             criteriaList.add(dateCriteria);
         }

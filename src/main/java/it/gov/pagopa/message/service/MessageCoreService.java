@@ -30,7 +30,7 @@ public interface MessageCoreService {
      * between {@code startDate} and {@code endDate}, returning a paginated result.
      * <p>
      * The returned content only contains the fields requested via {@code fields} (matching
-     * {@link it.gov.pagopa.tpp.constants.TppConstants.SearchFields}), reducing the response
+     * {@link it.gov.pagopa.message.constants.MessageCoreConstants.SearchFields}), reducing the response
      * payload size.
      *
      * @param messageId     the exact message identifier to match (nullable)

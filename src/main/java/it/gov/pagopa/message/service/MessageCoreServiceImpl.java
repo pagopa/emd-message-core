@@ -148,8 +148,8 @@ public class MessageCoreServiceImpl implements MessageCoreService {
             int safeSize = normalizePageSize(size);
             Set<String> safeFields = resolveSearchFields(fields);
 
-            log.info("[MESSAGE-CORE][SEARCH] Received search request - ", messageId != null && ! messageId.isBlank(), 
-                    startDate != null, endDate != null, safePage, safeSize, safeFields);
+            log.info("[MESSAGE-CORE][SEARCH] Received search request - messageIdPresent: {}, startDatePresent: {}, endDatePresent: {}, page: {}, size: {}, fields: {}",
+                    messageId != null && !messageId.isBlank(), startDate != null, endDate != null, safePage, safeSize, safeFields);
 
                     Mono<List<ResponseMessageDTO>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, safePage, safeSize, safeFields)
                     //Mappa gli elementi recuperati dal DB nel DTO
