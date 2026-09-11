@@ -1,6 +1,7 @@
 package it.gov.pagopa.message.controller;
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 import org.springframework.http.HttpStatus;
@@ -27,5 +28,13 @@ public class MessageCoreControllerImpl implements MessageCoreController {
                 .map(outcome -> Boolean.TRUE.equals(outcome) ?
                         ResponseEntity.ok(new SendResponseDTO("OK")) :
                         ResponseEntity.status(HttpStatus.ACCEPTED).body(new SendResponseDTO("NO_CHANNELS_ENABLED")));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Mono<ResponseEntity<ResponseMessageDTO>> getMessage(String messageId) {
+        return messageCoreService.getMessage(messageId)
+                .map(responseMessageDTO -> ResponseEntity.ok(responseMessageDTO));
     }
 }
