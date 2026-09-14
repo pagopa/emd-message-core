@@ -509,6 +509,7 @@ class MessageCoreControllerTest {
 
     @Test
     void getMessage_Ok() {
+        String testEntityId = "99999999999";
         String testMessageId = "a2ea4d19-4abb-4e2f-b546-12216217";
         ResponseMessageDTO mockResponseDTO = ResponseMessageDTO.builder()
                 .messageId(testMessageId)
@@ -517,11 +518,11 @@ class MessageCoreControllerTest {
                 .content("Test Content")
                 .build();
 
-        Mockito.when(messageCoreService.getMessage(testMessageId))
+        Mockito.when(messageCoreService.getMessage(testEntityId, testMessageId))
                 .thenReturn(Mono.just(mockResponseDTO));
 
         webTestClient.get()
-                .uri("/emd/message-core/{messageId}", testMessageId)
+                .uri("/emd/message-core/{entityId}/{messageId}", testEntityId, testMessageId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -536,14 +537,15 @@ class MessageCoreControllerTest {
 
     @Test
     void getMessage_NotFound() {
+        String testEntityId = "99999999999";
         String testMessageId = "non-existent-message-id";
         var exceptionToThrow = new ClientExceptionWithBody(HttpStatus.NOT_FOUND, "MESSAGE_NOT_FOUND", "Message not found");
         
-        Mockito.when(messageCoreService.getMessage(testMessageId))
+        Mockito.when(messageCoreService.getMessage(testEntityId, testMessageId))
                 .thenReturn(Mono.error(exceptionToThrow));
 
         webTestClient.get()
-                .uri("/emd/message-core/{messageId}", testMessageId)
+                .uri("/emd/message-core/{entityId}/{messageId}", testEntityId, testMessageId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound();
