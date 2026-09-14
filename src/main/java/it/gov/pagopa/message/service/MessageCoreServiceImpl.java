@@ -49,13 +49,13 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      * Maximum page size accepted for search operations. Requests exceeding this value are
      * capped to protect database resources.
      */
-    @Value ("${app.tpp.search.max-page-size:100}")
+    @Value ("${app.message-core.search.max-page-size:100}")
     private int maxPageSize;
 
     /**
      * Default page size used when the client does not provide a valid {@code size}.
      */
-    @Value ("${app.tpp.search.default-page-size:10}")
+    @Value ("${app.message-core.search.default-page-size:10}")
     private int defaultPageSize;
     
     private final MessageRepository messageRepository;
@@ -178,7 +178,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     }
 
     /**
-     * Resolves the effective set of fields to project/return for the {@code searchTpps}
+     * Resolves the effective set of fields to project/return for the {@code searchMessages}
      * operation. Falls back to the default grid fields when none are provided, otherwise
      * validates the requested fields against the allowed set, throwing an
      * {@code INVALID_SEARCH_FIELD} exception if any unknown field is requested.

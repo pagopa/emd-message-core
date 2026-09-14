@@ -40,7 +40,7 @@ public interface MessageCoreService {
      * @param endDate       the end date for the message sent range (nullable)
      * @param page         the zero-based page index
      * @param size         the requested page size
-     * @param fields       optional override of the fields to return for each TPP (nullable/empty
+     * @param fields       optional override of the fields to return for each Message (nullable/empty
      *                     falls back to the default grid fields)
      * @return a {@link Mono} containing the paginated {@link MessageSearchResponseDTO}
      */

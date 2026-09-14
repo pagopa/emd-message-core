@@ -61,7 +61,7 @@ public class ExceptionMap {
      * returns a generic {@link RuntimeException} as a fallback. 
      *
      * @param exceptionKey the predefined exception identifier corresponding to a specific
-     *                    TPP business scenario
+     *                    Message business scenario
      * @param message the custom error message to include in the exception
      * @return a {@link RuntimeException} instance, which will be:
      *         <ul>

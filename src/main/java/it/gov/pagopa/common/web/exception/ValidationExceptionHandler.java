@@ -177,8 +177,7 @@ public class ValidationExceptionHandler {
     @ExceptionHandler(ServerWebInputException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleServerWebInputException(
-            ServerWebInputException ex,
-            ServerHttpRequest request) {
+            ServerWebInputException ex, ServerHttpRequest request) {
 
         MethodParameter methodParameter = ex.getMethodParameter();
 
@@ -198,7 +197,6 @@ public class ValidationExceptionHandler {
         }
 
         RequestParam requestParam = methodParameter.getParameterAnnotation(RequestParam.class);
-
         String parameterName = requestParam.name();
 
         if (parameterName.isBlank()) {
@@ -210,27 +208,18 @@ public class ValidationExceptionHandler {
         }
 
         String invalidValue = request.getQueryParams().getFirst(parameterName);
-
         Class<?> parameterType = methodParameter.getParameterType();
-
         String expectedType = parameterType != null ? parameterType.getSimpleName() : "unknown";
 
-        String message = String.format(
-                "[%s]: invalid value '%s', expected type %s",
-                parameterName,
-                invalidValue,
-                expectedType
-        );
+        String message = String.format("[%s]: invalid value '%s', expected type %s",
+                parameterName, invalidValue, expectedType);
 
         log.info( "A ServerWebInputException occurred handling request {}: " + "HttpStatus 400 - {}",
                 ErrorManager.getRequestDetails(request),message);
 
         log.debug("Something went wrong while converting request parameter", ex);
 
-        return new ErrorDTO(
-                templateValidationErrorDTO.getCode(),
-                message
-        );
+        return new ErrorDTO( templateValidationErrorDTO.getCode(), message);
     }
 
 }

@@ -19,7 +19,7 @@ public interface MessageRepositoryExtended {
      * Results are sorted by registration date in descending order and support pagination and field projection.
      *
      * @param messageId     optional filter for the exact message identifier
-     * @param recipientId   optional filter for the exact recipient identifier (tax code)
+     * @param recipientId   optional filter for the exact recipient identifier
      * @param originId      optional filter for the exact origin system identifier
      * @param startDate     optional lower bound (inclusive) for the message registration date
      * @param endDate       optional upper bound (inclusive) for the message registration date

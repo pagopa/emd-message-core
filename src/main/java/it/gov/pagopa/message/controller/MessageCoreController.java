@@ -59,7 +59,7 @@ public interface MessageCoreController {
      * @param endDate       optional end date for message sent range
      * @param page         zero-based page index (default 0)
      * @param size         page size (default 10, capped by the configured maximum)
-     * @param fields       optional override of the fields to return for each TPP
+     * @param fields       optional override of the fields to return for each Message
      * @return a {@link Mono} containing a {@link ResponseEntity} with the paginated
      *          {@link MessageSearchResponseDTO}
      */

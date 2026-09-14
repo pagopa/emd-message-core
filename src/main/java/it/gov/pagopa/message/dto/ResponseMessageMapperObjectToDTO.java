@@ -34,8 +34,8 @@ public class ResponseMessageMapperObjectToDTO {
 
     /**
      * Maps a {@link Message} domain object to a {@link ResponseMessageDTO}, populating only
-     * the requested {@code fields}. 
-     * Il {@code messageId} viene sempre incluso come identificatore univoco.
+     * the requested {@code fields}.
+     * The {@code messageId} it's alwayes included as unique identifier.
      *
      * @param message the domain entity to selectively map
      * @param fields  the set of field names to populate

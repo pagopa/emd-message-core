@@ -14,7 +14,6 @@ import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 
@@ -25,7 +24,6 @@ import com.fasterxml.jackson.annotation.Nulls;
 @AllArgsConstructor
 @Data
 @Builder(toBuilder = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @ValidAnalogScheduling
 public class MessageDTO {
 
@@ -124,10 +122,6 @@ public class MessageDTO {
     @NotNull(message = "The workflowType field is required")
     private WorkflowType workflowType;
 
-    /**
-     * Identifier of the PSP.
-     */
-    private String idPsp;
     
     /**
      * Tells to the Jackson library to use this constructor when deserializing JSON into a MessageDTO object.
