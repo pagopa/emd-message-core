@@ -33,8 +33,8 @@ public class MessageCoreControllerImpl implements MessageCoreController {
     /**
      * {@inheritDoc}
      */
-    public Mono<ResponseEntity<ResponseMessageDTO>> getMessage(String messageId) {
-        return messageCoreService.getMessage(messageId)
+    public Mono<ResponseEntity<ResponseMessageDTO>> getMessage(String entityId, String messageId) {
+        return messageCoreService.getMessage(entityId, messageId)
                 .map(responseMessageDTO -> ResponseEntity.ok(responseMessageDTO));
     }
 }
