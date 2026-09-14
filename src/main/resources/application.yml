@@ -60,9 +60,6 @@ spring:
 app:
   message-core:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:PT1S}
-    search:
-      max-page-size: ${MAX_PAGE_SIZE}
-      default-page-size: ${DEFAULT_PAGE_SIZE}
 
 management:
   health:
