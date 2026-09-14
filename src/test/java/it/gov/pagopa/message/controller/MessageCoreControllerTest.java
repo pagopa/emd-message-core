@@ -500,4 +500,37 @@ class MessageCoreControllerTest {
         );
     }
 
+    @Test
+    void deleteMessage_Ok_test() {
+        String entityId = "test-entity-id";
+        String messageId = "test-message-id";
+
+        Mockito.when(messageCoreService.deleteMessage(entityId, messageId))
+                .thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/emd/message-core/{entityId}/{messageId}", entityId, messageId)
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody().isEmpty();
+
+        Mockito.verify(messageCoreService, Mockito.times(1)).deleteMessage(entityId, messageId);
+    }
+
+    @Test
+    void deleteMessage_Ko_test() {
+        String entityId = "test-entity-id";
+        String messageId = "test-message-id";
+
+        Mockito.when(messageCoreService.deleteMessage(entityId, messageId))
+                .thenReturn(Mono.error(new RuntimeException("Simulated error from service")));
+
+        webTestClient.delete()
+                .uri("/emd/message-core/{entityId}/{messageId}", entityId, messageId)
+                .exchange()
+                .expectStatus().is5xxServerError();
+
+        Mockito.verify(messageCoreService, Mockito.times(1)).deleteMessage(entityId, messageId);
+    }
+
 }

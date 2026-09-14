@@ -1,8 +1,12 @@
 package it.gov.pagopa.message.service;
 
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
+import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnector;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -23,10 +27,18 @@ public class MessageCoreServiceImpl implements MessageCoreService {
 
     private final MessageProducerServiceImpl messageProducerService;
 
+    private final MessageRepository messageRepository;
+
+    private final ExceptionMap exceptionMap;
+
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
-                                  MessageProducerServiceImpl messageProducerService) {
+                                  MessageProducerServiceImpl messageProducerService,
+                                  MessageRepository messageRepository,
+                                  ExceptionMap exceptionMap) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
+        this.messageRepository = messageRepository;
+        this.exceptionMap = exceptionMap;
     }
 
 
@@ -68,6 +80,25 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                     }
                 })
                 .doOnError(error -> log.error("[MESSAGE-CORE][SEND] Error while checking fiscal code for recipient: {}. Error: {}", recipientIdHashed, error.getMessage()));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Mono<Void> deleteMessage(String entityId, String messageId) {
+        log.info("[MESSAGE-CORE][DELETE] Request to delete...");
+
+        return messageRepository.deleteByEntityIdAndMessageId(entityId, messageId)
+                .flatMap(deletedCount -> {
+                    if (deletedCount == 0) {
+                        return Mono.error(exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND));
+                    }
+                    return Mono.empty();
+                })
+                .then()
+                .doOnSuccess(unused -> log.info("[MESSAGE-CORE][DELETE] Successfully deleted"))
+                .doOnError(error -> log.error("[MESSAGE-CORE][DELETE] Error: {}", error.getMessage()));
     }
 
 }

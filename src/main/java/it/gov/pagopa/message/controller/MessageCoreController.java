@@ -7,6 +7,8 @@ import it.gov.pagopa.message.service.MessageCoreService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,4 +36,14 @@ public interface MessageCoreController {
      */
     @PostMapping("/sendMessage")
     Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);
+
+    /**
+     * Delete a Message from Database by entityId and messageId.
+     * 
+     * @param entityId
+     * @param messageId
+     * @return an empty {@link Mono} resulting in a 204 No Content response
+     */
+    @DeleteMapping("/{entityId}/{messageId}")
+    Mono<ResponseEntity<Void>> deleteMessage(@PathVariable String entityId, @PathVariable String messageId);
 }

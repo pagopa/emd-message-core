@@ -20,4 +20,13 @@ public interface MessageCoreService {
      * </ul>
      */
     Mono<Boolean> send(MessageDTO messageDTO);
+
+    /**
+     * Deletes a Message entity by entityId and messageId
+     * 
+     * @param entityId the identifier of the entity
+     * @param messageId the identifier of the message
+     * @return a {@link Mono<Void>} that completes when the deletion is successful
+     */
+    Mono<Void> deleteMessage(String entityId, String messageId);
 }

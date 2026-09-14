@@ -28,4 +28,12 @@ public class MessageCoreControllerImpl implements MessageCoreController {
                         ResponseEntity.ok(new SendResponseDTO("OK")) :
                         ResponseEntity.status(HttpStatus.ACCEPTED).body(new SendResponseDTO("NO_CHANNELS_ENABLED")));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Mono<ResponseEntity<Void>> deleteMessage(String entityId, String messageId){
+        return messageCoreService.deleteMessage(entityId, messageId)
+                .then(Mono.just(ResponseEntity.noContent().<Void>build()));
+    }
 }
