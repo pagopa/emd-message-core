@@ -12,8 +12,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * DTO with all the information needed to send a notification message
- * through TTP applications to citizens.
+ * DTO with all the information needed to represent a notification message.
  */
 @AllArgsConstructor
 @NoArgsConstructor
