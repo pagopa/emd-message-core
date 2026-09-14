@@ -121,6 +121,7 @@ public class MessageDTO {
      */
     @NotNull(message = "The workflowType field is required")
     private WorkflowType workflowType;
+
     
     /**
      * Tells to the Jackson library to use this constructor when deserializing JSON into a MessageDTO object.

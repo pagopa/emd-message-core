@@ -5,7 +5,7 @@ import it.gov.pagopa.message.model.Message;
 import reactor.core.publisher.Mono;
 
 
-public interface MessageRepository extends ReactiveMongoRepository<Message,String>{
+public interface MessageRepository extends ReactiveMongoRepository<Message,String>, MessageRepositoryExtended{
     
     /**
      * <p>Retrieves a message using its business identifier ({@code messageId}).</p>

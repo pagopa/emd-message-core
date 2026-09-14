@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.4.0](https://github.com/pagopa/emd-message-core/compare/v1.3.10...v1.4.0) (2026-09-14)
+
+
+### Features
+
+* [MMC-1018] Add search messages api and Message repository ([#129](https://github.com/pagopa/emd-message-core/issues/129)) ([d582887](https://github.com/pagopa/emd-message-core/commit/d58288777b02ef4bfb3632fcdb51a4176be575cf))
+
 ## [1.3.10](https://github.com/pagopa/emd-message-core/compare/v1.3.9...v1.3.10) (2026-07-09)
 
 
