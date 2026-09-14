@@ -7,6 +7,8 @@ import it.gov.pagopa.message.validator.ValidAnalogScheduling;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * through TTP applications to citizens.
  */
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
