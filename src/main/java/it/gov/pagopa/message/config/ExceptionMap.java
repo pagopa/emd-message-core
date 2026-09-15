@@ -36,6 +36,7 @@ public class ExceptionMap {
      * Registered exceptions:
      * <ul>
      *   <li>INVALID_SEARCH_FIELD - HTTP 400 with BAD_REQUEST status for invalid search fields</li>
+     *   <li>MESSAGE_NOT_FOUND - HTTP 404 with NOT_FOUND status for invalid search fields</li>
      * </ul>
      */
     public ExceptionMap() {
@@ -49,6 +50,14 @@ public class ExceptionMap {
             )
         );
 
+        exceptions.put(ExceptionName.MESSAGE_NOT_FOUND, message ->
+            new ClientExceptionWithBody(
+                HttpStatus.NOT_FOUND,
+                ExceptionCode.MESSAGE_NOT_FOUND,
+                message
+            )
+        );
+
     }
     /**
      * Creates and returns a runtime exception based on the specified exception key and message.
@@ -58,10 +67,10 @@ public class ExceptionMap {
      * {@link ClientException} instance.
      * <p>
      * If the exception key is not found in the registry, the method logs an error and
-     * returns a generic {@link RuntimeException} as a fallback. 
+     * returns a generic {@link RuntimeException} as a fallback.
      *
      * @param exceptionKey the predefined exception identifier corresponding to a specific
-     *                    Message business scenario
+     *                    Message scenario
      * @param message the custom error message to include in the exception
      * @return a {@link RuntimeException} instance, which will be:
      *         <ul>
@@ -74,9 +83,8 @@ public class ExceptionMap {
             return exceptions.get(exceptionKey).apply(message);
         } else {
             log.error("[MESSAGE-CORE][EXCEPTION-MAP] Exception Name Not Found: {}", exceptionKey);
-            return  new RuntimeException();
+            return new RuntimeException();
         }
     }
 
 }
-

@@ -38,9 +38,11 @@ class MessageCoreServiceTest {
     @MockitoBean
     CitizenConnectorImpl citizenConnector;
     @MockitoBean
+    MessageRepository messageRepository;
+    @MockitoBean
     ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
-    @MockitoBean MessageRepository messageRepository;
-    @MockitoBean ExceptionMap exceptionMap;
+    @MockitoBean
+    ExceptionMap exceptionMap;
 
     @Autowired
     MessageCoreServiceImpl messageCoreService;
@@ -169,6 +171,46 @@ class MessageCoreServiceTest {
 
         // Verifica che al repository sia arrivato 100 invece di 500
         org.mockito.Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(), anyInt(), ArgumentMatchers.eq(maxSize), anySet());
+    }
+
+    @Test
+    void getMessage_Ok() {
+        String testEntityId = "test-entity-id";
+        String testMessageId = "test-message-id";
+        
+        Message mockMessage = new Message();
+        mockMessage.setMessageId(testMessageId);
+        mockMessage.setEntityId(testEntityId);
+        mockMessage.setRecipientId("test-recipient");
+
+        ResponseMessageDTO expectedResponse = ResponseMessageDTO.builder()
+                .entityId(testEntityId)
+                .messageId(testMessageId)
+                .recipientId("test-recipient")
+                .build();
+
+        when(messageRepository.findByEntityIdAndMessageId(testEntityId, testMessageId)).thenReturn(Mono.just(mockMessage));
+        when(messageMapperObjectToDTO.map(mockMessage)).thenReturn(expectedResponse);
+
+        StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
+                .expectNext(expectedResponse)
+                .verifyComplete();
+    }
+
+    @Test
+    void getMessage_NotFound() {
+        String testEntityId = "test-entity-id";
+        String testMessageId = "not-found-message-id";
+        
+        RuntimeException mockException = new RuntimeException("Test Exception Not Found");
+
+        when(messageRepository.findByEntityIdAndMessageId(testEntityId, testMessageId)).thenReturn(Mono.empty());
+        
+        when(exceptionMap.throwException(any(), any())).thenReturn(mockException);
+
+        StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
+                .expectErrorMatches(throwable -> throwable.equals(mockException))
+                .verify();
     }
 
 }

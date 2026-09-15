@@ -2,6 +2,7 @@ package it.gov.pagopa.message.controller;
 
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 
@@ -43,4 +44,11 @@ public class MessageCoreControllerImpl implements MessageCoreController {
                 .map(ResponseEntity::ok);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public Mono<ResponseEntity<ResponseMessageDTO>> getMessage(String entityId, String messageId) {
+        return messageCoreService.getMessage(entityId, messageId)
+                .map(responseMessageDTO -> ResponseEntity.ok(responseMessageDTO));
+    }
 }
