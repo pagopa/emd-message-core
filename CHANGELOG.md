@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.5.0](https://github.com/pagopa/emd-message-core/compare/v1.4.0...v1.5.0) (2026-09-15)
+
+
+### Features
+
+* [MMC-1058] Add getMessage api ([#131](https://github.com/pagopa/emd-message-core/issues/131)) ([9469357](https://github.com/pagopa/emd-message-core/commit/9469357e0ecbd61692e537e1f667a95b883b82f0))
+
 # [1.4.0](https://github.com/pagopa/emd-message-core/compare/v1.3.10...v1.4.0) (2026-09-14)
 
 
