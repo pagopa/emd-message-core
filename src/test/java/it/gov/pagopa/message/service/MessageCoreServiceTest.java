@@ -178,6 +178,46 @@ class MessageCoreServiceTest {
     }
 
     @Test
+    void getMessage_Ok() {
+        String testEntityId = "test-entity-id";
+        String testMessageId = "test-message-id";
+        
+        Message mockMessage = new Message();
+        mockMessage.setMessageId(testMessageId);
+        mockMessage.setEntityId(testEntityId);
+        mockMessage.setRecipientId("test-recipient");
+
+        ResponseMessageDTO expectedResponse = ResponseMessageDTO.builder()
+                .entityId(testEntityId)
+                .messageId(testMessageId)
+                .recipientId("test-recipient")
+                .build();
+
+        when(messageRepository.findByEntityIdAndMessageId(testEntityId, testMessageId)).thenReturn(Mono.just(mockMessage));
+        when(messageMapperObjectToDTO.map(mockMessage)).thenReturn(expectedResponse);
+
+        StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
+                .expectNext(expectedResponse)
+                .verifyComplete();
+    }
+
+    @Test
+    void getMessage_NotFound() {
+        String testEntityId = "test-entity-id";
+        String testMessageId = "not-found-message-id";
+        
+        RuntimeException mockException = new RuntimeException("Test Exception Not Found");
+
+        when(messageRepository.findByEntityIdAndMessageId(testEntityId, testMessageId)).thenReturn(Mono.empty());
+        
+        when(exceptionMap.throwException(any(), any())).thenReturn(mockException);
+
+        StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
+                .expectErrorMatches(throwable -> throwable.equals(mockException))
+                .verify();
+    }
+
+    @Test
     void deleteMessage_Ok() {
         String entityId = "entity-123";
         String messageId = "msg-123";
@@ -186,6 +226,8 @@ class MessageCoreServiceTest {
                 .thenReturn(Mono.just(1L));
 
         StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+
+
                 .verifyComplete();
     }
 

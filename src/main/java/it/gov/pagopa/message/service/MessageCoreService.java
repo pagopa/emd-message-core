@@ -6,6 +6,7 @@ import java.util.List;
 
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -46,6 +47,16 @@ public interface MessageCoreService {
      */
     Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, 
         int page, int size, List<String> fields);
+
+    /**
+     * <p>Retrieves a message from the storage by its unique identifier.</p>
+     *
+     * @param entityId the identifier of the tpp
+     * @param messageId the identifier of the message to retrieve
+     * @return a {@code Mono} emitting the {@link ResponseMessageDTO} if found
+     *         (emits an error signal if the message does not exist)
+     */
+    Mono<ResponseMessageDTO> getMessage(String entityId, String messageId);
         
     /**
      * Deletes a Message by entityId and messageId

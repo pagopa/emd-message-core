@@ -66,10 +66,10 @@ public class ExceptionMap {
      * {@link ClientException} instance.
      * <p>
      * If the exception key is not found in the registry, the method logs an error and
-     * returns a generic {@link RuntimeException} as a fallback. 
+     * returns a generic {@link RuntimeException} as a fallback.
      *
      * @param exceptionKey the predefined exception identifier corresponding to a specific
-     *                    Message business scenario
+     *                    Message scenario
      * @param message the custom error message to include in the exception
      * @return a {@link RuntimeException} instance, which will be:
      *         <ul>
@@ -82,7 +82,7 @@ public class ExceptionMap {
             return exceptions.get(exceptionKey).apply(message);
         } else {
             log.error("[MESSAGE-CORE][EXCEPTION-MAP] Exception Name Not Found: {}", exceptionKey);
-            return  new RuntimeException();
+            return new RuntimeException();
         }
     }
 

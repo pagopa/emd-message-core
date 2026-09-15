@@ -3,6 +3,7 @@ package it.gov.pagopa.message.controller;
 
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
 import it.gov.pagopa.message.service.MessageCoreService;
 import jakarta.validation.Valid;
@@ -75,6 +76,22 @@ public interface MessageCoreController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "fields", required = false) List<String> fields);
+
+    /**
+     * <p>Retrieves the details of a specific message using its unique identifier.</p>
+     * <p>Delegates to {@link MessageCoreService#getMessage(String)}.</p>
+     * <p>Endpoint: {@code GET /emd/message-core/{entityId}/{messageId}}</p>
+     *
+     * @param entityId the identifier of the tpp
+     * @param messageId the identifier of the message to retrieve
+     * @return {@code Mono<ResponseEntity<ResponseMessageDTO>>}
+     *        <ul>
+     *          <li> 200 OK with the {@link ResponseMessageDTO} body if the message is found, </li>
+     *          <li> 404 Not Found with {@code "MESSAGE_NOT_FOUND"} if no message matches the provided IDs</li>
+     *        </ul>
+     */
+    @GetMapping("/{entityId}/{messageId}")
+    Mono<ResponseEntity<ResponseMessageDTO>> getMessage(@PathVariable String entityId, @PathVariable String messageId);
 
     /**
      * Delete a Message from Database by entityId and messageId.

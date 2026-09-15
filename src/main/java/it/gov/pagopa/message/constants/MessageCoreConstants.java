@@ -38,7 +38,7 @@ public class MessageCoreConstants {
     public static final class ExceptionMessage {
 
         public static final String INVALID_SEARCH_FIELD = "One or more requested 'fields' are not allowed for search projection";
-        public static final String MESSAGE_NOT_FOUND = "MESSAGE_NOT_FOUND";
+        public static final String MESSAGE_NOT_FOUND = "Message not found";
         private ExceptionMessage() {}
     }
 

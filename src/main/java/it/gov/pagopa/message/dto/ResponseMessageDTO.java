@@ -7,12 +7,15 @@ import it.gov.pagopa.message.validator.ValidAnalogScheduling;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * DTO with all the information needed to represent a notification message.
  */
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
