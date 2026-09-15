@@ -35,11 +35,19 @@ public class ExceptionMap {
      * <p>
      * Registered exceptions:
      * <ul>
+     *   <li>INVALID_SEARCH_FIELD - HTTP 400 with BAD_REQUEST status for invalid search fields</li>
      *   <li>MESSAGE_NOT_FOUND - HTTP 404 with NOT_FOUND status</li>
      * </ul>
      */
     public ExceptionMap() {
         
+        exceptions.put(ExceptionName.INVALID_SEARCH_FIELD, message ->
+            new ClientExceptionWithBody(
+                HttpStatus.BAD_REQUEST,
+                ExceptionCode.INVALID_SEARCH_FIELD,
+                message
+            )
+        );
 
         exceptions.put(ExceptionName.MESSAGE_NOT_FOUND, message ->
             new ClientExceptionWithBody(

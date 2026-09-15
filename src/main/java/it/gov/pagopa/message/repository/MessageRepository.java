@@ -4,9 +4,8 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import it.gov.pagopa.message.model.Message;
 import reactor.core.publisher.Mono;
 
-
-public interface MessageRepository extends ReactiveMongoRepository<Message,String>{
-
+public interface MessageRepository extends ReactiveMongoRepository<Message,String>, MessageRepositoryExtended {
+    
     /**
      * <p>Deletes a message using ({@code entityId}) and ({@code messageId}).</p>
      * 
