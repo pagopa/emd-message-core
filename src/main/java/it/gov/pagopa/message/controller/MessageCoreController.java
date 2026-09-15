@@ -40,8 +40,8 @@ public interface MessageCoreController {
     /**
      * Delete a Message from Database by entityId and messageId.
      * 
-     * @param entityId
-     * @param messageId
+     * @param entityId the identifier of the tpp
+     * @param messageId the identifier of the message
      * @return an empty {@link Mono} resulting in a 204 No Content response
      */
     @DeleteMapping("/{entityId}/{messageId}")
