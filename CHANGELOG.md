@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.6.0](https://github.com/pagopa/emd-message-core/compare/v1.5.0...v1.6.0) (2026-09-15)
+
+
+### Features
+
+* [MMC-1021] Add delete api ([#133](https://github.com/pagopa/emd-message-core/issues/133)) ([bbab753](https://github.com/pagopa/emd-message-core/commit/bbab7539b16923c9a742911a9456398b2d6f8c85))
+
 # [1.5.0](https://github.com/pagopa/emd-message-core/compare/v1.4.0...v1.5.0) (2026-09-15)
 
 
