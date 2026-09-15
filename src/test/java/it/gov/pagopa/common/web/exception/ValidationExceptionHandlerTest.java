@@ -14,13 +14,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.constraints.NotNull;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDateTime;
 
 @WebFluxTest(value = {ValidationExceptionHandlerTest.TestController.class})
 @ContextConfiguration(classes = {
@@ -43,6 +47,12 @@ class ValidationExceptionHandlerTest {
 
         @PutMapping("/test-types")
         String testTypesEndpoint(@RequestBody @Valid ValidationWithEnumDTO body) {
+            return "OK";
+        }
+
+        @GetMapping("/test-date")
+        String testDateEndpoint(
+                @RequestParam(name = "startDate") LocalDateTime startDate) {
             return "OK";
         }
     }
@@ -181,5 +191,45 @@ class ValidationExceptionHandlerTest {
           assertThat(errorDTO.getMessage()).contains("application/xml");
           assertThat(errorDTO.getMessage()).contains("application/json");
         });
+  }
+
+  @Test
+  void testHandleInvalidLocalDateTimeRequestParam() {
+
+      webTestClient.get()
+              .uri(uriBuilder -> uriBuilder
+                      .path("/test-date")
+                      .queryParam("startDate", "not-a-date")
+                      .build())
+              .exchange()
+              .expectStatus().isBadRequest()
+              .expectBody(ErrorDTO.class)
+              .consumeWith(response -> {
+
+                  ErrorDTO errorDTO = response.getResponseBody();
+
+                  assertThat(errorDTO).isNotNull();
+                  assertThat(errorDTO.getCode())
+                          .isEqualTo("INVALID_REQUEST");
+
+                  assertThat(errorDTO.getMessage())
+                          .isEqualTo(
+                                  "[startDate]: invalid value 'not-a-date', expected type LocalDateTime"
+                          );
+              });
+  }
+
+  @Test
+  void testHandleValidLocalDateTimeRequestParam() {
+
+      webTestClient.get()
+              .uri(uriBuilder -> uriBuilder
+                      .path("/test-date")
+                      .queryParam("startDate", "2026-09-09T10:30:00")
+                      .build())
+              .exchange()
+              .expectStatus().isOk()
+              .expectBody(String.class)
+              .isEqualTo("OK");
   }
 }

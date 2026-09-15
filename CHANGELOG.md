@@ -1,5 +1,26 @@
 # Changelog
 
+# [1.6.0](https://github.com/pagopa/emd-message-core/compare/v1.5.0...v1.6.0) (2026-09-15)
+
+
+### Features
+
+* [MMC-1021] Add delete api ([#133](https://github.com/pagopa/emd-message-core/issues/133)) ([bbab753](https://github.com/pagopa/emd-message-core/commit/bbab7539b16923c9a742911a9456398b2d6f8c85))
+
+# [1.5.0](https://github.com/pagopa/emd-message-core/compare/v1.4.0...v1.5.0) (2026-09-15)
+
+
+### Features
+
+* [MMC-1058] Add getMessage api ([#131](https://github.com/pagopa/emd-message-core/issues/131)) ([9469357](https://github.com/pagopa/emd-message-core/commit/9469357e0ecbd61692e537e1f667a95b883b82f0))
+
+# [1.4.0](https://github.com/pagopa/emd-message-core/compare/v1.3.10...v1.4.0) (2026-09-14)
+
+
+### Features
+
+* [MMC-1018] Add search messages api and Message repository ([#129](https://github.com/pagopa/emd-message-core/issues/129)) ([d582887](https://github.com/pagopa/emd-message-core/commit/d58288777b02ef4bfb3632fcdb51a4176be575cf))
+
 ## [1.3.10](https://github.com/pagopa/emd-message-core/compare/v1.3.9...v1.3.10) (2026-07-09)
 
 

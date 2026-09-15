@@ -1,18 +1,34 @@
 package it.gov.pagopa.message.service;
 
+import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
+import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
+import it.gov.pagopa.message.model.Message;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
+import it.gov.pagopa.message.repository.MessageRepository;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static it.gov.pagopa.message.utils.TestUtils.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = {
@@ -23,9 +39,17 @@ class MessageCoreServiceTest {
     MessageProducerServiceImpl messageProducerService;
     @MockitoBean
     CitizenConnectorImpl citizenConnector;
+    @MockitoBean
+    ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
 
     @Autowired
     MessageCoreServiceImpl messageCoreService;
+
+    @MockitoBean
+    MessageRepository messageRepository;
+
+    @MockitoBean
+    ExceptionMap exceptionMap;
 
 
     @Test
@@ -38,6 +62,7 @@ class MessageCoreServiceTest {
 
     }
 
+    
     @Test
     void sendMessage_Ko()  {
         when(citizenConnector.checkFiscalCode(FISCAL_CODE)).thenReturn(Mono.just("NO CHANNEL ENABLED"));
@@ -45,6 +70,196 @@ class MessageCoreServiceTest {
             StepVerifier.create(messageCoreService.send(MESSAGE_DTO))
                 .expectNext(false)
                 .verifyComplete();
+    }
+
+    /**
+     * Test case for successful message search.
+     * <p>
+     * <b>Scenario:</b> A search is performed with valid filters. The repository returns a list 
+     * of messages and a total count.
+     * <b>Expected:</b> The service returns a {@link MessageSearchResponseDTO} containing 
+     * the mapped DTOs and correct pagination metadata.
+     */
+    @Test
+    void searchMessages_Ok() {
+        // Given
+        String messageId = "MSG_ID";
+        String recipientId = "RECIPIENT_ID";
+        String originId = "ORIGIN_ID";
+        LocalDateTime now = LocalDateTime.now();
+        int page = 0;
+        int size = 10;
+        List<String> fields = List.of("messageId", "recipientId");
+
+        Message messageMock = new Message();
+        messageMock.setMessageId(messageId);
+
+        ResponseMessageDTO messageDtoMock = ResponseMessageDTO.builder()
+                .messageId(messageId)
+                .build();
+
+        // Mock Repository: search restituisce un Flux con un elemento
+        when(messageRepository.searchMessages(
+                org.mockito.ArgumentMatchers.eq(messageId),
+                org.mockito.ArgumentMatchers.eq(recipientId),
+                org.mockito.ArgumentMatchers.eq(originId),
+                org.mockito.ArgumentMatchers.eq(now),
+                org.mockito.ArgumentMatchers.eq(now),
+                org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.anySet()))
+            .thenReturn(reactor.core.publisher.Flux.just(messageMock));
+
+        // Mock Repository: count restituisce 1
+        when(messageRepository.countMessages(messageId, recipientId, originId, now, now))
+            .thenReturn(Mono.just(1L));
+
+        // Mock Mapper
+        when(messageMapperObjectToDTO.map(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anySet()))
+            .thenReturn(messageDtoMock);
+
+        // When & Then
+        StepVerifier.create(messageCoreService.searchMessages(messageId, recipientId, originId, now, now, page, size, fields))
+                .assertNext(response -> {
+                    org.junit.jupiter.api.Assertions.assertNotNull(response);
+                    org.junit.jupiter.api.Assertions.assertEquals(1, response.getContent().size());
+                    org.junit.jupiter.api.Assertions.assertEquals(1L, response.getTotalElements());
+                    org.junit.jupiter.api.Assertions.assertEquals(0, response.getPage());
+                    org.junit.jupiter.api.Assertions.assertEquals(size, response.getSize());
+                })
+                .verifyComplete();
+    }
+
+    /**
+     * Test case for search with no results.
+     * <p>
+     * <b>Scenario:</b> No messages match the provided search criteria.
+     * <b>Expected:</b> The service returns an empty content list and total elements equal to zero.
+     */
+    @Test
+    void searchMessages_EmptyResult_Ok() {
+        // Given
+        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), anyInt(), anyInt(), anySet()))
+            .thenReturn(reactor.core.publisher.Flux.empty());
+        when(messageRepository.countMessages(any(), any(), any(), any(), any()))
+            .thenReturn(Mono.just(0L));
+
+        // When & Then
+        StepVerifier.create(messageCoreService.searchMessages(null, null, null, null, null, 0, 10, null))
+                .assertNext(response -> {
+                    org.junit.jupiter.api.Assertions.assertTrue(response.getContent().isEmpty());
+                    org.junit.jupiter.api.Assertions.assertEquals(0, response.getTotalElements());
+                })
+                .verifyComplete();
+    }
+
+    /**
+     * Test case for pagination capping logic.
+     * <p>
+     * <b>Scenario:</b> The client requests a page size (500) that exceeds the maximum allowed (100).
+     * <b>Expected:</b> The service caps the size to the configured maximum before calling the repository.
+     */
+    @Test
+    void searchMessages_CappedPagination_Ok() {
+        int requestedSize = 500;
+        int maxSize = 100; // Assumed maxPageSize configuration
+
+        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), anyInt(), ArgumentMatchers.eq(maxSize), anySet()))
+            .thenReturn(Flux.empty());
+        when(messageRepository.countMessages(any(), any(), any(), any(), any()))
+            .thenReturn(Mono.just(0L));
+
+        StepVerifier.create(messageCoreService.searchMessages(null, null, null, null, null, 0, requestedSize, null))
+                .expectNextCount(1)
+                .verifyComplete();
+
+        // Verifica che al repository sia arrivato 100 invece di 500
+        org.mockito.Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(), anyInt(), ArgumentMatchers.eq(maxSize), anySet());
+    }
+
+    @Test
+    void getMessage_Ok() {
+        String testEntityId = "test-entity-id";
+        String testMessageId = "test-message-id";
+        
+        Message mockMessage = new Message();
+        mockMessage.setMessageId(testMessageId);
+        mockMessage.setEntityId(testEntityId);
+        mockMessage.setRecipientId("test-recipient");
+
+        ResponseMessageDTO expectedResponse = ResponseMessageDTO.builder()
+                .entityId(testEntityId)
+                .messageId(testMessageId)
+                .recipientId("test-recipient")
+                .build();
+
+        when(messageRepository.findByEntityIdAndMessageId(testEntityId, testMessageId)).thenReturn(Mono.just(mockMessage));
+        when(messageMapperObjectToDTO.map(mockMessage)).thenReturn(expectedResponse);
+
+        StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
+                .expectNext(expectedResponse)
+                .verifyComplete();
+    }
+
+    @Test
+    void getMessage_NotFound() {
+        String testEntityId = "test-entity-id";
+        String testMessageId = "not-found-message-id";
+        
+        RuntimeException mockException = new RuntimeException("Test Exception Not Found");
+
+        when(messageRepository.findByEntityIdAndMessageId(testEntityId, testMessageId)).thenReturn(Mono.empty());
+        
+        when(exceptionMap.throwException(any(), any())).thenReturn(mockException);
+
+        StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
+                .expectErrorMatches(throwable -> throwable.equals(mockException))
+                .verify();
+    }
+
+    @Test
+    void deleteMessage_Ok() {
+        String entityId = "entity-123";
+        String messageId = "msg-123";
+
+        when(messageRepository.deleteByEntityIdAndMessageId(entityId, messageId))
+                .thenReturn(Mono.just(1L));
+
+        StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+
+
+                .verifyComplete();
+    }
+
+    @Test
+    void deleteMessage_Ko_NotFound() {
+        String entityId = "entity-123";
+        String messageId = "msg-123";
+
+        when(messageRepository.deleteByEntityIdAndMessageId(entityId, messageId))
+                .thenReturn(Mono.just(0L));
+
+        RuntimeException expectedException = new RuntimeException("Message not found custom error");
+        when(exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND))
+                .thenReturn(expectedException);
+
+        StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+                .expectErrorMatches(throwable -> throwable.equals(expectedException))
+                .verify();
+    }
+
+    @Test
+    void deleteMessage_Ko_DbError() {
+        String entityId = "entity-123";
+        String messageId = "msg-123";
+
+        RuntimeException dbError = new RuntimeException("DB Connection Timeout");
+        when(messageRepository.deleteByEntityIdAndMessageId(entityId, messageId))
+                .thenReturn(Mono.error(dbError));
+
+        StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+                .expectErrorMatches(throwable -> throwable.equals(dbError))
+                .verify();
     }
 
 }

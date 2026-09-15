@@ -1,11 +1,19 @@
 package it.gov.pagopa.message.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import it.gov.pagopa.common.web.exception.ErrorManager;
+import it.gov.pagopa.common.web.exception.ValidationExceptionHandler;
 import it.gov.pagopa.message.config.JacksonConfig;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
+import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.enums.Channel;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
+
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -22,15 +30,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
 import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.message.utils.TestUtils.MESSAGE_DTO;
 import static it.gov.pagopa.message.utils.TestUtils.OBJECT_MAPPER;
 
 @WebFluxTest(MessageCoreControllerImpl.class)
-@Import(JacksonConfig.class)
+@Import({JacksonConfig.class,
+    ErrorManager.class,
+    ValidationExceptionHandler.class})
 class MessageCoreControllerTest {
 
     @MockitoBean
@@ -498,6 +510,184 @@ class MessageCoreControllerTest {
             "messageId", "recipientId", "triggerDateTime",
             "senderDescription", "messageUrl", "originId", "title", "content"
         );
+    }
+
+    // =========================================================================
+    // SEARCH MESSAGES TESTS
+    // =========================================================================
+
+    @Test
+    void searchMessages_Ok() {
+        MessageSearchResponseDTO expectedResponse = MessageSearchResponseDTO.builder()
+                .content(java.util.List.of())
+                .page(0)
+                .size(10)
+                .totalElements(0L)
+                .totalPages(0)
+                .build();
+
+        Mockito.when(messageCoreService.searchMessages(
+                Mockito.any(), Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any(), 
+                Mockito.anyInt(), Mockito.anyInt(), Mockito.any()))
+            .thenReturn(Mono.just(expectedResponse));
+
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("messageId", "MSG123")
+                        .queryParam("page", 0)
+                        .queryParam("size", 10)
+                        .build())
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(MessageSearchResponseDTO.class)
+                .isEqualTo(expectedResponse);
+    }
+
+    @Test
+    void searchMessages_WithAllFilters_Ok() {
+        String messageId = "msgId";
+        String recipientId = "recipientId";
+        String originId = "originId";
+        String startDate = "2023-12-25T10:30:00";
+        String endDate = "2023-12-26T10:30:00";
+
+        Mockito.when(messageCoreService.searchMessages(
+                Mockito.eq(messageId), Mockito.eq(recipientId), Mockito.eq(originId),
+                Mockito.any(LocalDateTime.class), Mockito.any(LocalDateTime.class),
+                Mockito.eq(0), Mockito.eq(10), Mockito.any()))
+            .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
+
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("messageId", messageId)
+                        .queryParam("recipientId", recipientId)
+                        .queryParam("originId", originId)
+                        .queryParam("startDate", startDate)
+                        .queryParam("endDate", endDate)
+                        .queryParam("fields", "messageId,recipientId")
+                        .build())
+                .exchange()
+                .expectStatus().isOk();
+
+        // Verifichiamo che i parametri siano stati passati correttamente al service
+        Mockito.verify(messageCoreService).searchMessages(
+                Mockito.eq(messageId), 
+                Mockito.eq(recipientId), 
+                Mockito.eq(originId), 
+                Mockito.any(LocalDateTime.class), 
+                Mockito.any(LocalDateTime.class), 
+                Mockito.eq(0), 
+                Mockito.eq(10), 
+                Mockito.argThat(list -> list.contains("messageId") && list.contains("recipientId"))
+        );
+    }
+
+    @Test
+    void searchMessages_Pagination_Ok() {
+        int page = 5;
+        int size = 20;
+
+        Mockito.when(messageCoreService.searchMessages(
+                Mockito.any(), Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any(), 
+                Mockito.eq(page), Mockito.eq(size), Mockito.any()))
+            .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
+
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/message-core/search")
+                        .queryParam("page", page)
+                        .queryParam("size", size)
+                        .build())
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    // ==================== GET MESSAGE VALIDATIONS ====================
+
+    @Test
+    void getMessage_Ok() {
+        String testEntityId = "99999999999";
+        String testMessageId = "a2ea4d19-4abb-4e2f-b546-12216217";
+        ResponseMessageDTO mockResponseDTO = ResponseMessageDTO.builder()
+                .messageId(testMessageId)
+                .recipientId("recipient-123")
+                .title("Test Message Title")
+                .content("Test Content")
+                .build();
+
+        Mockito.when(messageCoreService.getMessage(testEntityId, testMessageId))
+                .thenReturn(Mono.just(mockResponseDTO));
+
+        webTestClient.get()
+                .uri("/emd/message-core/{entityId}/{messageId}", testEntityId, testMessageId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(it.gov.pagopa.message.dto.ResponseMessageDTO.class)
+                .value(response -> {
+                    Assertions.assertNotNull(response);
+                    Assertions.assertEquals(testMessageId, response.getMessageId());
+                    Assertions.assertEquals("recipient-123", response.getRecipientId());
+                    Assertions.assertEquals("Test Message Title", response.getTitle());
+                });
+    }
+
+    @Test
+    void getMessage_NotFound() {
+        String testEntityId = "99999999999";
+        String testMessageId = "non-existent-message-id";
+        var exceptionToThrow = new ClientExceptionWithBody(HttpStatus.NOT_FOUND, "MESSAGE_NOT_FOUND", "Message not found");
+        
+        Mockito.when(messageCoreService.getMessage(testEntityId, testMessageId))
+                .thenReturn(Mono.error(exceptionToThrow));
+
+        webTestClient.get()
+                .uri("/emd/message-core/{entityId}/{messageId}", testEntityId, testMessageId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+    
+    // =========================================================================
+    // DELETE MESSAGES TESTS
+    // =========================================================================
+
+    @Test
+    void deleteMessage_Ok_test() {
+        String entityId = "test-entity-id";
+        String messageId = "test-message-id";
+
+        Mockito.when(messageCoreService.deleteMessage(entityId, messageId))
+                .thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/emd/message-core/{entityId}/{messageId}", entityId, messageId)
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody().isEmpty();
+
+        Mockito.verify(messageCoreService, Mockito.times(1)).deleteMessage(entityId, messageId);
+    }
+
+    @Test
+    void deleteMessage_Ko_test() {
+        String entityId = "test-entity-id";
+        String messageId = "test-message-id";
+
+        Mockito.when(messageCoreService.deleteMessage(entityId, messageId))
+                .thenReturn(Mono.error(new RuntimeException("Simulated error from service")));
+
+        webTestClient.delete()
+                .uri("/emd/message-core/{entityId}/{messageId}", entityId, messageId)
+                .exchange()
+                .expectStatus().is5xxServerError();
+
+        Mockito.verify(messageCoreService, Mockito.times(1)).deleteMessage(entityId, messageId);
     }
 
 }
