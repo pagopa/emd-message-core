@@ -59,7 +59,7 @@ public interface MessageCoreService {
     Mono<ResponseMessageDTO> getMessage(String entityId, String messageId);
         
     /**
-     * Deletes a Message by entityId and messageId
+     * <p>Deletes a Message by entityId and messageId.</p>
      * 
      * @param entityId the identifier of the tpp
      * @param messageId the identifier of the message
