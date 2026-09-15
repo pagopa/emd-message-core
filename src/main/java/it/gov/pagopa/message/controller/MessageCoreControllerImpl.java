@@ -51,4 +51,12 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         return messageCoreService.getMessage(entityId, messageId)
                 .map(responseMessageDTO -> ResponseEntity.ok(responseMessageDTO));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Mono<ResponseEntity<Void>> deleteMessage(String entityId, String messageId){
+        return messageCoreService.deleteMessage(entityId, messageId)
+                .then(Mono.just(ResponseEntity.noContent().<Void>build()));
+    }
 }

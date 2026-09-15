@@ -6,6 +6,8 @@ import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.model.Message;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
+import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
 import it.gov.pagopa.message.repository.MessageRepository;
 
 import org.junit.jupiter.api.Test;
@@ -38,14 +40,16 @@ class MessageCoreServiceTest {
     @MockitoBean
     CitizenConnectorImpl citizenConnector;
     @MockitoBean
-    MessageRepository messageRepository;
-    @MockitoBean
     ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
-    @MockitoBean
-    ExceptionMap exceptionMap;
 
     @Autowired
     MessageCoreServiceImpl messageCoreService;
+
+    @MockitoBean
+    MessageRepository messageRepository;
+
+    @MockitoBean
+    ExceptionMap exceptionMap;
 
 
     @Test
@@ -210,6 +214,51 @@ class MessageCoreServiceTest {
 
         StepVerifier.create(messageCoreService.getMessage(testEntityId, testMessageId))
                 .expectErrorMatches(throwable -> throwable.equals(mockException))
+                .verify();
+    }
+
+    @Test
+    void deleteMessage_Ok() {
+        String entityId = "entity-123";
+        String messageId = "msg-123";
+
+        when(messageRepository.deleteByEntityIdAndMessageId(entityId, messageId))
+                .thenReturn(Mono.just(1L));
+
+        StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+
+
+                .verifyComplete();
+    }
+
+    @Test
+    void deleteMessage_Ko_NotFound() {
+        String entityId = "entity-123";
+        String messageId = "msg-123";
+
+        when(messageRepository.deleteByEntityIdAndMessageId(entityId, messageId))
+                .thenReturn(Mono.just(0L));
+
+        RuntimeException expectedException = new RuntimeException("Message not found custom error");
+        when(exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND))
+                .thenReturn(expectedException);
+
+        StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+                .expectErrorMatches(throwable -> throwable.equals(expectedException))
+                .verify();
+    }
+
+    @Test
+    void deleteMessage_Ko_DbError() {
+        String entityId = "entity-123";
+        String messageId = "msg-123";
+
+        RuntimeException dbError = new RuntimeException("DB Connection Timeout");
+        when(messageRepository.deleteByEntityIdAndMessageId(entityId, messageId))
+                .thenReturn(Mono.error(dbError));
+
+        StepVerifier.create(messageCoreService.deleteMessage(entityId, messageId))
+                .expectErrorMatches(throwable -> throwable.equals(dbError))
                 .verify();
     }
 

@@ -57,4 +57,13 @@ public interface MessageCoreService {
      *         (emits an error signal if the message does not exist)
      */
     Mono<ResponseMessageDTO> getMessage(String entityId, String messageId);
+        
+    /**
+     * <p>Deletes a Message by entityId and messageId.</p>
+     * 
+     * @param entityId the identifier of the tpp
+     * @param messageId the identifier of the message
+     * @return a {@link Mono<Void>} that completes when the deletion is successful
+     */
+    Mono<Void> deleteMessage(String entityId, String messageId);
 }

@@ -248,6 +248,23 @@ public class MessageCoreServiceImpl implements MessageCoreService {
                 .doOnError(error -> log.error("[MESSAGE-CORE][GET] Error retrieving message with id {}. Error: {}", inputSanitization(messageId), error.getMessage()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Mono<Void> deleteMessage(String entityId, String messageId) {
+        log.info("[MESSAGE-CORE][DELETE] Request to delete...");
+
+        return messageRepository.deleteByEntityIdAndMessageId(entityId, messageId)
+                .flatMap(deletedCount -> {
+                    if (deletedCount == 0) {
+                        return Mono.error(exceptionMap.throwException(ExceptionName.MESSAGE_NOT_FOUND, ExceptionMessage.MESSAGE_NOT_FOUND));
+                    }
+                    return Mono.empty();
+                })
+                .then()
+                .doOnSuccess(unused -> log.info("[MESSAGE-CORE][DELETE] Successfully deleted"))
+                .doOnError(error -> log.error("[MESSAGE-CORE][DELETE] Error: {}", error.getMessage()));
+    }
+
 }
-
-
