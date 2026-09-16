@@ -2,6 +2,8 @@ package it.gov.pagopa.common.web.exception;
 
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.mongodb.MongoCommandException;
 
 import java.util.Optional;
 
@@ -100,5 +104,40 @@ public class ErrorManager {
 
   public static String getRequestDetails(ServerHttpRequest request) {
     return "%s %s".formatted(request.getMethod(), request.getURI());
+  }
+
+  /**
+   * Handles {@link UncategorizedMongoDbException} to manage database-specific errors.
+   * <p>
+   * This method implements a specific mapping for Azure Cosmos DB (via MongoDB API):
+   * <ul>
+   *   <li><b>Error 16500 (RequestRateTooLarge):</b> Mapped to {@code HTTP 429 Too Many Requests}. 
+   *       This occurs when the Request Units (RU) allocated to the collection are exceeded.</li>
+   *   <li><b>Other MongoDB Errors:</b> Mapped to {@code HTTP 500 Internal Server Error} 
+   *       using the default error DTO, after logging the full stack trace.</li>
+   * </ul>
+   * </p>
+   *
+   * @param error the exception thrown during MongoDB operations
+   * @param request the current {@link ServerHttpRequest} for context
+   * @return a {@link ResponseEntity} containing an {@link ErrorDTO} with:
+   *         <ul>
+   *           <li>Status 429 and "TOO_MANY_REQUESTS" code for throttling events</li>
+   *           <li>Status 500 and a generic error message for other DB failures</li>
+   *         </ul>
+   */
+  @ExceptionHandler(UncategorizedMongoDbException.class)
+  protected ResponseEntity<ErrorDTO> handleMongoException(UncategorizedMongoDbException error, ServerHttpRequest request) {
+      
+      if (error.getCause() instanceof MongoCommandException mongoEx && mongoEx.getErrorCode() == 16500) {
+          log.warn("CosmosDB throttling detected for request {}", request.getURI()); 
+          return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS) // Status 429
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .body(new ErrorDTO("TOO_MANY_REQUESTS", "CosmosDB Request Rate too large. Please retry later."));
+      }
+      logClientException(error, request);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+              .contentType(MediaType.APPLICATION_JSON)
+              .body(defaultErrorDTO);
   }
 }
