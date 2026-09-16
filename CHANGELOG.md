@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/pagopa/emd-message-core/compare/v1.6.0...v1.6.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* [MMC-1069] Add Mongo exception handler ([#134](https://github.com/pagopa/emd-message-core/issues/134)) ([c7a530b](https://github.com/pagopa/emd-message-core/commit/c7a530b1dd366d57102ae1c9b714233a8c574de7))
+
 # [1.6.0](https://github.com/pagopa/emd-message-core/compare/v1.5.0...v1.6.0) (2026-09-15)
 
 
