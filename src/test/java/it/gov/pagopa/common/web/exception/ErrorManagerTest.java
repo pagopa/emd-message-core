@@ -6,6 +6,9 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import it.gov.pagopa.common.utils.MemoryAppender;
 import lombok.extern.slf4j.Slf4j;
+
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +17,7 @@ import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +25,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.mongodb.MongoCommandException;
+import com.mongodb.ServerAddress;
 
 import java.util.regex.Pattern;
 
@@ -232,4 +239,41 @@ class ErrorManagerTest {
         Assertions.assertEquals(expectedLoggedExceptionOccurrencePosition,
                 loggedExceptionOccurrenceStackTrace.getStackTraceElement().getClassName() + "." + loggedExceptionOccurrenceStackTrace.getStackTraceElement().getMethodName());
     }
+
+    @Test
+    void handleUncategorizedMongoDbExceptionThrottling1() {
+        BsonDocument response = new BsonDocument("code", new BsonInt32(16500));
+        MongoCommandException mongoEx = new MongoCommandException(response, new ServerAddress());
+        UncategorizedMongoDbException error = new UncategorizedMongoDbException("Command failed", mongoEx);
+
+        Mockito.doThrow(error).when(testControllerSpy).testEndpoint();
+
+        webTestClient.get()
+                .uri("/test")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS) // DEVE essere 429
+                .expectBody()
+                .jsonPath("$.code").isEqualTo("TOO_MANY_REQUESTS")
+                .jsonPath("$.message").isEqualTo("CosmosDB Request Rate too large. Please retry later.");
+    }
+
+    @Test
+    void handleUncategorizedMongoDbExceptionGeneric() {
+        BsonDocument response = new BsonDocument("code", new BsonInt32(100));
+        MongoCommandException mongoEx = new MongoCommandException(response, new ServerAddress());
+        UncategorizedMongoDbException error = new UncategorizedMongoDbException("Generic Mongo Error", mongoEx);
+
+        Mockito.doThrow(error).when(testControllerSpy).testEndpoint();
+
+        webTestClient.get()
+                .uri("/test")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody()
+                .jsonPath("$.code").isEqualTo(ERROR_CODE) // "Error"
+                .jsonPath("$.message").isEqualTo(SOME_ERROR_MESSAGE); // "Something gone wrong"
+    }
+
 }
