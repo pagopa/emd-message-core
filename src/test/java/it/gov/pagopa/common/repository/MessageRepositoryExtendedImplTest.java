@@ -2,7 +2,6 @@ package it.gov.pagopa.common.repository;
 
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.repository.MessageRepositoryExtendedImpl;
-
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import reactor.core.publisher.Flux;
@@ -22,12 +23,11 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MessageRepositoryExtendedImplTest {
 
     @Mock
@@ -35,9 +35,14 @@ class MessageRepositoryExtendedImplTest {
 
     private MessageRepositoryExtendedImpl messageRepository;
 
+    private static final String RU_COMMAND = "{getLastRequestStatistics: 1}";
+
     @BeforeEach
     void setUp() {
         messageRepository = new MessageRepositoryExtendedImpl(reactiveMongoTemplate);
+
+        lenient().when(reactiveMongoTemplate.executeCommand(eq(RU_COMMAND)))
+                .thenReturn(Mono.just(new Document("RequestCharge", 10.0)));
     }
 
     @Test
@@ -48,12 +53,9 @@ class MessageRepositoryExtendedImplTest {
         String originId = "ORIGIN123";
         LocalDateTime startDate = LocalDateTime.now().minusDays(1);
         LocalDateTime endDate = LocalDateTime.now();
-
         int page = 0;
         int size = 10;
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
         Set<String> fields = Set.of("content", "title");
 
         when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
@@ -61,7 +63,7 @@ class MessageRepositoryExtendedImplTest {
 
         // When
         Flux<Message> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate,
-                page,size,fields);
+                page, size, fields);
 
         // Then
         StepVerifier.create(result)
@@ -69,62 +71,36 @@ class MessageRepositoryExtendedImplTest {
                 .verifyComplete();
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-
         verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
-
         Query capturedQuery = queryCaptor.getValue();
         Document queryObject = capturedQuery.getQueryObject();
 
         // Verifica struttura query
-        assertTrue( queryObject.containsKey("$and"), "Deve contenere un operatore $and");
-
+        assertTrue(queryObject.containsKey("$and"), "Deve contenere un operatore $and");
         List<Document> andConditions = (List<Document>) queryObject.get("$and");
-
         assertNotNull(andConditions);
         assertEquals(4, andConditions.size());
 
         // Verifica messageId
         assertTrue(andConditions.stream()
-                .anyMatch(condition ->
-                        messageId.equals(
-                                condition.getString("messageId"))
-                )
-        );
+                .anyMatch(condition -> messageId.equals(condition.getString("messageId"))));
 
         // Verifica recipientId
         assertTrue(andConditions.stream()
-                .anyMatch(condition ->
-                        recipientId.equals(
-                                condition.getString("recipientId"))
-                )
-        );
+                .anyMatch(condition -> recipientId.equals(condition.getString("recipientId"))));
 
         // Verifica originId
         assertTrue(andConditions.stream()
-                .anyMatch(condition ->
-                        originId.equals(
-                                condition.getString("originId"))
-                )
-        );
+                .anyMatch(condition -> originId.equals(condition.getString("originId"))));
 
         // Verifica date
         Document dateCondition = andConditions.stream()
-                .filter(condition ->
-                        condition.containsKey("messageRegistrationDate")
-                )
+                .filter(condition -> condition.containsKey("messageRegistrationDate"))
                 .findFirst()
                 .orElseThrow();
-
         Document dateDocument = (Document) dateCondition.get("messageRegistrationDate");
-
-        assertEquals(
-                startDate.format(formatter),
-                dateDocument.get("$gte")
-        );
-        assertEquals(
-                endDate.format(formatter),
-                dateDocument.get("$lte")
-        );
+        assertEquals(startDate.format(formatter), dateDocument.get("$gte"));
+        assertEquals(endDate.format(formatter), dateDocument.get("$lte"));
 
         // Verifica paginazione
         assertEquals(size, capturedQuery.getLimit());
@@ -132,7 +108,6 @@ class MessageRepositoryExtendedImplTest {
 
         // Verifica projection
         Document fieldsObject = capturedQuery.getFieldsObject();
-
         assertEquals(1, fieldsObject.get("content"));
         assertEquals(1, fieldsObject.get("title"));
         assertEquals(1, fieldsObject.get("messageId"));
@@ -142,19 +117,19 @@ class MessageRepositoryExtendedImplTest {
     void searchMessages_OnlyDates_Ok() {
         // Given
         LocalDateTime startDate = LocalDateTime.of(2023, 1, 1, 10, 0);
-        
+
         when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
                 .thenReturn(Flux.empty());
 
         // When
-        messageRepository.searchMessages(null, null, null, startDate, null, 0, 10, null).subscribe();
+        StepVerifier.create(messageRepository.searchMessages(null, null, null, startDate, null, 0, 10, null))
+                .verifyComplete();
 
         // Then
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
         verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
-
         Document queryObject = queryCaptor.getValue().getQueryObject();
-        // Verifichiamo che ci sia il filtro gte sulla data
+
         String queryStr = queryObject.toJson();
         assertTrue(queryStr.contains("$gte"));
         assertTrue(queryStr.contains("2023-01-01T10:00"));
@@ -177,9 +152,10 @@ class MessageRepositoryExtendedImplTest {
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
         verify(reactiveMongoTemplate).count(queryCaptor.capture(), eq(Message.class));
-
         Document queryObject = queryCaptor.getValue().getQueryObject();
         assertTrue(queryObject.containsKey("messageId") || queryObject.containsKey("$and"));
+        
+        verify(reactiveMongoTemplate).executeCommand(eq(RU_COMMAND));
     }
 
     @Test
@@ -189,12 +165,12 @@ class MessageRepositoryExtendedImplTest {
                 .thenReturn(Flux.empty());
 
         // When
-        messageRepository.searchMessages(null, null, null, null, null, 0, 20, null).subscribe();
+        StepVerifier.create(messageRepository.searchMessages(null, null, null, null, null, 0, 20, null))
+                .verifyComplete();
 
         // Then
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
         verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
-
         Query capturedQuery = queryCaptor.getValue();
         assertTrue(capturedQuery.getQueryObject().isEmpty(), "La query non dovrebbe avere filtri");
         assertEquals(20, capturedQuery.getLimit());
