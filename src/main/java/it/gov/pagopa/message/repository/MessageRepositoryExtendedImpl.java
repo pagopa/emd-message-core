@@ -16,9 +16,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import it.gov.pagopa.message.model.Message;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Repository
 public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended {
     
@@ -49,7 +51,9 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
             fields.forEach(field -> query.fields().include(field));
             query.fields().include(FIELD_MESSAGE_ID);
         }
-        return reactiveMongoTemplate.find(query, Message.class);
+        return reactiveMongoTemplate.find(query, Message.class)
+                .doOnTerminate(() ->
+                        getRequestCharge().subscribe(ru -> log.info("Query searchMessages - RU consumate: " + ru)));
     }
 
     /**
@@ -57,7 +61,13 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
      */
     @Override
     public Mono<Long> countMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate) {
-        return reactiveMongoTemplate.count(buildCriteriaQuery(messageId, recipientId, originId, startDate, endDate), Message.class);
+        return reactiveMongoTemplate.count(buildCriteriaQuery(messageId, recipientId, originId, startDate, endDate), Message.class)
+                                    .flatMap(count ->
+                                            getRequestCharge().map(ru -> {
+                                                log.info("Count operation - RU consumate: " + ru);
+                                                return count;
+                                            })
+                                        );
     }
 
     /**
@@ -102,5 +112,13 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
 
         return query;
     }
+
+    /**
+     * Test method, used to see the RU
+     */
+    private Mono<Double> getRequestCharge() {
+    return reactiveMongoTemplate.executeCommand("{getLastRequestStatistics: 1}")
+            .map(doc -> doc.getDouble("RequestCharge"));
+}
 }
 
