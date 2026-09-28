@@ -3,6 +3,9 @@ package it.gov.pagopa.message.service;
 import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.dto.MessageCursorCodec;
+import it.gov.pagopa.message.dto.MessageKeysetPage;
+import it.gov.pagopa.message.dto.MessageSearchCursor;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.model.Message;
@@ -10,9 +13,12 @@ import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
 import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
 import it.gov.pagopa.message.repository.MessageRepository;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,6 +30,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static it.gov.pagopa.message.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
@@ -35,10 +42,13 @@ import java.util.List;
         MessageCoreServiceImpl.class,
 })
 class MessageCoreServiceTest {
+
     @MockitoBean
     MessageProducerServiceImpl messageProducerService;
+    
     @MockitoBean
     CitizenConnectorImpl citizenConnector;
+    
     @MockitoBean
     ResponseMessageMapperObjectToDTO messageMapperObjectToDTO;
 
@@ -51,6 +61,8 @@ class MessageCoreServiceTest {
     @MockitoBean
     ExceptionMap exceptionMap;
 
+    @MockitoBean
+    private MessageCursorCodec cursorCodec;
 
     @Test
     void sendMessage_Ok()  {
@@ -82,52 +94,102 @@ class MessageCoreServiceTest {
      */
     @Test
     void searchMessages_Ok() {
+
         // Given
         String messageId = "MSG_ID";
         String recipientId = "RECIPIENT_ID";
         String originId = "ORIGIN_ID";
+        String cursor = "CURSOR";
         LocalDateTime now = LocalDateTime.now();
-        int page = 0;
         int size = 10;
+
         List<String> fields = List.of("messageId", "recipientId");
 
         Message messageMock = new Message();
         messageMock.setMessageId(messageId);
+        messageMock.setId("66f2a1b2c3d4e5f678901234");
+        messageMock.setMessageRegistrationDate("2026-09-28T10:00:00");
 
         ResponseMessageDTO messageDtoMock = ResponseMessageDTO.builder()
-                .messageId(messageId)
-                .build();
+                                                .messageId(messageId)
+                                                .build();
 
-        // Mock Repository: search restituisce un Flux con un elemento
+        /*
+        * Il service riceve il cursor come String e lo decodifica
+        * prima di chiamare il repository.
+        */
+        MessageSearchCursor decodedCursor = new MessageSearchCursor("2026-09-28T09:59:00", "66f2a1b2c3d4e5f678901233");
+
+        when(cursorCodec.decode(cursor))
+                .thenReturn(decodedCursor);
+
+        /*
+        * Il repository ora restituisce una MessageKeysetPage.
+        */
+        MessageKeysetPage<Message> repositoryResult =
+                new MessageKeysetPage<>(
+                        List.of(messageMock),
+                        true,
+                        "NEXT_CURSOR"
+                );
+
         when(messageRepository.searchMessages(
-                org.mockito.ArgumentMatchers.eq(messageId),
-                org.mockito.ArgumentMatchers.eq(recipientId),
-                org.mockito.ArgumentMatchers.eq(originId),
-                org.mockito.ArgumentMatchers.eq(now),
-                org.mockito.ArgumentMatchers.eq(now),
-                org.mockito.ArgumentMatchers.anyInt(),
-                org.mockito.ArgumentMatchers.anyInt(),
-                org.mockito.ArgumentMatchers.anySet()))
-            .thenReturn(reactor.core.publisher.Flux.just(messageMock));
+                eq(messageId),
+                eq(recipientId),
+                eq(originId),
+                eq(now),
+                eq(now),
+                eq(decodedCursor),
+                eq(size),
+                anySet()
+        )).thenReturn(Mono.just(repositoryResult));
 
-        // Mock Repository: count restituisce 1
-        when(messageRepository.countMessages(messageId, recipientId, originId, now, now))
-            .thenReturn(Mono.just(1L));
+        /*
+        * Mock del count.
+        */
+        when(messageRepository.countMessages(messageId, recipientId, originId, now, now ))
+            .thenReturn( Mono.just(1L));
 
-        // Mock Mapper
-        when(messageMapperObjectToDTO.map(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anySet()))
+        /*
+        * Mock del mapper.
+        */
+        when(messageMapperObjectToDTO.map(any(), anySet()))
             .thenReturn(messageDtoMock);
 
         // When & Then
-        StepVerifier.create(messageCoreService.searchMessages(messageId, recipientId, originId, now, now, page, size, fields))
-                .assertNext(response -> {
-                    org.junit.jupiter.api.Assertions.assertNotNull(response);
-                    org.junit.jupiter.api.Assertions.assertEquals(1, response.getContent().size());
-                    org.junit.jupiter.api.Assertions.assertEquals(1L, response.getTotalElements());
-                    org.junit.jupiter.api.Assertions.assertEquals(0, response.getPage());
-                    org.junit.jupiter.api.Assertions.assertEquals(size, response.getSize());
-                })
-                .verifyComplete();
+        StepVerifier.create(
+                messageCoreService.searchMessages(
+                        messageId,
+                        recipientId,
+                        originId,
+                        now,
+                        now,
+                        cursor,
+                        size,
+                        fields
+                )
+        )
+        .assertNext(response -> {
+
+            assertNotNull(response);
+            // Content
+            assertEquals( 1,response.getContent().size());
+            assertEquals(messageId,
+                    response.getContent()
+                            .get(0)
+                            .getMessageId()
+            );
+
+            // Count
+            assertEquals(1L,response.getTotalElements());
+            // Pagination
+            assertEquals(size,response.getSize());
+            assertTrue(response.isHasNext());
+            assertEquals("NEXT_CURSOR", response.getNextCursor());
+            // 1 elemento / 10 per pagina = 1 pagina
+            assertEquals(1, response.getTotalPages());
+        })
+        .verifyComplete();
     }
 
     /**
@@ -139,18 +201,21 @@ class MessageCoreServiceTest {
     @Test
     void searchMessages_EmptyResult_Ok() {
         // Given
-        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), anyInt(), anyInt(), anySet()))
-            .thenReturn(reactor.core.publisher.Flux.empty());
-        when(messageRepository.countMessages(any(), any(), any(), any(), any()))
+        when(messageRepository.searchMessages(
+                any(), any(), any(), any(), any(), any(), anyInt(), anySet()))
+            .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false, null)));
+        when(messageRepository.countMessages(
+                any(), any(), any(), any(), any()))
             .thenReturn(Mono.just(0L));
 
         // When & Then
-        StepVerifier.create(messageCoreService.searchMessages(null, null, null, null, null, 0, 10, null))
-                .assertNext(response -> {
-                    org.junit.jupiter.api.Assertions.assertTrue(response.getContent().isEmpty());
-                    org.junit.jupiter.api.Assertions.assertEquals(0, response.getTotalElements());
-                })
-                .verifyComplete();
+        StepVerifier.create( messageCoreService.searchMessages(
+                        null, null, null, null, null, null, 10, null))
+            .assertNext(response -> {
+                Assertions.assertTrue(response.getContent().isEmpty());
+                Assertions.assertEquals(0,response.getTotalElements() );
+            })
+            .verifyComplete();
     }
 
     /**
@@ -162,20 +227,26 @@ class MessageCoreServiceTest {
     @Test
     void searchMessages_CappedPagination_Ok() {
         int requestedSize = 500;
-        int maxSize = 100; // Assumed maxPageSize configuration
+        int maxSize = 100;
 
-        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), anyInt(), ArgumentMatchers.eq(maxSize), anySet()))
-            .thenReturn(Flux.empty());
-        when(messageRepository.countMessages(any(), any(), any(), any(), any()))
+        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), any(),ArgumentMatchers.eq(maxSize), anySet()))
+            .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false,null)));
+        when(messageRepository.countMessages(
+                any(), any(), any(), any(), any()))
             .thenReturn(Mono.just(0L));
 
-        StepVerifier.create(messageCoreService.searchMessages(null, null, null, null, null, 0, requestedSize, null))
-                .expectNextCount(1)
-                .verifyComplete();
+        StepVerifier.create(
+                messageCoreService.searchMessages(
+                        null, null, null, null, null, null,
+                        requestedSize,
+                        null))
+            .expectNextCount(1)
+            .verifyComplete();
 
         // Verifica che al repository sia arrivato 100 invece di 500
-        org.mockito.Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(), anyInt(), ArgumentMatchers.eq(maxSize), anySet());
+        Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(),any(),ArgumentMatchers.eq(maxSize),anySet());
     }
+
 
     @Test
     void getMessage_Ok() {

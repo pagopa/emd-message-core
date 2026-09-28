@@ -60,7 +60,7 @@ public interface MessageCoreController {
      * @param originId      optional exact origin identifier filter
      * @param startDate     optional start date for message sent range
      * @param endDate       optional end date for message sent range
-     * @param page         zero-based page index (default 0)
+     * @param cursor        cursor identifying the last element of the previous page
      * @param size         page size (default 10, capped by the configured maximum)
      * @param fields       optional override of the fields to return for each Message
      * @return a {@link Mono} containing a {@link ResponseEntity} with the paginated
@@ -73,7 +73,7 @@ public interface MessageCoreController {
             @RequestParam(name = "originId", required = false) String originId,
             @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "fields", required = false) List<String> fields);
 

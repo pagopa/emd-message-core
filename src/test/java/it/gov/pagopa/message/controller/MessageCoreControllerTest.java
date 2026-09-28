@@ -520,16 +520,17 @@ class MessageCoreControllerTest {
     void searchMessages_Ok() {
         MessageSearchResponseDTO expectedResponse = MessageSearchResponseDTO.builder()
                 .content(java.util.List.of())
-                .page(0)
                 .size(10)
                 .totalElements(0L)
                 .totalPages(0)
+                .hasNext(false)
+                .nextCursor(null)
                 .build();
 
         Mockito.when(messageCoreService.searchMessages(
                 Mockito.any(), Mockito.any(), Mockito.any(), 
                 Mockito.any(), Mockito.any(), 
-                Mockito.anyInt(), Mockito.anyInt(), Mockito.any()))
+                Mockito.any(), Mockito.anyInt(), Mockito.any()))
             .thenReturn(Mono.just(expectedResponse));
 
         webTestClient.get()
@@ -553,11 +554,12 @@ class MessageCoreControllerTest {
         String originId = "originId";
         String startDate = "2023-12-25T10:30:00";
         String endDate = "2023-12-26T10:30:00";
+        String cursor = "cursor";
 
         Mockito.when(messageCoreService.searchMessages(
                 Mockito.eq(messageId), Mockito.eq(recipientId), Mockito.eq(originId),
                 Mockito.any(LocalDateTime.class), Mockito.any(LocalDateTime.class),
-                Mockito.eq(0), Mockito.eq(10), Mockito.any()))
+                Mockito.eq(cursor), Mockito.eq(10), Mockito.any()))
             .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
 
         webTestClient.get()
@@ -568,6 +570,7 @@ class MessageCoreControllerTest {
                         .queryParam("originId", originId)
                         .queryParam("startDate", startDate)
                         .queryParam("endDate", endDate)
+                        .queryParam("cursor",cursor)
                         .queryParam("fields", "messageId,recipientId")
                         .build())
                 .exchange()
@@ -580,7 +583,7 @@ class MessageCoreControllerTest {
                 Mockito.eq(originId), 
                 Mockito.any(LocalDateTime.class), 
                 Mockito.any(LocalDateTime.class), 
-                Mockito.eq(0), 
+                Mockito.eq(cursor), 
                 Mockito.eq(10), 
                 Mockito.argThat(list -> list.contains("messageId") && list.contains("recipientId"))
         );
@@ -588,19 +591,25 @@ class MessageCoreControllerTest {
 
     @Test
     void searchMessages_Pagination_Ok() {
-        int page = 5;
         int size = 20;
+        String cursor = "test-cursor";
 
         Mockito.when(messageCoreService.searchMessages(
                 Mockito.any(), Mockito.any(), Mockito.any(), 
                 Mockito.any(), Mockito.any(), 
-                Mockito.eq(page), Mockito.eq(size), Mockito.any()))
-            .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
+                Mockito.eq(cursor), Mockito.eq(size), Mockito.any()))
+            .thenReturn(Mono.just(MessageSearchResponseDTO.builder()
+                    .size(size)
+                    .totalElements(100L)
+                    .totalPages(5)
+                    .hasNext(true)
+                    .nextCursor("next-cursor")
+                    .build()));
 
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/emd/message-core/search")
-                        .queryParam("page", page)
+                        .queryParam("cursor", cursor)
                         .queryParam("size", size)
                         .build())
                 .exchange()
