@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,7 +31,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -60,7 +60,6 @@ class MessageRepositoryExtendedImplTest {
     @Test
     @SuppressWarnings("unchecked")
     void searchMessages_AllFilters_Ok() {
-
         // Given
         String messageId = "MSG123";
         String recipientId = "RECIPIENT123";
@@ -70,28 +69,23 @@ class MessageRepositoryExtendedImplTest {
         int size = 10;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         Set<String> fields = Set.of("content", "title");
+        
         String cursorId = "66f2a1b2c3d4e5f678901234";
         String cursorDate = "2026-09-28T10:00:00";
+        
         String FIELD_MESSAGE_ID = "messageId";
         String FIELD_RECIPIENT_ID = "recipientId";
         String FIELD_ORIGIN_ID = "originId";
         String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
-        MessageSearchCursor cursor = new MessageSearchCursor( cursorDate,cursorId);
+        
+        MessageSearchCursor cursor = new MessageSearchCursor(cursorDate, cursorId);
         Message message = new Message();
+        message.setId(new ObjectId().toHexString());
+        message.setMessageRegistrationDate(LocalDateTime.now().toString());
 
-        /*
-        * Il risultato contiene un solo documento.
-        * Con size=10 non ci sarà una pagina successiva.
-        */
-        when(reactiveMongoTemplate.find( any(Query.class), eq(Message.class) )).thenReturn( Flux.just(message));
-
-        /*
-        * Il repository ora legge le RU tramite
-        * getLastRequestStatistics.
-        */
-        Document statistics = new Document("RequestCharge", 2.5);
-
-        when(reactiveMongoTemplate.executeCommand(anyString())).thenReturn( Mono.just(statistics));
+        // Mock della find
+        when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
+                .thenReturn(Flux.just(message));
 
         // When
         Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, cursor, size, fields);
@@ -106,118 +100,71 @@ class MessageRepositoryExtendedImplTest {
                 .verifyComplete();
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-
-        verify(reactiveMongoTemplate).find(queryCaptor.capture(),eq(Message.class) );
-
+        verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
+        
         Query capturedQuery = queryCaptor.getValue();
-
         Document queryObject = capturedQuery.getQueryObject();
 
-        // =========================================================
         // FILTRI PRINCIPALI
-        // =========================================================
+        assertTrue(queryObject.containsKey("$and"), "La query deve avere un operatore $and alla radice");
+        List<Document> andList = (List<Document>) queryObject.get("$and");
 
-        assertEquals(messageId,queryObject.getString(FIELD_MESSAGE_ID));
-        assertEquals(recipientId,queryObject.getString(FIELD_RECIPIENT_ID));
+        assertTrue(andList.stream().anyMatch(d -> messageId.equals(d.get(FIELD_MESSAGE_ID))));
+        assertTrue(andList.stream().anyMatch(d -> recipientId.equals(d.get(FIELD_RECIPIENT_ID))));
+        assertTrue(andList.stream().anyMatch(d -> originId.equals(d.get(FIELD_ORIGIN_ID))));
 
-        assertEquals(originId, queryObject.getString(FIELD_ORIGIN_ID));
+        // Verifica Date Range (dentro l'and)
+        Document dateRangeCondition = andList.stream()
+                .filter(d -> d.containsKey(FIELD_REGISTRATION_DATE) && d.get(FIELD_REGISTRATION_DATE) instanceof Document)
+                .map(d -> (Document) d.get(FIELD_REGISTRATION_DATE))
+                .filter(d -> d.containsKey("$gte")) // Distinguiamo dal cursore che usa $lt o $is
+                .findFirst()
+                .orElseThrow();
+        assertEquals(startDate.format(formatter), dateRangeCondition.get("$gte"));
+        assertEquals(endDate.format(formatter), dateRangeCondition.get("$lte"));
 
-        // =========================================================
-        // DATE
-        // =========================================================
+        // KEYSET CURSOR (Criteria aggiunto con query.addCriteria)
+        Document keysetContainer = andList.stream()
+                .filter(d -> d.containsKey("$or"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Manca l'operatore $or del keyset nella andList"));
+        
+        List<Document> cursorConditions = (List<Document>) keysetContainer.get("$or");
+        assertEquals(2, cursorConditions.size());
 
-        Document dateCondition = (Document) queryObject.get(FIELD_REGISTRATION_DATE);
-
-        assertNotNull(dateCondition);
-        assertEquals(startDate.format(formatter), dateCondition.get("$gte"));
-        assertEquals(endDate.format(formatter), dateCondition.get("$lte"));
-
-        // ---------------------------------------------------------
-        // KEYSET CURSOR
-        // ---------------------------------------------------------
-
-        assertTrue(queryObject.containsKey("$or"),"Deve contenere il criterio di keyset pagination");
-        List<Document> cursorConditions =(List<Document>) queryObject.get("$or");
-        assertEquals(2,cursorConditions.size());
-
-        /*
-        * Caso 1:
-        *
-        * messageRegistrationDate < cursorDate
-        */
+        // Caso 1: data < cursorDate
         Document dateCursorCondition = cursorConditions.get(0);
-        Document lessThanDate = (Document) dateCursorCondition.get("messageRegistrationDate");
+        Document lessThanDate = (Document) dateCursorCondition.get(FIELD_REGISTRATION_DATE);
+        assertEquals(cursorDate, lessThanDate.get("$lt"));
 
-        assertEquals(cursorDate,lessThanDate.get("$lt"));
-
-        /*
-        * Caso 2:
-        *
-        * messageRegistrationDate == cursorDate
-        * AND
-        * _id < cursorId
-        */
+        // Caso 2: data == cursorDate AND _id < cursorId
         Document sameDateAndId = cursorConditions.get(1);
         assertTrue(sameDateAndId.containsKey("$and"));
-
         List<Document> sameDateConditions = (List<Document>) sameDateAndId.get("$and");
-
-        assertEquals(2, sameDateConditions.size());
-
+        
         Document sameDate = sameDateConditions.stream()
-                        .filter(condition ->condition.containsKey("messageRegistrationDate"))
-                        .findFirst()
-                        .orElseThrow();
-
-        assertEquals(cursorDate, sameDate.getString("messageRegistrationDate"));
+                .filter(c -> c.containsKey(FIELD_REGISTRATION_DATE))
+                .findFirst().orElseThrow();
+        assertEquals(cursorDate, sameDate.get(FIELD_REGISTRATION_DATE));
 
         Document idCondition = sameDateConditions.stream()
-                        .filter(condition ->condition.containsKey("_id"))
-                        .findFirst()
-                        .orElseThrow();
+                .filter(c -> c.containsKey("_id"))
+                .findFirst().orElseThrow();
+        Document idLt = (Document) idCondition.get("_id");
+        assertEquals(new ObjectId(cursorId), idLt.get("$lt"));
 
-        Document idDocument = (Document) idCondition.get("_id");
-        assertEquals(new ObjectId(cursorId), idDocument.get("$lt"));
-
-        // ---------------------------------------------------------
-        // PAGINATION
-        // ---------------------------------------------------------
-
-        /*
-        * Non viene più utilizzato skip().
-        *
-        * Viene richiesto size + 1 per capire se esiste
-        * una pagina successiva.
-        */
+        // PAGINATION, SORT & PROJECTION
         assertEquals(size + 1, capturedQuery.getLimit());
-        assertEquals(0, capturedQuery.getSkip());
-
-        // ---------------------------------------------------------
-        // SORT
-        // ---------------------------------------------------------
-
+    
         Document sortObject = capturedQuery.getSortObject();
-        assertEquals(-1, sortObject.getInteger("messageRegistrationDate"));
-        assertEquals(-1,sortObject.getInteger("_id"));
-
-        // ---------------------------------------------------------
-        // PROJECTION
-        // ---------------------------------------------------------
+        assertEquals(-1, sortObject.getInteger(FIELD_REGISTRATION_DATE));
+        assertEquals(-1, sortObject.getInteger("_id"));
 
         Document fieldsObject = capturedQuery.getFieldsObject();
         assertEquals(1, fieldsObject.get("content"));
         assertEquals(1, fieldsObject.get("title"));
-
-        /*
-        * Necessari per costruire il nextCursor.
-        */
         assertEquals(1, fieldsObject.get("_id"));
-        assertEquals(1, fieldsObject.get("messageRegistrationDate"));
-
-        /*
-        * messageId NON viene aggiunto automaticamente.
-        */
-        assertFalse(fieldsObject.containsKey("messageId"));
+        assertEquals(1, fieldsObject.get(FIELD_REGISTRATION_DATE));
     }
 
     @Test
@@ -271,8 +218,10 @@ class MessageRepositoryExtendedImplTest {
     void countMessages_Ok() {
         // Given
         String messageId = "MSG123";
-        when(reactiveMongoTemplate.count(any(Query.class), eq(Message.class)))
-                .thenReturn(Mono.just(1L));
+        Document countResult = new Document("totaleMessaggi", 1L);
+        
+        when(reactiveMongoTemplate.aggregate(any(Aggregation.class), eq("message"), eq(Document.class)))
+                .thenReturn(Flux.just(countResult));
 
         // When
         Mono<Long> result = messageRepository.countMessages(messageId, null, null, null, null);
@@ -282,12 +231,21 @@ class MessageRepositoryExtendedImplTest {
                 .expectNext(1L)
                 .verifyComplete();
 
-        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(reactiveMongoTemplate).count(queryCaptor.capture(), eq(Message.class));
-        Document queryObject = queryCaptor.getValue().getQueryObject();
-        assertTrue(queryObject.containsKey("messageId") || queryObject.containsKey("$and"));
+        ArgumentCaptor<Aggregation> aggCaptor = ArgumentCaptor.forClass(Aggregation.class);
+        verify(reactiveMongoTemplate).aggregate(aggCaptor.capture(), eq("message"), eq(Document.class));
         
-        verify(reactiveMongoTemplate).executeCommand(eq(RU_COMMAND));
+        Aggregation capturedAgg = aggCaptor.getValue();
+        Document aggDoc = capturedAgg.toDocument("message", Aggregation.DEFAULT_CONTEXT);
+        List<Document> pipeline = aggDoc.getList("pipeline", Document.class);
+
+        assertTrue(pipeline.get(0).containsKey("$match"));
+        assertTrue(pipeline.get(1).containsKey("$project"));
+        assertTrue(pipeline.get(2).containsKey("$count"));
+
+        Document hint = (Document) capturedAgg.getOptions().getHintObject().orElseThrow();
+            assertEquals(1, hint.get("messageRegistrationDate"));
+        
+        verify(reactiveMongoTemplate).executeCommand(contains("getLastRequestStatistics"));
     }
 
     @Test

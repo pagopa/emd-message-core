@@ -2,12 +2,16 @@ package it.gov.pagopa.message.repository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -49,18 +53,7 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
     @Override
     public Mono<MessageKeysetPage<Message>> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, MessageSearchCursor cursor, int size, Set<String> fields) {
         
-        Query query = buildCriteriaQuery(messageId, recipientId, originId, startDate, endDate);
-
-        /*
-        * Keyset pagination:
-        * ORDER BY messageRegistrationDate DESC, _id DESC
-        */
-        query.with(Sort.by(Sort.Order.desc(FIELD_REGISTRATION_DATE),
-                            Sort.Order.desc(FIELD_ID)));
-
-        
-        //Recuperiamo size + 1 documenti per capire se esiste una pagina successiva.
-        query.limit(size + 1);
+        List<Criteria> allCriteria = buildCriteriaList(messageId, recipientId, originId, startDate, endDate);
 
         /*
          * Applichiamo il cursor solo dalla seconda richiesta in poi.
@@ -79,36 +72,43 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
                             Criteria.where(FIELD_REGISTRATION_DATE).is(cursor.messageRegistrationDate()),
                             Criteria.where(FIELD_ID).lt(cursorObjectId)));
 
-            query.addCriteria(keysetCriteria);
+                allCriteria.add(keysetCriteria);
         }
 
+        Query query = allCriteria.isEmpty() ? new Query() : new Query(new Criteria().andOperator(allCriteria.toArray(new Criteria[0])));
+
+        /*
+        * Keyset pagination:
+        * ORDER BY messageRegistrationDate DESC, _id DESC
+        */
+        query.with(Sort.by(Sort.Order.desc(FIELD_REGISTRATION_DATE), Sort.Order.desc(FIELD_ID)));
+        
+        // Recupera size + 1 documenti per capire se esiste una pagina successiva.
+        query.limit(size + 1);
+
+        
         if (!CollectionUtils.isEmpty(fields)) {
             fields.forEach(field -> query.fields().include(field));
-            query.fields().include(FIELD_ID);
-            query.fields().include(FIELD_REGISTRATION_DATE);
+            query.fields().include(FIELD_ID)
+                            .include(FIELD_REGISTRATION_DATE);
         }
 
         return reactiveMongoTemplate
         .find(query, Message.class)
         .collectList()
-        .flatMap(messages ->
-                getRequestCharge()
-                        .defaultIfEmpty(0.0)
-                        .doOnNext(ru -> log.info( "[MESSAGE-REPOSITORY][SEARCH] Search query completed - returned: {}, RU consumed: {}", Math.min(messages.size(), size), ru))
-                        .map(ru -> {
-                            boolean hasNext = messages.size() > size;
-                            List<Message> content = hasNext ? messages.subList(0, size) : messages;
-                            String nextCursor = null;
-
-                            if (hasNext && !content.isEmpty()) {
-                                Message lastMessage = content.get(content.size() - 1);
-                                MessageSearchCursor nextPosition =new MessageSearchCursor(lastMessage.getMessageRegistrationDate(), lastMessage.getId());
-                                nextCursor = cursorCodec.encode(nextPosition);
-                            }
-
-                            return new MessageKeysetPage<>(content, hasNext, nextCursor);
-                        })
-        );
+        .flatMap(messages -> getRequestCharge()
+                            .defaultIfEmpty(0.0)
+                            .doOnNext(ru -> log.info( "[MESSAGE-REPOSITORY][SEARCH] Search query completed - returned: {}, RU consumed: {}", Math.min(messages.size(), size), ru))
+                            .map(ru -> {
+                        boolean hasNext = messages.size() > size;
+                        List<Message> content = hasNext ? messages.subList(0, size) : messages;
+                        String nextCursor = null;
+                        if (hasNext && !content.isEmpty()) {
+                            Message lastMessage = content.get(content.size() - 1);
+                            nextCursor = cursorCodec.encode(new MessageSearchCursor(lastMessage.getMessageRegistrationDate(), lastMessage.getId()));
+                        }
+                        return new MessageKeysetPage<>(content, hasNext, nextCursor);
+                    }));
     }
 
     /**
@@ -116,35 +116,52 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
      */
     @Override
     public Mono<Long> countMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate) {
-        return reactiveMongoTemplate.count(buildCriteriaQuery(messageId, recipientId, originId, startDate, endDate), Message.class)
-                                    .flatMap(count ->
-                                            getRequestCharge().map(ru -> {
-                                                log.info("Count operation - RU consumate: " + ru);
-                                                return count;
-                                            })
-                                        );
+        
+        List<Criteria> criteriaList = buildCriteriaList(messageId, recipientId, originId, startDate, endDate);
+        Criteria finalCriteria = criteriaList.isEmpty() ? new Criteria() : new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(finalCriteria),
+                Aggregation.project(FIELD_REGISTRATION_DATE).andExclude(FIELD_ID),
+                Aggregation.count().as("totaleMessaggi")
+        ).withOptions(AggregationOptions.builder().hint(new Document(FIELD_REGISTRATION_DATE, 1)).build());
+
+        return reactiveMongoTemplate.aggregate(aggregation, "message", Document.class)
+            .next()
+            .map(doc -> {
+                Object total = doc.get("totaleMessaggi");
+                return total instanceof Number ? ((Number) total).longValue() : 0L;
+            })
+            .defaultIfEmpty(0L)
+            .flatMap(count -> getRequestCharge()
+                    .defaultIfEmpty(0.0)
+                    .map(ru -> {
+                        log.info("[MESSAGE-REPOSITORY][COUNT] Count: {}, RU consumed: {}", count, ru);
+                        return count;
+                    })
+            );
     }
 
     /**
      * Costruisce i criteri di ricerca in AND tra loro.
      */
-    private Query buildCriteriaQuery(String messageId, String recipientId, String originId,
+    private List<Criteria> buildCriteriaList(String messageId, String recipientId, String originId,
                                     LocalDateTime startDate, LocalDateTime endDate) {
-        Query query = new Query();
+        List<Criteria> criteriaList = new ArrayList<>();
 
         // Filtro per Message ID
         if (StringUtils.hasText(messageId)) {
-            query.addCriteria(Criteria.where(FIELD_MESSAGE_ID).is(messageId));
+            criteriaList.add(Criteria.where(FIELD_MESSAGE_ID).is(messageId));
         }
 
         // Filtro per Codice Fiscale
         if (StringUtils.hasText(recipientId)) {
-            query.addCriteria(Criteria.where(FIELD_RECIPIENT_ID).is(recipientId));
+            criteriaList.add(Criteria.where(FIELD_RECIPIENT_ID).is(recipientId));
         }
 
         // Filtro per Origin ID
         if (StringUtils.hasText(originId)) {
-            query.addCriteria(Criteria.where(FIELD_ORIGIN_ID).is(originId));
+            criteriaList.add(Criteria.where(FIELD_ORIGIN_ID).is(originId));
         }
 
         // Filtro per Intervallo Temporale
@@ -156,10 +173,10 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
             if (endDate != null) {
                 dateCriteria.lte(endDate.format(DATE_FORMATTER));
             }
-            query.addCriteria(dateCriteria);
+            criteriaList.add(dateCriteria);
         }
 
-        return query;
+        return criteriaList;
     }
 
     /**
