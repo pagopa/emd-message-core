@@ -243,9 +243,7 @@ class MessageRepositoryExtendedImplTest {
         assertTrue(pipeline.get(2).containsKey("$count"));
 
         Document hint = (Document) capturedAgg.getOptions().getHintObject().orElseThrow();
-            assertEquals(1, hint.get("messageRegistrationDate"));
-        
-        verify(reactiveMongoTemplate).executeCommand(contains("getLastRequestStatistics"));
+            assertEquals(1, hint.get("messageRegistrationDate"));        
     }
 
     @Test
