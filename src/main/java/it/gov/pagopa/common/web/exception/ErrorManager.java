@@ -140,4 +140,20 @@ public class ErrorManager {
               .contentType(MediaType.APPLICATION_JSON)
               .body(defaultErrorDTO);
   }
+
+  /**
+   * Handles InvalidCursorException returning a 400 Bad Request with a specific error code.
+   *
+   * @param error the InvalidCursorException thrown
+   * @param request the current HTTP request
+   * @return a ResponseEntity containing status 400 and the INVALID_CURSOR ErrorDTO
+   */
+  @ExceptionHandler(InvalidCursorException.class)
+  protected ResponseEntity<ErrorDTO> handleInvalidCursorException(InvalidCursorException error, ServerHttpRequest request) {
+    logClientException(error, request);
+    
+    return ResponseEntity.status(error.getHttpStatus())
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(new ErrorDTO("INVALID_CURSOR", error.getMessage()));
+  }
 }
