@@ -2,9 +2,14 @@ package it.gov.pagopa.message.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.gov.pagopa.common.web.exception.InvalidCursorException;
 import lombok.RequiredArgsConstructor;
+
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -30,15 +35,27 @@ public class MessageCursorCodec {
     }
 
     public MessageSearchCursor decode(String cursor) {
+        MessageSearchCursor decodedCursor;
+        
         try {
             byte[] decoded = Base64.getUrlDecoder().decode(cursor);
-
-            return objectMapper.readValue(decoded,MessageSearchCursor.class);
-
-        } catch (Exception e) {
-            throw new IllegalArgumentException(
-                    "Invalid message cursor", e
-            );
+            decodedCursor = objectMapper.readValue(decoded, MessageSearchCursor.class);
+        } catch (IllegalArgumentException | IOException e) {
+            throw new InvalidCursorException("The provided cursor is malformed", e);
         }
+
+        if (decodedCursor == null) {
+            throw new InvalidCursorException("The provided cursor is empty");
+        }
+        
+        if (decodedCursor.id() == null || !ObjectId.isValid(decodedCursor.id())) {
+            throw new InvalidCursorException("The cursor contains a missing or invalid 'id'");
+        }
+        
+        if (decodedCursor.messageRegistrationDate() == null) {
+            throw new InvalidCursorException("The cursor is missing the registration date");
+        }
+
+        return decodedCursor;
     }
 }

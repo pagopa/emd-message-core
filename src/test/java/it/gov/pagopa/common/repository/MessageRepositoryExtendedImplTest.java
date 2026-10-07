@@ -27,11 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -243,7 +239,7 @@ class MessageRepositoryExtendedImplTest {
         assertTrue(pipeline.get(2).containsKey("$count"));
 
         Document hint = (Document) capturedAgg.getOptions().getHintObject().orElseThrow();
-            assertEquals(1, hint.get("messageRegistrationDate"));        
+            assertEquals(1, hint.get("messageRegistrationDate"));
     }
 
     @Test
@@ -302,5 +298,55 @@ class MessageRepositoryExtendedImplTest {
 
         assertEquals(-1,sortObject.getInteger("messageRegistrationDate"));
         assertEquals( -1,sortObject.getInteger("_id"));
+    }
+
+    @Test
+    void searchMessages_HasNextTrue_GeneratesCursorAndTrimsContent() {
+        // Given
+        int size = 2;
+        
+        Message msg1 = new Message();
+        msg1.setId(new ObjectId().toHexString());
+        msg1.setMessageRegistrationDate("2026-10-01T12:00:00");
+        
+        Message msg2 = new Message();
+        msg2.setId(new ObjectId().toHexString());
+        msg2.setMessageRegistrationDate("2026-10-01T11:00:00");
+        
+        Message msg3 = new Message();
+        msg3.setId(new ObjectId().toHexString());
+        msg3.setMessageRegistrationDate("2026-10-01T10:00:00");
+        
+        when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
+                .thenReturn(Flux.just(msg1, msg2, msg3));
+                
+        String expectedEncodedCursor = "encoded_cursor_abc123";
+        when(cursorCodec.encode(any(MessageSearchCursor.class)))
+                .thenReturn(expectedEncodedCursor);
+
+        // When
+        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(
+                null, null, null, null, null, null, size, null
+        );
+
+        // Then
+        StepVerifier.create(result)
+                .assertNext(page -> {
+                    assertEquals(size, page.content().size());
+                    assertEquals(msg1.getId(), page.content().get(0).getId());
+                    assertEquals(msg2.getId(), page.content().get(1).getId());
+                    
+                    assertTrue(page.hasNext());
+                    
+                    assertEquals(expectedEncodedCursor, page.nextCursor());
+                })
+                .verifyComplete();
+
+        ArgumentCaptor<MessageSearchCursor> cursorCaptor = ArgumentCaptor.forClass(MessageSearchCursor.class);
+        verify(cursorCodec, times(1)).encode(cursorCaptor.capture());
+        
+        MessageSearchCursor capturedCursor = cursorCaptor.getValue();
+        assertEquals(msg2.getId(), capturedCursor.id());
+        assertEquals(msg2.getMessageRegistrationDate(), capturedCursor.messageRegistrationDate());
     }
 }

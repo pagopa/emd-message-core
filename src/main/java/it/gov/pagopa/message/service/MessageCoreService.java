@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import it.gov.pagopa.message.dto.MessageDTO;
-import it.gov.pagopa.message.dto.MessageSearchCursor;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import reactor.core.publisher.Mono;
