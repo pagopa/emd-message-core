@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/pagopa/emd-message-core/compare/v1.6.1...v1.6.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* [MMC-1073] Reduce RU consumption ([#136](https://github.com/pagopa/emd-message-core/issues/136)) ([a2c7d1d](https://github.com/pagopa/emd-message-core/commit/a2c7d1df6d4967165cc4c25e8bb0f05e57d0eaf4))
+
 ## [1.6.1](https://github.com/pagopa/emd-message-core/compare/v1.6.0...v1.6.1) (2026-09-16)
 
 
