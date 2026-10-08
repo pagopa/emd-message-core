@@ -39,8 +39,8 @@ public class MessageCoreControllerImpl implements MessageCoreController {
      * {@inheritDoc}
      */
     public Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(String messageId, String recipientId, String originId,
-            LocalDateTime startDate, LocalDateTime endDate, int page, int size, List<String> fields) {
-        return messageCoreService.searchMessages(messageId, recipientId, originId, startDate, endDate, page, size, fields)
+            LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
+        return messageCoreService.searchMessages(messageId, recipientId, originId, startDate, endDate, cursor, size, fields)
                 .map(ResponseEntity::ok);
     }
 

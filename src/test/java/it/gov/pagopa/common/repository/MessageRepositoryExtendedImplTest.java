@@ -1,16 +1,22 @@
 package it.gov.pagopa.common.repository;
 
+import it.gov.pagopa.message.dto.MessageCursorCodec;
+import it.gov.pagopa.message.dto.MessageKeysetPage;
+import it.gov.pagopa.message.dto.MessageSearchCursor;
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.repository.MessageRepositoryExtendedImpl;
-
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,25 +28,33 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MessageRepositoryExtendedImplTest {
 
     @Mock
     private ReactiveMongoTemplate reactiveMongoTemplate;
 
+    @Mock
+    private MessageCursorCodec cursorCodec;
+
     private MessageRepositoryExtendedImpl messageRepository;
+
+    private static final String RU_COMMAND = "{getLastRequestStatistics: 1}";
 
     @BeforeEach
     void setUp() {
-        messageRepository = new MessageRepositoryExtendedImpl(reactiveMongoTemplate);
+        messageRepository = new MessageRepositoryExtendedImpl(reactiveMongoTemplate, cursorCodec);
+
+        lenient().when(reactiveMongoTemplate.executeCommand(eq(RU_COMMAND)))
+                .thenReturn(Mono.just(new Document("RequestCharge", 10.0)));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void searchMessages_AllFilters_Ok() {
         // Given
         String messageId = "MSG123";
@@ -48,124 +62,162 @@ class MessageRepositoryExtendedImplTest {
         String originId = "ORIGIN123";
         LocalDateTime startDate = LocalDateTime.now().minusDays(1);
         LocalDateTime endDate = LocalDateTime.now();
-
-        int page = 0;
         int size = 10;
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
         Set<String> fields = Set.of("content", "title");
+        
+        String cursorId = "66f2a1b2c3d4e5f678901234";
+        String cursorDate = "2026-09-28T10:00:00";
+        
+        String FIELD_MESSAGE_ID = "messageId";
+        String FIELD_RECIPIENT_ID = "recipientId";
+        String FIELD_ORIGIN_ID = "originId";
+        String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
+        
+        MessageSearchCursor cursor = new MessageSearchCursor(cursorDate, cursorId);
+        Message message = new Message();
+        message.setId(new ObjectId().toHexString());
+        message.setMessageRegistrationDate(LocalDateTime.now().toString());
 
+        // Mock della find
         when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
-                .thenReturn(Flux.just(new Message()));
+                .thenReturn(Flux.just(message));
 
         // When
-        Flux<Message> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate,
-                page,size,fields);
+        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, cursor, size, fields);
 
         // Then
         StepVerifier.create(result)
-                .expectNextCount(1)
+                .assertNext(page -> {
+                    assertEquals(1, page.content().size());
+                    assertFalse(page.hasNext());
+                    assertNull(page.nextCursor());
+                })
                 .verifyComplete();
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-
         verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
-
+        
         Query capturedQuery = queryCaptor.getValue();
         Document queryObject = capturedQuery.getQueryObject();
 
-        // Verifica struttura query
-        assertTrue( queryObject.containsKey("$and"), "Deve contenere un operatore $and");
+        // FILTRI PRINCIPALI
+        assertTrue(queryObject.containsKey("$and"), "La query deve avere un operatore $and alla radice");
+        List<Document> andList = (List<Document>) queryObject.get("$and");
 
-        List<Document> andConditions = (List<Document>) queryObject.get("$and");
+        assertTrue(andList.stream().anyMatch(d -> messageId.equals(d.get(FIELD_MESSAGE_ID))));
+        assertTrue(andList.stream().anyMatch(d -> recipientId.equals(d.get(FIELD_RECIPIENT_ID))));
+        assertTrue(andList.stream().anyMatch(d -> originId.equals(d.get(FIELD_ORIGIN_ID))));
 
-        assertNotNull(andConditions);
-        assertEquals(4, andConditions.size());
-
-        // Verifica messageId
-        assertTrue(andConditions.stream()
-                .anyMatch(condition ->
-                        messageId.equals(
-                                condition.getString("messageId"))
-                )
-        );
-
-        // Verifica recipientId
-        assertTrue(andConditions.stream()
-                .anyMatch(condition ->
-                        recipientId.equals(
-                                condition.getString("recipientId"))
-                )
-        );
-
-        // Verifica originId
-        assertTrue(andConditions.stream()
-                .anyMatch(condition ->
-                        originId.equals(
-                                condition.getString("originId"))
-                )
-        );
-
-        // Verifica date
-        Document dateCondition = andConditions.stream()
-                .filter(condition ->
-                        condition.containsKey("messageRegistrationDate")
-                )
+        // Verifica Date Range (dentro l'and)
+        Document dateRangeCondition = andList.stream()
+                .filter(d -> d.containsKey(FIELD_REGISTRATION_DATE) && d.get(FIELD_REGISTRATION_DATE) instanceof Document)
+                .map(d -> (Document) d.get(FIELD_REGISTRATION_DATE))
+                .filter(d -> d.containsKey("$gte")) // Distinguiamo dal cursore che usa $lt o $is
                 .findFirst()
                 .orElseThrow();
+        assertEquals(startDate.format(formatter), dateRangeCondition.get("$gte"));
+        assertEquals(endDate.format(formatter), dateRangeCondition.get("$lte"));
 
-        Document dateDocument = (Document) dateCondition.get("messageRegistrationDate");
+        // KEYSET CURSOR (Criteria aggiunto con query.addCriteria)
+        Document keysetContainer = andList.stream()
+                .filter(d -> d.containsKey("$or"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Manca l'operatore $or del keyset nella andList"));
+        
+        List<Document> cursorConditions = (List<Document>) keysetContainer.get("$or");
+        assertEquals(2, cursorConditions.size());
 
-        assertEquals(
-                startDate.format(formatter),
-                dateDocument.get("$gte")
-        );
-        assertEquals(
-                endDate.format(formatter),
-                dateDocument.get("$lte")
-        );
+        // Caso 1: data < cursorDate
+        Document dateCursorCondition = cursorConditions.get(0);
+        Document lessThanDate = (Document) dateCursorCondition.get(FIELD_REGISTRATION_DATE);
+        assertEquals(cursorDate, lessThanDate.get("$lt"));
 
-        // Verifica paginazione
-        assertEquals(size, capturedQuery.getLimit());
-        assertEquals(0, capturedQuery.getSkip());
+        // Caso 2: data == cursorDate AND _id < cursorId
+        Document sameDateAndId = cursorConditions.get(1);
+        assertTrue(sameDateAndId.containsKey("$and"));
+        List<Document> sameDateConditions = (List<Document>) sameDateAndId.get("$and");
+        
+        Document sameDate = sameDateConditions.stream()
+                .filter(c -> c.containsKey(FIELD_REGISTRATION_DATE))
+                .findFirst().orElseThrow();
+        assertEquals(cursorDate, sameDate.get(FIELD_REGISTRATION_DATE));
 
-        // Verifica projection
+        Document idCondition = sameDateConditions.stream()
+                .filter(c -> c.containsKey("_id"))
+                .findFirst().orElseThrow();
+        Document idLt = (Document) idCondition.get("_id");
+        assertEquals(new ObjectId(cursorId), idLt.get("$lt"));
+
+        // PAGINATION, SORT & PROJECTION
+        assertEquals(size + 1, capturedQuery.getLimit());
+    
+        Document sortObject = capturedQuery.getSortObject();
+        assertEquals(-1, sortObject.getInteger(FIELD_REGISTRATION_DATE));
+        assertEquals(-1, sortObject.getInteger("_id"));
+
         Document fieldsObject = capturedQuery.getFieldsObject();
-
         assertEquals(1, fieldsObject.get("content"));
         assertEquals(1, fieldsObject.get("title"));
-        assertEquals(1, fieldsObject.get("messageId"));
+        assertEquals(1, fieldsObject.get("_id"));
+        assertEquals(1, fieldsObject.get(FIELD_REGISTRATION_DATE));
     }
 
     @Test
     void searchMessages_OnlyDates_Ok() {
+
         // Given
-        LocalDateTime startDate = LocalDateTime.of(2023, 1, 1, 10, 0);
-        
-        when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
-                .thenReturn(Flux.empty());
+        LocalDateTime startDate = LocalDateTime.of(2026, 1, 1, 10, 0);
+
+        int size = 10;
+
+        when(reactiveMongoTemplate.find(any(Query.class),eq(Message.class))).thenReturn(Flux.empty());
+
+        when(reactiveMongoTemplate.executeCommand(anyString()))
+                .thenReturn(Mono.just(new Document("RequestCharge", 2.5)));
 
         // When
-        messageRepository.searchMessages(null, null, null, startDate, null, 0, 10, null).subscribe();
+        StepVerifier.create(messageRepository.searchMessages(
+                        null,
+                        null,
+                        null,
+                        startDate,
+                        null,
+                        null,
+                        size,
+                        null
+                )
+        )
+        .assertNext(result -> {
+            assertTrue(result.content().isEmpty());
+            assertFalse(result.hasNext());
+            assertNull(result.nextCursor());
+        })
+        .verifyComplete();
 
         // Then
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
+        verify(reactiveMongoTemplate).find(queryCaptor.capture(),eq(Message.class));
 
-        Document queryObject = queryCaptor.getValue().getQueryObject();
-        // Verifichiamo che ci sia il filtro gte sulla data
+        Query capturedQuery = queryCaptor.getValue();
+        Document queryObject = capturedQuery.getQueryObject();
         String queryStr = queryObject.toJson();
-        assertTrue(queryStr.contains("$gte"));
-        assertTrue(queryStr.contains("2023-01-01T10:00"));
+
+        assertTrue(queryStr.contains("$gte"),"La query deve contenere il filtro $gte");
+        assertTrue(queryStr.contains("2026-01-01T10:00:00"),"La query deve contenere la data di inizio");
+
+        // Keyset pagination: size + 1
+        assertEquals(size + 1,capturedQuery.getLimit());
     }
 
     @Test
     void countMessages_Ok() {
         // Given
         String messageId = "MSG123";
-        when(reactiveMongoTemplate.count(any(Query.class), eq(Message.class)))
-                .thenReturn(Mono.just(1L));
+        Document countResult = new Document("totaleMessaggi", 1L);
+        
+        when(reactiveMongoTemplate.aggregate(any(Aggregation.class), eq("message"), eq(Document.class)))
+                .thenReturn(Flux.just(countResult));
 
         // When
         Mono<Long> result = messageRepository.countMessages(messageId, null, null, null, null);
@@ -175,28 +227,126 @@ class MessageRepositoryExtendedImplTest {
                 .expectNext(1L)
                 .verifyComplete();
 
-        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(reactiveMongoTemplate).count(queryCaptor.capture(), eq(Message.class));
+        ArgumentCaptor<Aggregation> aggCaptor = ArgumentCaptor.forClass(Aggregation.class);
+        verify(reactiveMongoTemplate).aggregate(aggCaptor.capture(), eq("message"), eq(Document.class));
+        
+        Aggregation capturedAgg = aggCaptor.getValue();
+        Document aggDoc = capturedAgg.toDocument("message", Aggregation.DEFAULT_CONTEXT);
+        List<Document> pipeline = aggDoc.getList("pipeline", Document.class);
 
-        Document queryObject = queryCaptor.getValue().getQueryObject();
-        assertTrue(queryObject.containsKey("messageId") || queryObject.containsKey("$and"));
+        assertTrue(pipeline.get(0).containsKey("$match"));
+        assertTrue(pipeline.get(1).containsKey("$project"));
+        assertTrue(pipeline.get(2).containsKey("$count"));
+
+        Document hint = (Document) capturedAgg.getOptions().getHintObject().orElseThrow();
+            assertEquals(1, hint.get("messageRegistrationDate"));
     }
 
     @Test
     void searchMessages_NoFilters_EmptyQuery() {
+
         // Given
-        when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
+        int size = 20;
+
+        when(reactiveMongoTemplate.find(any(Query.class),eq(Message.class)))
                 .thenReturn(Flux.empty());
 
+        when(reactiveMongoTemplate.executeCommand(anyString()))
+                .thenReturn(Mono.just(new Document("RequestCharge", 1.5)));
+
         // When
-        messageRepository.searchMessages(null, null, null, null, null, 0, 20, null).subscribe();
+        StepVerifier.create(
+                messageRepository.searchMessages(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        size,
+                        null
+                )
+        )
+        .assertNext(result -> {
+            assertTrue(result.content().isEmpty());
+            assertFalse(result.hasNext());
+            assertNull(result.nextCursor());
+        })
+        .verifyComplete();
 
         // Then
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(reactiveMongoTemplate).find(queryCaptor.capture(), eq(Message.class));
+
+        verify(reactiveMongoTemplate)
+                .find(queryCaptor.capture(), eq(Message.class));
 
         Query capturedQuery = queryCaptor.getValue();
-        assertTrue(capturedQuery.getQueryObject().isEmpty(), "La query non dovrebbe avere filtri");
-        assertEquals(20, capturedQuery.getLimit());
+
+        assertTrue(capturedQuery.getQueryObject().isEmpty(),"La query non dovrebbe avere filtri");
+
+        /*
+        * Keyset pagination:
+        * il repository chiede un elemento in più
+        * per capire se esiste una pagina successiva.
+        */
+        assertEquals(size + 1, capturedQuery.getLimit());
+
+        /*
+        * Anche senza filtri la query deve avere il sort.
+        */
+        Document sortObject = capturedQuery.getSortObject();
+
+        assertEquals(-1,sortObject.getInteger("messageRegistrationDate"));
+        assertEquals( -1,sortObject.getInteger("_id"));
+    }
+
+    @Test
+    void searchMessages_HasNextTrue_GeneratesCursorAndTrimsContent() {
+        // Given
+        int size = 2;
+        
+        Message msg1 = new Message();
+        msg1.setId(new ObjectId().toHexString());
+        msg1.setMessageRegistrationDate("2026-10-01T12:00:00");
+        
+        Message msg2 = new Message();
+        msg2.setId(new ObjectId().toHexString());
+        msg2.setMessageRegistrationDate("2026-10-01T11:00:00");
+        
+        Message msg3 = new Message();
+        msg3.setId(new ObjectId().toHexString());
+        msg3.setMessageRegistrationDate("2026-10-01T10:00:00");
+        
+        when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
+                .thenReturn(Flux.just(msg1, msg2, msg3));
+                
+        String expectedEncodedCursor = "encoded_cursor_abc123";
+        when(cursorCodec.encode(any(MessageSearchCursor.class)))
+                .thenReturn(expectedEncodedCursor);
+
+        // When
+        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(
+                null, null, null, null, null, null, size, null
+        );
+
+        // Then
+        StepVerifier.create(result)
+                .assertNext(page -> {
+                    assertEquals(size, page.content().size());
+                    assertEquals(msg1.getId(), page.content().get(0).getId());
+                    assertEquals(msg2.getId(), page.content().get(1).getId());
+                    
+                    assertTrue(page.hasNext());
+                    
+                    assertEquals(expectedEncodedCursor, page.nextCursor());
+                })
+                .verifyComplete();
+
+        ArgumentCaptor<MessageSearchCursor> cursorCaptor = ArgumentCaptor.forClass(MessageSearchCursor.class);
+        verify(cursorCodec, times(1)).encode(cursorCaptor.capture());
+        
+        MessageSearchCursor capturedCursor = cursorCaptor.getValue();
+        assertEquals(msg2.getId(), capturedCursor.id());
+        assertEquals(msg2.getMessageRegistrationDate(), capturedCursor.messageRegistrationDate());
     }
 }
