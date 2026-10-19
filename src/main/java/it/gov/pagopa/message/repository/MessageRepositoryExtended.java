@@ -1,11 +1,10 @@
 package it.gov.pagopa.message.repository;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
-import it.gov.pagopa.message.enums.MessageState;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.model.Message;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -31,7 +30,8 @@ public interface MessageRepositoryExtended {
      * @param fields        the set of specific document fields to include in the result (projection)
      * @return a {@link Flux} emitting the messages matching the criteria
      */
-    public Mono<MessageKeysetPage<Message>> searchMessages(String messageId, String recipientId, String originId, MessageState state, LocalDateTime startDate, LocalDateTime endDate,  MessageSearchCursor cursor, int size, Set<String> fields);
+    public Mono<MessageKeysetPage<Message>> searchMessages(MessageSearchParameter params, MessageSearchCursor cursor, int size, Set<String> fields);
+
 
     /**
      * Calculates the total number of messages matching the provided filtering criteria.
@@ -45,5 +45,6 @@ public interface MessageRepositoryExtended {
      * @param endDate       optional upper bound (inclusive) for the date range
      * @return a {@link Mono} emitting the total count of matching messages
      */
-    Mono<Long> countMessages(String messageId, String recipientId, String originId, MessageState state, LocalDateTime startDate, LocalDateTime endDate);
+    Mono<Long> countMessages(MessageSearchParameter params);
+
 }

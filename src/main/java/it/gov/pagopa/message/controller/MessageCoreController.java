@@ -2,6 +2,7 @@ package it.gov.pagopa.message.controller;
 
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
@@ -16,6 +17,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,15 +71,8 @@ public interface MessageCoreController {
      */
     @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(
-            @RequestParam(name = "messageId", required = false) String messageId,
-            @RequestParam(name = "recipientId", required = false) String recipientId,
-            @RequestParam(name = "originId", required = false) String originId,
-            @RequestParam(name = "status", required = false) MessageState state,
-            @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            @RequestParam(name = "cursor", required = false) String cursor,
-            @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "fields", required = false) List<String> fields);
+        @ModelAttribute MessageSearchParameter request
+    );
 
     /**
      * <p>Retrieves the details of a specific message using its unique identifier.</p>

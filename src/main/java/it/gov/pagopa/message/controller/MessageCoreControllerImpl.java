@@ -1,14 +1,11 @@
 package it.gov.pagopa.message.controller;
 
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
-import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,9 +36,9 @@ public class MessageCoreControllerImpl implements MessageCoreController {
     /**
      * {@inheritDoc}
      */
-    public Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(String messageId, String recipientId, String originId, MessageState state,
-            LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
-        return messageCoreService.searchMessages(messageId, recipientId, originId, state, startDate, endDate, cursor, size, fields)
+    @Override
+    public Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(MessageSearchParameter request) {
+        return messageCoreService.searchMessages(request)
                 .map(ResponseEntity::ok);
     }
 
@@ -60,4 +57,5 @@ public class MessageCoreControllerImpl implements MessageCoreController {
         return messageCoreService.deleteMessage(entityId, messageId)
                 .then(Mono.just(ResponseEntity.noContent().<Void>build()));
     }
+
 }
