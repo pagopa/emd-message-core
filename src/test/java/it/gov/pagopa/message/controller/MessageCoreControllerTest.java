@@ -570,6 +570,7 @@ class MessageCoreControllerTest {
                         .queryParam("messageId", messageId)
                         .queryParam("recipientId", recipientId)
                         .queryParam("originId", originId)
+                        .queryParam("status", "ERROR")
                         .queryParam("startDate", startDate)
                         .queryParam("endDate", endDate)
                         .queryParam("cursor",cursor)
