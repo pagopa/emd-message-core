@@ -3,6 +3,7 @@ package it.gov.pagopa.message.service;
 import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -99,6 +98,7 @@ class MessageCoreServiceTest {
         String messageId = "MSG_ID";
         String recipientId = "RECIPIENT_ID";
         String originId = "ORIGIN_ID";
+        MessageState messageState = MessageState.ERROR;
         String cursor = "CURSOR";
         LocalDateTime now = LocalDateTime.now();
         int size = 10;
@@ -137,6 +137,7 @@ class MessageCoreServiceTest {
                 eq(messageId),
                 eq(recipientId),
                 eq(originId),
+                eq(messageState),
                 eq(now),
                 eq(now),
                 eq(decodedCursor),
@@ -147,7 +148,7 @@ class MessageCoreServiceTest {
         /*
         * Mock del count.
         */
-        when(messageRepository.countMessages(messageId, recipientId, originId, now, now ))
+        when(messageRepository.countMessages(messageId, recipientId, originId, messageState, now, now ))
             .thenReturn( Mono.just(1L));
 
         /*
@@ -162,6 +163,7 @@ class MessageCoreServiceTest {
                         messageId,
                         recipientId,
                         originId,
+                        messageState,
                         now,
                         now,
                         cursor,
@@ -202,15 +204,15 @@ class MessageCoreServiceTest {
     void searchMessages_EmptyResult_Ok() {
         // Given
         when(messageRepository.searchMessages(
-                any(), any(), any(), any(), any(), any(), anyInt(), anySet()))
+                any(), any(), any(), any(), any(), any(), any(), anyInt(), anySet()))
             .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false, null)));
         when(messageRepository.countMessages(
-                any(), any(), any(), any(), any()))
+                any(), any(), any(), any(), any(), any()))
             .thenReturn(Mono.just(0L));
 
         // When & Then
         StepVerifier.create( messageCoreService.searchMessages(
-                        null, null, null, null, null, null, 10, null))
+                        null, null, null, null, null, null, null, 10, null))
             .assertNext(response -> {
                 Assertions.assertTrue(response.getContent().isEmpty());
                 Assertions.assertEquals(0,response.getTotalElements() );
@@ -229,22 +231,22 @@ class MessageCoreServiceTest {
         int requestedSize = 500;
         int maxSize = 100;
 
-        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), any(),ArgumentMatchers.eq(maxSize), anySet()))
+        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), any(), any(),ArgumentMatchers.eq(maxSize), anySet()))
             .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false,null)));
         when(messageRepository.countMessages(
-                any(), any(), any(), any(), any()))
+                any(), any(), any(), any(), any(), any()))
             .thenReturn(Mono.just(0L));
 
         StepVerifier.create(
                 messageCoreService.searchMessages(
-                        null, null, null, null, null, null,
+                        null, null, null, null, null, null, null,
                         requestedSize,
                         null))
             .expectNextCount(1)
             .verifyComplete();
 
         // Verifica che al repository sia arrivato 100 invece di 500
-        Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(),any(),ArgumentMatchers.eq(maxSize),anySet());
+        Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(), any(),any(),ArgumentMatchers.eq(maxSize),anySet());
     }
 
 

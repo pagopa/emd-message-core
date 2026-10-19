@@ -4,6 +4,7 @@ import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 
 import java.time.LocalDateTime;
@@ -38,9 +39,9 @@ public class MessageCoreControllerImpl implements MessageCoreController {
     /**
      * {@inheritDoc}
      */
-    public Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(String messageId, String recipientId, String originId,
+    public Mono<ResponseEntity<MessageSearchResponseDTO>> searchMessages(String messageId, String recipientId, String originId, MessageState state,
             LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
-        return messageCoreService.searchMessages(messageId, recipientId, originId, startDate, endDate, cursor, size, fields)
+        return messageCoreService.searchMessages(messageId, recipientId, originId, state, startDate, endDate, cursor, size, fields)
                 .map(ResponseEntity::ok);
     }
 

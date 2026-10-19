@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.enums.Channel;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 
@@ -528,8 +529,8 @@ class MessageCoreControllerTest {
                 .build();
 
         Mockito.when(messageCoreService.searchMessages(
-                Mockito.any(), Mockito.any(), Mockito.any(), 
-                Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(),
                 Mockito.any(), Mockito.anyInt(), Mockito.any()))
             .thenReturn(Mono.just(expectedResponse));
 
@@ -552,12 +553,13 @@ class MessageCoreControllerTest {
         String messageId = "msgId";
         String recipientId = "recipientId";
         String originId = "originId";
+        MessageState messageState = MessageState.ERROR;
         String startDate = "2023-12-25T10:30:00";
         String endDate = "2023-12-26T10:30:00";
         String cursor = "cursor";
 
         Mockito.when(messageCoreService.searchMessages(
-                Mockito.eq(messageId), Mockito.eq(recipientId), Mockito.eq(originId),
+                Mockito.eq(messageId), Mockito.eq(recipientId), Mockito.eq(originId), Mockito.eq(messageState),
                 Mockito.any(LocalDateTime.class), Mockito.any(LocalDateTime.class),
                 Mockito.eq(cursor), Mockito.eq(10), Mockito.any()))
             .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
@@ -581,6 +583,7 @@ class MessageCoreControllerTest {
                 Mockito.eq(messageId), 
                 Mockito.eq(recipientId), 
                 Mockito.eq(originId), 
+                Mockito.eq(messageState),
                 Mockito.any(LocalDateTime.class), 
                 Mockito.any(LocalDateTime.class), 
                 Mockito.eq(cursor), 
@@ -596,7 +599,7 @@ class MessageCoreControllerTest {
 
         Mockito.when(messageCoreService.searchMessages(
                 Mockito.any(), Mockito.any(), Mockito.any(), 
-                Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any(), Mockito.any(),
                 Mockito.eq(cursor), Mockito.eq(size), Mockito.any()))
             .thenReturn(Mono.just(MessageSearchResponseDTO.builder()
                     .size(size)

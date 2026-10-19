@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.model.Message;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -34,6 +35,7 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
     private static final String FIELD_ID = "_id";
     private static final String FIELD_ORIGIN_ID = "originId";
     private static final String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
+    private static final String FIELD_STATE = "messageState";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
@@ -51,9 +53,9 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
      * {@inheritDoc}
      */
     @Override
-    public Mono<MessageKeysetPage<Message>> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, MessageSearchCursor cursor, int size, Set<String> fields) {
+    public Mono<MessageKeysetPage<Message>> searchMessages(String messageId, String recipientId, String originId, MessageState state, LocalDateTime startDate, LocalDateTime endDate, MessageSearchCursor cursor, int size, Set<String> fields) {
         
-        List<Criteria> allCriteria = buildCriteriaList(messageId, recipientId, originId, startDate, endDate);
+        List<Criteria> allCriteria = buildCriteriaList(messageId, recipientId, originId, state, startDate, endDate);
 
         /*
          * Applichiamo il cursor solo dalla seconda richiesta in poi.
@@ -112,9 +114,9 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
      * {@inheritDoc}
      */
     @Override
-    public Mono<Long> countMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate) {
+    public Mono<Long> countMessages(String messageId, String recipientId, String originId, MessageState state, LocalDateTime startDate, LocalDateTime endDate) {
         
-        List<Criteria> criteriaList = buildCriteriaList(messageId, recipientId, originId, startDate, endDate);
+        List<Criteria> criteriaList = buildCriteriaList(messageId, recipientId, originId, state, startDate, endDate);
         Criteria finalCriteria = criteriaList.isEmpty() ? new Criteria() : new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
 
         Aggregation aggregation = Aggregation.newAggregation(
@@ -135,7 +137,7 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
     /**
      * Costruisce i criteri di ricerca in AND tra loro.
      */
-    private List<Criteria> buildCriteriaList(String messageId, String recipientId, String originId,
+    private List<Criteria> buildCriteriaList(String messageId, String recipientId, String originId, MessageState state,
                                     LocalDateTime startDate, LocalDateTime endDate) {
         List<Criteria> criteriaList = new ArrayList<>();
 
@@ -152,6 +154,11 @@ public class MessageRepositoryExtendedImpl implements MessageRepositoryExtended 
         // Filtro per Origin ID
         if (StringUtils.hasText(originId)) {
             criteriaList.add(Criteria.where(FIELD_ORIGIN_ID).is(originId));
+        }
+
+        // Filtro per State
+        if (state != null) {
+            criteriaList.add(Criteria.where(FIELD_STATE).is(state));
         }
 
         // Filtro per Intervallo Temporale

@@ -11,6 +11,7 @@ import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
 import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
@@ -151,7 +152,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      * @see it.gov.pagopa.message.repository.MessageRepository#countMessages
      */
     @Override
-    public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
+    public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, MessageState state, LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
 
         return Mono.defer(() -> {
             int safeSize = normalizePageSize(size);
@@ -166,9 +167,9 @@ public class MessageCoreServiceImpl implements MessageCoreService {
             log.info("[MESSAGE-CORE][SEARCH] Received search request - messageIdPresent: {}, startDatePresent: {}, endDatePresent: {}, cursorPresent: {}, size: {}, fields: {}",
                     messageId != null && !messageId.isBlank(), startDate != null, endDate != null, decodedCursor != null, safeSize, safeFields);
                     
-            Mono<MessageKeysetPage<Message>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, decodedCursor, safeSize, safeFields);
+            Mono<MessageKeysetPage<Message>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, state, startDate, endDate, decodedCursor, safeSize, safeFields);
 
-            Mono<Long> countMono = messageRepository.countMessages(messageId, recipientId, originId, startDate, endDate);
+            Mono<Long> countMono = messageRepository.countMessages(messageId, recipientId, originId, state, startDate, endDate);
 
             return Mono.zip(contentMono, countMono)
                     .map(tuple -> {

@@ -7,6 +7,7 @@ import java.util.List;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
+import it.gov.pagopa.message.enums.MessageState;
 import reactor.core.publisher.Mono;
 
 /**
@@ -45,7 +46,7 @@ public interface MessageCoreService {
      *                     falls back to the default grid fields)
      * @return a {@link Mono} containing the paginated {@link MessageSearchResponseDTO}
      */
-    Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, 
+    Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, MessageState state, LocalDateTime startDate, LocalDateTime endDate, 
         String cursor, int size, List<String> fields);
 
     /**

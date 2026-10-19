@@ -3,6 +3,7 @@ package it.gov.pagopa.common.repository;
 import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.repository.MessageRepositoryExtendedImpl;
 import org.bson.Document;
@@ -60,6 +61,7 @@ class MessageRepositoryExtendedImplTest {
         String messageId = "MSG123";
         String recipientId = "RECIPIENT123";
         String originId = "ORIGIN123";
+        MessageState messageState = MessageState.ERROR;
         LocalDateTime startDate = LocalDateTime.now().minusDays(1);
         LocalDateTime endDate = LocalDateTime.now();
         int size = 10;
@@ -84,7 +86,7 @@ class MessageRepositoryExtendedImplTest {
                 .thenReturn(Flux.just(message));
 
         // When
-        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, cursor, size, fields);
+        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(messageId, recipientId, originId, messageState, startDate, endDate, cursor, size, fields);
 
         // Then
         StepVerifier.create(result)
@@ -181,6 +183,7 @@ class MessageRepositoryExtendedImplTest {
                         null,
                         null,
                         null,
+                        null,
                         startDate,
                         null,
                         null,
@@ -220,7 +223,7 @@ class MessageRepositoryExtendedImplTest {
                 .thenReturn(Flux.just(countResult));
 
         // When
-        Mono<Long> result = messageRepository.countMessages(messageId, null, null, null, null);
+        Mono<Long> result = messageRepository.countMessages(messageId, null, null, null, null, null);
 
         // Then
         StepVerifier.create(result)
@@ -257,6 +260,7 @@ class MessageRepositoryExtendedImplTest {
         // When
         StepVerifier.create(
                 messageRepository.searchMessages(
+                        null,
                         null,
                         null,
                         null,
@@ -326,7 +330,7 @@ class MessageRepositoryExtendedImplTest {
 
         // When
         Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(
-                null, null, null, null, null, null, size, null
+                null, null, null, null, null, null, null, size, null
         );
 
         // Then

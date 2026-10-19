@@ -5,6 +5,7 @@ import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.service.MessageCoreService;
 import jakarta.validation.Valid;
 
@@ -71,6 +72,7 @@ public interface MessageCoreController {
             @RequestParam(name = "messageId", required = false) String messageId,
             @RequestParam(name = "recipientId", required = false) String recipientId,
             @RequestParam(name = "originId", required = false) String originId,
+            @RequestParam(name = "status", required = false) MessageState state,
             @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(name = "cursor", required = false) String cursor,
