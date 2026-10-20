@@ -123,7 +123,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     }
 
     /**
-     *Performs a keyset-paginated search for messages applying optional filters
+     * Performs a keyset-paginated search for messages applying optional filters
      * and field projection.
      * <p>
      * The internal logic executes the following steps:
@@ -131,19 +131,11 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      *     <li>Normalizes pagination parameters (cursor and size) to ensure they fall within safe bounds.</li>
      *     <li>Resolves and validates the requested {@code fields} for response projection.</li>
      *     <li>Executes concurrent reactive calls for data retrieval and total record count using {@link Mono#zip}.</li>
-     *     <li>Maps database entities to {@link MessageDTO} objects, including only the allowed fields.</li>
+     *     <li>Maps database entities to {@link ResponseMessageDTO} objects, including only the allowed fields.</li>
      *     <li>Calculates pagination metadata such as total elements and total pages.</li>
      * </ul>
-     * </p>
      *
-     * @param messageId     optional unique message identifier (exact match)
-     * @param recipientId   optional recipient identifier (exact match)
-     * @param originId      optional source system identifier (exact match)
-     * @param startDate     optional inclusive start date for the registration range
-     * @param endDate       optional inclusive end date for the registration range
-     * @param cursor        cursor identifying the last element of the previous page
-     * @param size          the requested number of items per page (subject to capping)
-     * @param fields        list of specific fields to include in the response; if null or empty, default fields are used
+     * @param params the object containing all search criteria, pagination cursor/size and requested fields
      * @return a {@link Mono} emitting the {@link MessageSearchResponseDTO} containing the results and pagination metadata
      * @throws it.gov.pagopa.message.config.ExceptionMap (or specific exception) if the requested {@code fields} are invalid
      * 

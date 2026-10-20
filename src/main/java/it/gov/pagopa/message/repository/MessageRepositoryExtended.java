@@ -6,7 +6,6 @@ import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
 import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.model.Message;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -18,17 +17,13 @@ public interface MessageRepositoryExtended {
     
     /**
      * Retrieves a reactive stream of {@link Message} entities filtered by the provided criteria.
-     * Results are sorted by registration date in descending order and support pagination and field projection.
+     * Results are sorted by registration date in descending order and support keyset pagination and field projection.
      *
-     * @param messageId     optional filter for the exact message identifier
-     * @param recipientId   optional filter for the exact recipient identifier
-     * @param originId      optional filter for the exact origin system identifier
-     * @param startDate     optional lower bound (inclusive) for the message registration date
-     * @param endDate       optional upper bound (inclusive) for the message registration date
-     * @param cursor        cursor identifying the last element of the previous page
-     * @param size          the number of elements per page
-     * @param fields        the set of specific document fields to include in the result (projection)
-     * @return a {@link Flux} emitting the messages matching the criteria
+     * @param params      the object containing filter criteria (messageId, recipientId, originId, state, dates)
+     * @param cursor      cursor identifying the last element of the previous page
+     * @param size        the number of elements per page
+     * @param fields      the set of specific document fields to include in the result (projection)
+     * @return a {@link Mono} emitting the messages matching the criteria wrapped in a {@link MessageKeysetPage}
      */
     public Mono<MessageKeysetPage<Message>> searchMessages(MessageSearchParameter params, MessageSearchCursor cursor, int size, Set<String> fields);
 
@@ -37,12 +32,7 @@ public interface MessageRepositoryExtended {
      * Calculates the total number of messages matching the provided filtering criteria.
      * This is used primarily to compute total pages for pagination metadata.
      *
-     * @param messageId     optional filter for the exact message identifier
-     * @param recipientId   optional filter for the exact recipient identifier
-     * @param originId      optional filter for the exact origin system identifier
-     * @param status        optional filter for the message status
-     * @param startDate     optional lower bound (inclusive) for the date range
-     * @param endDate       optional upper bound (inclusive) for the date range
+     * @param params the object containing filter criteria
      * @return a {@link Mono} emitting the total count of matching messages
      */
     Mono<Long> countMessages(MessageSearchParameter params);

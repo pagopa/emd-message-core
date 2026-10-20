@@ -24,22 +24,13 @@ public interface MessageCoreService {
     Mono<Boolean> send(MessageDTO messageDTO);
 
     /**
-     * Searches Messages filtering by exact {@code messageId}, {@code recipientId}, {@code originId} or messages sent
-     * between {@code startDate} and {@code endDate}, returning a paginated result.
+     * Searches Messages filtering by the criteria provided in {@code params}, returning a paginated result.
      * <p>
      * The returned content only contains the fields requested via {@code fields} (matching
      * {@link it.gov.pagopa.message.constants.MessageCoreConstants.SearchFields}), reducing the response
      * payload size.
      *
-     * @param messageId     the exact message identifier to match (nullable)
-     * @param recipientId   the exact recipient identifier to match (nullable)
-     * @param originId      the exact origin identifier to match (nullable)
-     * @param startDate     the start date for the message sent range (nullable)
-     * @param endDate       the end date for the message sent range (nullable)
-     * @param cursor        cursor identifying the last element of the previous page
-     * @param size         the requested page size
-     * @param fields       optional override of the fields to return for each Message (nullable/empty
-     *                     falls back to the default grid fields)
+     * @param params the object containing the search criteria, pagination metadata and field projection override
      * @return a {@link Mono} containing the paginated {@link MessageSearchResponseDTO}
      */
     Mono<MessageSearchResponseDTO> searchMessages(MessageSearchParameter params);

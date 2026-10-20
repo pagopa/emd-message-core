@@ -6,14 +6,9 @@ import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.dto.SendResponseDTO;
-import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.service.MessageCoreService;
 import jakarta.validation.Valid;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import reactor.core.publisher.Mono;
 
@@ -51,21 +45,14 @@ public interface MessageCoreController {
     Mono<ResponseEntity<SendResponseDTO>> send(@Valid @RequestBody MessageDTO messageDTO);
 
     /**
-     * Search Messages by exact {@code messageId}, {@code recipientId}, {@code originId} or messages sent
-     * between {@code startDate} and {@code endDate} and returning a paginated result.
+     * Searches for Messages applying the filters provided in the request and returning a paginated result.
      * <p>
      * The content of each result only contains the fields requested via {@code fields} (matching
      * the properties of {@link MessageSearchResponseDTO}), reducing the response payload size.
      * When {@code fields} is omitted, the default grid fields are returned.
      *
-     * @param messageId     optional exact message identifier filter
-     * @param recipientId   optional exact recipient identifier filter
-     * @param originId      optional exact origin identifier filter
-     * @param startDate     optional start date for message sent range
-     * @param endDate       optional end date for message sent range
-     * @param cursor        cursor identifying the last element of the previous page
-     * @param size         page size (default 10, capped by the configured maximum)
-     * @param fields       optional override of the fields to return for each Message
+     * @param request the object containing all search filters (messageId, recipientId, originId, state, dates),
+     *                pagination (cursor, size) and projection fields
      * @return a {@link Mono} containing a {@link ResponseEntity} with the paginated
      *          {@link MessageSearchResponseDTO}
      */
