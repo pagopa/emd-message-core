@@ -6,8 +6,12 @@ import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionMessage;
 import it.gov.pagopa.message.constants.MessageCoreConstants.ExceptionName;
 import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnector;
+import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageKeysetPage;
+import it.gov.pagopa.message.dto.MessageSearchCursor;
 import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.repository.MessageRepository;
@@ -15,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.common.utils.CommonUtilities.createSHA256;
@@ -60,16 +66,19 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     
     private final MessageRepository messageRepository;
 
+    private final MessageCursorCodec cursorCodec;
+
     public MessageCoreServiceImpl(CitizenConnectorImpl citizenConnector,
                                   MessageProducerServiceImpl messageProducerService,
                                   MessageRepository messageRepository,
                                   ResponseMessageMapperObjectToDTO messageMapperObjectToDTO,
-                                  ExceptionMap exceptionMap) {
+                                  ExceptionMap exceptionMap, MessageCursorCodec cursorCodec) {
         this.citizenConnector = citizenConnector;
         this.messageProducerService = messageProducerService;
         this.messageRepository = messageRepository;
         this.messageMapperObjectToDTO = messageMapperObjectToDTO;
         this.exceptionMap = exceptionMap;
+        this.cursorCodec = cursorCodec;
     }
 
 
@@ -114,11 +123,12 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     }
 
     /**
-     * Performs a paginated search for messages applying optional filters and field projection.
+     *Performs a keyset-paginated search for messages applying optional filters
+     * and field projection.
      * <p>
      * The internal logic executes the following steps:
      * <ul>
-     *     <li>Normalizes pagination parameters (page and size) to ensure they fall within safe bounds.</li>
+     *     <li>Normalizes pagination parameters (cursor and size) to ensure they fall within safe bounds.</li>
      *     <li>Resolves and validates the requested {@code fields} for response projection.</li>
      *     <li>Executes concurrent reactive calls for data retrieval and total record count using {@link Mono#zip}.</li>
      *     <li>Maps database entities to {@link MessageDTO} objects, including only the allowed fields.</li>
@@ -131,7 +141,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      * @param originId      optional source system identifier (exact match)
      * @param startDate     optional inclusive start date for the registration range
      * @param endDate       optional inclusive end date for the registration range
-     * @param page          the zero-based page index to retrieve
+     * @param cursor        cursor identifying the last element of the previous page
      * @param size          the requested number of items per page (subject to capping)
      * @param fields        list of specific fields to include in the response; if null or empty, default fields are used
      * @return a {@link Mono} emitting the {@link MessageSearchResponseDTO} containing the results and pagination metadata
@@ -141,34 +151,44 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      * @see it.gov.pagopa.message.repository.MessageRepository#countMessages
      */
     @Override
-    public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, int page, int size, List<String> fields) {
-        
+    public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
+
         return Mono.defer(() -> {
-            int safePage = Math.max(page, 0);
             int safeSize = normalizePageSize(size);
             Set<String> safeFields = resolveSearchFields(fields);
 
-            log.info("[MESSAGE-CORE][SEARCH] Received search request - messageIdPresent: {}, startDatePresent: {}, endDatePresent: {}, page: {}, size: {}, fields: {}",
-                    messageId != null && !messageId.isBlank(), startDate != null, endDate != null, safePage, safeSize, safeFields);
+            MessageSearchCursor decodedCursor = null;
 
-                    Mono<List<ResponseMessageDTO>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, safePage, safeSize, safeFields)
-                    //Mappa gli elementi recuperati dal DB nel DTO
-                    .map(message -> messageMapperObjectToDTO.map(message, safeFields))
-                    .collectList();
+            if (StringUtils.hasText(cursor)) {
+                decodedCursor = cursorCodec.decode(cursor);
+            }
+            
+            log.info("[MESSAGE-CORE][SEARCH] Received search request - messageIdPresent: {}, startDatePresent: {}, endDatePresent: {}, cursorPresent: {}, size: {}, fields: {}",
+                    messageId != null && !messageId.isBlank(), startDate != null, endDate != null, decodedCursor != null, safeSize, safeFields);
+                    
+            Mono<MessageKeysetPage<Message>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, decodedCursor, safeSize, safeFields);
 
             Mono<Long> countMono = messageRepository.countMessages(messageId, recipientId, originId, startDate, endDate);
 
             return Mono.zip(contentMono, countMono)
                     .map(tuple -> {
-                        List<ResponseMessageDTO> content = tuple.getT1();
+                        MessageKeysetPage<Message> pageResult = tuple.getT1();
                         long totalElements = tuple.getT2();
+
+                        List<ResponseMessageDTO> content = pageResult.content()
+                                                                        .stream()
+                                                                        .map(message ->messageMapperObjectToDTO.map(message, safeFields))
+                                                                        .toList();
+
                         int totalPages = (int) Math.ceil((double) totalElements / safeSize);
+
                         return MessageSearchResponseDTO.builder()
                                 .content(content)
-                                .page(safePage)
                                 .size(safeSize)
                                 .totalElements(totalElements)
                                 .totalPages(totalPages)
+                                .hasNext(pageResult.hasNext())
+                                .nextCursor(pageResult.nextCursor())
                                 .build();
                     });
         })

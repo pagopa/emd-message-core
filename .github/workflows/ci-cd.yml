@@ -71,7 +71,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
+            
       - name: Update pom.xml with the new version
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
@@ -130,7 +130,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
+            
       - name: 📦 Build jar with Maven
         run: mvn -B clean package -DskipTests
 

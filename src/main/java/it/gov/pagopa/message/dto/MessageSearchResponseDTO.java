@@ -24,11 +24,6 @@ public class MessageSearchResponseDTO {
     private List<ResponseMessageDTO> content;
 
     /**
-     * The zero-based index of the current page.
-     */
-    private int page;
-
-    /**
      * The number of elements requested per page.
      */
     private int size;
@@ -42,5 +37,8 @@ public class MessageSearchResponseDTO {
      * The total number of pages available for the given page size.
      */
     private int totalPages;
+
+    private boolean hasNext;
+    private String nextCursor;
 }
 
