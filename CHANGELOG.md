@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.7.0](https://github.com/pagopa/emd-message-core/compare/v1.6.2...v1.7.0) (2026-10-22)
+
+
+### Features
+
+* [MMC-1216] Add state parameter to search request ([#140](https://github.com/pagopa/emd-message-core/issues/140)) ([7790970](https://github.com/pagopa/emd-message-core/commit/77909701d71a0e6b0ab9ee5e51b999d5bc0154bc))
+
 ## [1.6.2](https://github.com/pagopa/emd-message-core/compare/v1.6.1...v1.6.2) (2026-10-08)
 
 
