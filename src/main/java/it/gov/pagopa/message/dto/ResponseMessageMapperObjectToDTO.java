@@ -22,7 +22,6 @@ public class ResponseMessageMapperObjectToDTO {
                 .title(message.getTitle())
                 .content(message.getContent())
                 .associatedPayment(message.getAssociatedPayment())
-                .idPsp(message.getIdPsp())
                 .channel(message.getChannel())
                 .analogSchedulingDate(message.getAnalogSchedulingDate())
                 .workflowType(message.getWorkflowType())
@@ -54,7 +53,6 @@ public class ResponseMessageMapperObjectToDTO {
         if (fields.contains(SearchFields.TITLE)) builder.title(message.getTitle());
         if (fields.contains(SearchFields.CONTENT)) builder.content(message.getContent());
         if (fields.contains(SearchFields.ASSOCIATED_PAYMENT)) builder.associatedPayment(message.getAssociatedPayment());
-        if (fields.contains(SearchFields.ID_PSP)) builder.idPsp(message.getIdPsp());
         if (fields.contains(SearchFields.CHANNEL)) builder.channel(message.getChannel());
         if (fields.contains(SearchFields.ANALOG_SCHEDULING_DATE)) builder.analogSchedulingDate(message.getAnalogSchedulingDate());
         if (fields.contains(SearchFields.WORKFLOW_TYPE)) builder.workflowType(message.getWorkflowType());
