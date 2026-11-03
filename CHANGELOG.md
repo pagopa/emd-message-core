@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.8.0](https://github.com/pagopa/emd-message-core/compare/v1.7.0...v1.8.0) (2026-11-03)
+
+
+### Features
+
+* [MMC-776] kafka scaling improvements ([#117](https://github.com/pagopa/emd-message-core/issues/117)) ([cd4b4f2](https://github.com/pagopa/emd-message-core/commit/cd4b4f2323798406ffaa947fd449fe06e7437744))
+
 # [1.7.0](https://github.com/pagopa/emd-message-core/compare/v1.6.2...v1.7.0) (2026-10-22)
 
 
