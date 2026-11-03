@@ -3,9 +3,11 @@ package it.gov.pagopa.message.service;
 import it.gov.pagopa.message.config.ExceptionMap;
 import it.gov.pagopa.message.connector.CitizenConnectorImpl;
 import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.model.Message;
@@ -16,23 +18,18 @@ import it.gov.pagopa.message.repository.MessageRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static it.gov.pagopa.message.utils.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -99,11 +96,22 @@ class MessageCoreServiceTest {
         String messageId = "MSG_ID";
         String recipientId = "RECIPIENT_ID";
         String originId = "ORIGIN_ID";
+        MessageState messageState = MessageState.ERROR;
         String cursor = "CURSOR";
         LocalDateTime now = LocalDateTime.now();
         int size = 10;
-
         List<String> fields = List.of("messageId", "recipientId");
+
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setMessageId(messageId);
+        params.setRecipientId(recipientId);
+        params.setOriginId(originId);
+        params.setState(messageState);
+        params.setStartDate(now);
+        params.setEndDate(now);
+        params.setCursor(cursor);
+        params.setSize(size);
+        params.setFields(fields);
 
         Message messageMock = new Message();
         messageMock.setMessageId(messageId);
@@ -126,30 +134,20 @@ class MessageCoreServiceTest {
         /*
         * Il repository ora restituisce una MessageKeysetPage.
         */
-        MessageKeysetPage<Message> repositoryResult =
-                new MessageKeysetPage<>(
-                        List.of(messageMock),
-                        true,
-                        "NEXT_CURSOR"
-                );
+        MessageKeysetPage<Message> repositoryResult = new MessageKeysetPage<>(List.of(messageMock), true, "NEXT_CURSOR");
 
         when(messageRepository.searchMessages(
-                eq(messageId),
-                eq(recipientId),
-                eq(originId),
-                eq(now),
-                eq(now),
+                eq(params),
                 eq(decodedCursor),
-                eq(size),
+                anyInt(),
                 anySet()
         )).thenReturn(Mono.just(repositoryResult));
 
         /*
         * Mock del count.
         */
-        when(messageRepository.countMessages(messageId, recipientId, originId, now, now ))
-            .thenReturn( Mono.just(1L));
-
+        when(messageRepository.countMessages(eq(params)))
+            .thenReturn(Mono.just(1L));
         /*
         * Mock del mapper.
         */
@@ -157,37 +155,24 @@ class MessageCoreServiceTest {
             .thenReturn(messageDtoMock);
 
         // When & Then
-        StepVerifier.create(
-                messageCoreService.searchMessages(
-                        messageId,
-                        recipientId,
-                        originId,
-                        now,
-                        now,
-                        cursor,
-                        size,
-                        fields
-                )
-        )
+        StepVerifier.create(messageCoreService.searchMessages(params))
         .assertNext(response -> {
-
-            assertNotNull(response);
+            // Utilizzo di Assertions. per evitare ambiguità JUnit 4/5
+            Assertions.assertNotNull(response);
+            
             // Content
-            assertEquals( 1,response.getContent().size());
-            assertEquals(messageId,
-                    response.getContent()
-                            .get(0)
-                            .getMessageId()
-            );
-
+            Assertions.assertEquals(1, response.getContent().size());
+            Assertions.assertEquals(messageId, response.getContent().get(0).getMessageId());
+            
             // Count
-            assertEquals(1L,response.getTotalElements());
+            Assertions.assertEquals(1L, response.getTotalElements());
+            
             // Pagination
-            assertEquals(size,response.getSize());
-            assertTrue(response.isHasNext());
-            assertEquals("NEXT_CURSOR", response.getNextCursor());
-            // 1 elemento / 10 per pagina = 1 pagina
-            assertEquals(1, response.getTotalPages());
+            Assertions.assertEquals(10, response.getSize());
+            Assertions.assertTrue(response.isHasNext());
+            Assertions.assertEquals("NEXT_CURSOR", response.getNextCursor());
+            
+            Assertions.assertEquals(1, response.getTotalPages());
         })
         .verifyComplete();
     }
@@ -201,21 +186,28 @@ class MessageCoreServiceTest {
     @Test
     void searchMessages_EmptyResult_Ok() {
         // Given
-        when(messageRepository.searchMessages(
-                any(), any(), any(), any(), any(), any(), anyInt(), anySet()))
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setSize(10);
+        when(messageRepository.searchMessages(any(), any(), anyInt(), anySet()))
             .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false, null)));
-        when(messageRepository.countMessages(
-                any(), any(), any(), any(), any()))
+
+        when(messageRepository.countMessages(any()))
             .thenReturn(Mono.just(0L));
 
         // When & Then
-        StepVerifier.create( messageCoreService.searchMessages(
-                        null, null, null, null, null, null, 10, null))
+        StepVerifier.create(messageCoreService.searchMessages(params))
             .assertNext(response -> {
-                Assertions.assertTrue(response.getContent().isEmpty());
-                Assertions.assertEquals(0,response.getTotalElements() );
+                // Utilizzo di Assertions. per evitare l'errore ambiguous JUnit 4/5
+                Assertions.assertTrue(response.getContent().isEmpty(), "La lista dei risultati dovrebbe essere vuota");
+                Assertions.assertEquals(0L, response.getTotalElements(), "Il totale degli elementi dovrebbe essere 0");
+                Assertions.assertEquals(0, response.getTotalPages(), "Il totale delle pagine dovrebbe essere 0");
+                Assertions.assertFalse(response.isHasNext(), "hasNext dovrebbe essere false");
             })
             .verifyComplete();
+
+        // Verifichiamo che il repository sia stato effettivamente chiamato con l'oggetto params
+        verify(messageRepository).searchMessages(eq(params), any(), anyInt(), anySet());
+        verify(messageRepository).countMessages(eq(params));
     }
 
     /**
@@ -229,22 +221,27 @@ class MessageCoreServiceTest {
         int requestedSize = 500;
         int maxSize = 100;
 
-        when(messageRepository.searchMessages(any(), any(), any(), any(), any(), any(),ArgumentMatchers.eq(maxSize), anySet()))
-            .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false,null)));
-        when(messageRepository.countMessages(
-                any(), any(), any(), any(), any()))
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setSize(requestedSize);
+
+        when(messageRepository.searchMessages(any(), any(), eq(maxSize), anySet()))
+            .thenReturn(Mono.just(new MessageKeysetPage<>(List.of(), false, null)));
+        
+            when(messageRepository.countMessages(any()))
             .thenReturn(Mono.just(0L));
 
-        StepVerifier.create(
-                messageCoreService.searchMessages(
-                        null, null, null, null, null, null,
-                        requestedSize,
-                        null))
-            .expectNextCount(1)
+        StepVerifier.create(messageCoreService.searchMessages(params))
+            .assertNext(response -> {
+                // Verifichiamo che la risposta indichi la size effettivamente utilizzata (quella cappata)
+                Assertions.assertEquals(maxSize, response.getSize(), "La size nella risposta dovrebbe essere quella cappata");
+            })
             .verifyComplete();
 
-        // Verifica che al repository sia arrivato 100 invece di 500
-        Mockito.verify(messageRepository).searchMessages(any(), any(), any(), any(), any(),any(),ArgumentMatchers.eq(maxSize),anySet());
+        // Verifica finale: conferma che il Service abbia invocato il repository con 100 e non con 500
+        verify(messageRepository).searchMessages(any(), any(), eq(maxSize), anySet());
+        
+        // Verifichiamo anche che countMessages sia stato chiamato
+        verify(messageRepository).countMessages(any());
     }
 
 

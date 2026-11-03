@@ -3,10 +3,13 @@ package it.gov.pagopa.common.repository;
 import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.repository.MessageRepositoryExtendedImpl;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +31,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -57,14 +62,28 @@ class MessageRepositoryExtendedImplTest {
     @SuppressWarnings("unchecked")
     void searchMessages_AllFilters_Ok() {
         // Given
+        LocalDateTime startDate = LocalDateTime.now().minusDays(1);
+        LocalDateTime endDate = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+        // Given
         String messageId = "MSG123";
         String recipientId = "RECIPIENT123";
         String originId = "ORIGIN123";
-        LocalDateTime startDate = LocalDateTime.now().minusDays(1);
-        LocalDateTime endDate = LocalDateTime.now();
+        MessageState messageState = MessageState.ERROR;
         int size = 10;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         Set<String> fields = Set.of("content", "title");
+        
+        // Prepariamo l'oggetto dei parametri
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setMessageId(messageId);
+        params.setRecipientId(recipientId);
+        params.setOriginId(originId);
+        params.setState(messageState);
+        params.setStartDate(startDate);
+        params.setEndDate(endDate);
+        params.setSize(10);
+        params.setFields(List.of("content", "title"));
         
         String cursorId = "66f2a1b2c3d4e5f678901234";
         String cursorDate = "2026-09-28T10:00:00";
@@ -73,6 +92,7 @@ class MessageRepositoryExtendedImplTest {
         String FIELD_RECIPIENT_ID = "recipientId";
         String FIELD_ORIGIN_ID = "originId";
         String FIELD_REGISTRATION_DATE = "messageRegistrationDate";
+        String FIELD_STATE = "messageState";
         
         MessageSearchCursor cursor = new MessageSearchCursor(cursorDate, cursorId);
         Message message = new Message();
@@ -84,14 +104,14 @@ class MessageRepositoryExtendedImplTest {
                 .thenReturn(Flux.just(message));
 
         // When
-        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, cursor, size, fields);
+        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(params, cursor, size, fields);
 
         // Then
         StepVerifier.create(result)
                 .assertNext(page -> {
-                    assertEquals(1, page.content().size());
-                    assertFalse(page.hasNext());
-                    assertNull(page.nextCursor());
+                        Assertions.assertEquals(1, page.content().size());
+                        Assertions.assertFalse(page.hasNext());
+                        Assertions.assertNull(page.nextCursor());
                 })
                 .verifyComplete();
 
@@ -108,6 +128,8 @@ class MessageRepositoryExtendedImplTest {
         assertTrue(andList.stream().anyMatch(d -> messageId.equals(d.get(FIELD_MESSAGE_ID))));
         assertTrue(andList.stream().anyMatch(d -> recipientId.equals(d.get(FIELD_RECIPIENT_ID))));
         assertTrue(andList.stream().anyMatch(d -> originId.equals(d.get(FIELD_ORIGIN_ID))));
+        assertTrue(andList.stream().anyMatch(d -> messageState.equals(d.get(FIELD_STATE))));
+
 
         // Verifica Date Range (dentro l'and)
         Document dateRangeCondition = andList.stream()
@@ -168,30 +190,22 @@ class MessageRepositoryExtendedImplTest {
 
         // Given
         LocalDateTime startDate = LocalDateTime.of(2026, 1, 1, 10, 0);
-
         int size = 10;
 
-        when(reactiveMongoTemplate.find(any(Query.class),eq(Message.class))).thenReturn(Flux.empty());
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setStartDate(startDate);
+        params.setSize(size);
 
+        when(reactiveMongoTemplate.find(any(Query.class),eq(Message.class))).thenReturn(Flux.empty());
         when(reactiveMongoTemplate.executeCommand(anyString()))
                 .thenReturn(Mono.just(new Document("RequestCharge", 2.5)));
 
         // When
-        StepVerifier.create(messageRepository.searchMessages(
-                        null,
-                        null,
-                        null,
-                        startDate,
-                        null,
-                        null,
-                        size,
-                        null
-                )
-        )
-        .assertNext(result -> {
-            assertTrue(result.content().isEmpty());
-            assertFalse(result.hasNext());
-            assertNull(result.nextCursor());
+        StepVerifier.create(messageRepository.searchMessages(params, null, size,null))
+            .assertNext(result -> {
+                Assertions.assertTrue(result.content().isEmpty());
+                Assertions.assertFalse(result.hasNext());
+                Assertions.assertNull(result.nextCursor());
         })
         .verifyComplete();
 
@@ -215,12 +229,15 @@ class MessageRepositoryExtendedImplTest {
         // Given
         String messageId = "MSG123";
         Document countResult = new Document("totaleMessaggi", 1L);
+
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setMessageId(messageId);
         
         when(reactiveMongoTemplate.aggregate(any(Aggregation.class), eq("message"), eq(Document.class)))
                 .thenReturn(Flux.just(countResult));
 
         // When
-        Mono<Long> result = messageRepository.countMessages(messageId, null, null, null, null);
+        Mono<Long> result = messageRepository.countMessages(params);
 
         // Then
         StepVerifier.create(result)
@@ -247,6 +264,8 @@ class MessageRepositoryExtendedImplTest {
 
         // Given
         int size = 20;
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setSize(size);
 
         when(reactiveMongoTemplate.find(any(Query.class),eq(Message.class)))
                 .thenReturn(Flux.empty());
@@ -256,21 +275,11 @@ class MessageRepositoryExtendedImplTest {
 
         // When
         StepVerifier.create(
-                messageRepository.searchMessages(
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        size,
-                        null
-                )
-        )
+                messageRepository.searchMessages(params,null, size, null))
         .assertNext(result -> {
-            assertTrue(result.content().isEmpty());
-            assertFalse(result.hasNext());
-            assertNull(result.nextCursor());
+            Assertions.assertTrue(result.content().isEmpty());
+            Assertions.assertFalse(result.hasNext());
+            Assertions.assertNull(result.nextCursor());
         })
         .verifyComplete();
 
@@ -316,6 +325,9 @@ class MessageRepositoryExtendedImplTest {
         Message msg3 = new Message();
         msg3.setId(new ObjectId().toHexString());
         msg3.setMessageRegistrationDate("2026-10-01T10:00:00");
+
+        MessageSearchParameter params = new MessageSearchParameter();
+        params.setSize(size);
         
         when(reactiveMongoTemplate.find(any(Query.class), eq(Message.class)))
                 .thenReturn(Flux.just(msg1, msg2, msg3));
@@ -325,9 +337,7 @@ class MessageRepositoryExtendedImplTest {
                 .thenReturn(expectedEncodedCursor);
 
         // When
-        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(
-                null, null, null, null, null, null, size, null
-        );
+        Mono<MessageKeysetPage<Message>> result = messageRepository.searchMessages(params, null, size, null);
 
         // Then
         StepVerifier.create(result)

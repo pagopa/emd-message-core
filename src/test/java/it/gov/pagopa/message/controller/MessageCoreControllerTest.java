@@ -4,17 +4,19 @@ import it.gov.pagopa.common.web.exception.ErrorManager;
 import it.gov.pagopa.common.web.exception.ValidationExceptionHandler;
 import it.gov.pagopa.message.config.JacksonConfig;
 import it.gov.pagopa.message.dto.MessageDTO;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.message.dto.ResponseMessageDTO;
 import it.gov.pagopa.message.enums.Channel;
+import it.gov.pagopa.message.enums.MessageState;
 import it.gov.pagopa.message.enums.WorkflowType;
 import it.gov.pagopa.message.service.MessageCoreServiceImpl;
 
-import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -527,10 +529,7 @@ class MessageCoreControllerTest {
                 .nextCursor(null)
                 .build();
 
-        Mockito.when(messageCoreService.searchMessages(
-                Mockito.any(), Mockito.any(), Mockito.any(), 
-                Mockito.any(), Mockito.any(), 
-                Mockito.any(), Mockito.anyInt(), Mockito.any()))
+        Mockito.when(messageCoreService.searchMessages(Mockito.any(MessageSearchParameter.class)))
             .thenReturn(Mono.just(expectedResponse));
 
         webTestClient.get()
@@ -552,14 +551,13 @@ class MessageCoreControllerTest {
         String messageId = "msgId";
         String recipientId = "recipientId";
         String originId = "originId";
-        String startDate = "2023-12-25T10:30:00";
-        String endDate = "2023-12-26T10:30:00";
+        MessageState messageState = MessageState.ERROR;
+        String startDate = "2026-10-25T10:30:00";
+        String endDate = "2026-10-26T10:30:00";
         String cursor = "cursor";
+        List<String> fields = List.of("messageId", "recipientId");
 
-        Mockito.when(messageCoreService.searchMessages(
-                Mockito.eq(messageId), Mockito.eq(recipientId), Mockito.eq(originId),
-                Mockito.any(LocalDateTime.class), Mockito.any(LocalDateTime.class),
-                Mockito.eq(cursor), Mockito.eq(10), Mockito.any()))
+         Mockito.when(messageCoreService.searchMessages(Mockito.any(MessageSearchParameter.class)))
             .thenReturn(Mono.just(MessageSearchResponseDTO.builder().build()));
 
         webTestClient.get()
@@ -568,6 +566,7 @@ class MessageCoreControllerTest {
                         .queryParam("messageId", messageId)
                         .queryParam("recipientId", recipientId)
                         .queryParam("originId", originId)
+                        .queryParam("state", "ERROR")
                         .queryParam("startDate", startDate)
                         .queryParam("endDate", endDate)
                         .queryParam("cursor",cursor)
@@ -577,16 +576,27 @@ class MessageCoreControllerTest {
                 .expectStatus().isOk();
 
         // Verifichiamo che i parametri siano stati passati correttamente al service
-        Mockito.verify(messageCoreService).searchMessages(
-                Mockito.eq(messageId), 
-                Mockito.eq(recipientId), 
-                Mockito.eq(originId), 
-                Mockito.any(LocalDateTime.class), 
-                Mockito.any(LocalDateTime.class), 
-                Mockito.eq(cursor), 
-                Mockito.eq(10), 
-                Mockito.argThat(list -> list.contains("messageId") && list.contains("recipientId"))
-        );
+        ArgumentCaptor<MessageSearchParameter> captor = ArgumentCaptor.forClass(MessageSearchParameter.class);
+        
+        Mockito.verify(messageCoreService).searchMessages(captor.capture());
+
+        MessageSearchParameter capturedParams = captor.getValue();
+
+        // Verifiche sui campi dell'oggetto catturato
+        Assertions.assertEquals(messageId, capturedParams.getMessageId());
+        Assertions.assertEquals(recipientId, capturedParams.getRecipientId());
+        Assertions.assertEquals(originId, capturedParams.getOriginId());
+        Assertions.assertEquals(messageState, capturedParams.getState());
+        Assertions.assertEquals(cursor, capturedParams.getCursor());
+        Assertions.assertEquals(10, capturedParams.getSize()); // Default value
+        
+        // Verifica delle date (parsing automatico di Spring tramite @DateTimeFormat)
+        Assertions.assertNotNull(capturedParams.getStartDate());
+        Assertions.assertEquals(2026, capturedParams.getStartDate().getYear());
+        Assertions.assertEquals(10, capturedParams.getStartDate().getMonthValue());
+        
+        // Verifica della lista fields
+        Assertions.assertTrue(capturedParams.getFields().containsAll(fields));
     }
 
     @Test
@@ -594,17 +604,16 @@ class MessageCoreControllerTest {
         int size = 20;
         String cursor = "test-cursor";
 
-        Mockito.when(messageCoreService.searchMessages(
-                Mockito.any(), Mockito.any(), Mockito.any(), 
-                Mockito.any(), Mockito.any(), 
-                Mockito.eq(cursor), Mockito.eq(size), Mockito.any()))
-            .thenReturn(Mono.just(MessageSearchResponseDTO.builder()
-                    .size(size)
-                    .totalElements(100L)
-                    .totalPages(5)
-                    .hasNext(true)
-                    .nextCursor("next-cursor")
-                    .build()));
+        MessageSearchResponseDTO expectedResponse = MessageSearchResponseDTO.builder()
+                .size(size)
+                .totalElements(100L)
+                .totalPages(5)
+                .hasNext(true)
+                .nextCursor("next-cursor")
+                .build();
+
+        Mockito.when(messageCoreService.searchMessages(Mockito.any(MessageSearchParameter.class)))
+            .thenReturn(Mono.just(expectedResponse));
 
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -613,7 +622,22 @@ class MessageCoreControllerTest {
                         .queryParam("size", size)
                         .build())
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isOk()
+                .expectBody(MessageSearchResponseDTO.class)
+                .consumeWith(response -> {
+                    MessageSearchResponseDTO body = response.getResponseBody();
+                    Assertions.assertNotNull(body);
+                    Assertions.assertEquals(size, body.getSize());
+                    Assertions.assertEquals("next-cursor", body.getNextCursor());
+                });
+
+        // Verifichiamo che i parametri di paginazione siano stati catturati correttamente dal DTO
+        ArgumentCaptor<MessageSearchParameter> captor = ArgumentCaptor.forClass(MessageSearchParameter.class);
+        
+        Mockito.verify(messageCoreService).searchMessages(captor.capture());
+        
+        Assertions.assertEquals(cursor, captor.getValue().getCursor());
+        Assertions.assertEquals(size, captor.getValue().getSize());
     }
 
     // ==================== GET MESSAGE VALIDATIONS ====================
@@ -637,7 +661,7 @@ class MessageCoreControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(it.gov.pagopa.message.dto.ResponseMessageDTO.class)
+                .expectBody(ResponseMessageDTO.class)
                 .value(response -> {
                     Assertions.assertNotNull(response);
                     Assertions.assertEquals(testMessageId, response.getMessageId());

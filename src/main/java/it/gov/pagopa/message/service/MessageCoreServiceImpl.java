@@ -10,6 +10,7 @@ import it.gov.pagopa.message.dto.MessageCursorCodec;
 import it.gov.pagopa.message.dto.MessageDTO;
 import it.gov.pagopa.message.dto.MessageKeysetPage;
 import it.gov.pagopa.message.dto.MessageSearchCursor;
+import it.gov.pagopa.message.dto.MessageSearchParameter;
 import it.gov.pagopa.message.dto.ResponseMessageMapperObjectToDTO;
 import it.gov.pagopa.message.model.Message;
 import it.gov.pagopa.message.dto.MessageSearchResponseDTO;
@@ -26,7 +27,6 @@ import reactor.core.publisher.Mono;
 import static it.gov.pagopa.common.utils.CommonUtilities.createSHA256;
 import static it.gov.pagopa.common.utils.CommonUtilities.inputSanitization;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -123,7 +123,7 @@ public class MessageCoreServiceImpl implements MessageCoreService {
     }
 
     /**
-     *Performs a keyset-paginated search for messages applying optional filters
+     * Performs a keyset-paginated search for messages applying optional filters
      * and field projection.
      * <p>
      * The internal logic executes the following steps:
@@ -131,19 +131,11 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      *     <li>Normalizes pagination parameters (cursor and size) to ensure they fall within safe bounds.</li>
      *     <li>Resolves and validates the requested {@code fields} for response projection.</li>
      *     <li>Executes concurrent reactive calls for data retrieval and total record count using {@link Mono#zip}.</li>
-     *     <li>Maps database entities to {@link MessageDTO} objects, including only the allowed fields.</li>
+     *     <li>Maps database entities to {@link ResponseMessageDTO} objects, including only the allowed fields.</li>
      *     <li>Calculates pagination metadata such as total elements and total pages.</li>
      * </ul>
-     * </p>
      *
-     * @param messageId     optional unique message identifier (exact match)
-     * @param recipientId   optional recipient identifier (exact match)
-     * @param originId      optional source system identifier (exact match)
-     * @param startDate     optional inclusive start date for the registration range
-     * @param endDate       optional inclusive end date for the registration range
-     * @param cursor        cursor identifying the last element of the previous page
-     * @param size          the requested number of items per page (subject to capping)
-     * @param fields        list of specific fields to include in the response; if null or empty, default fields are used
+     * @param params the object containing all search criteria, pagination cursor/size and requested fields
      * @return a {@link Mono} emitting the {@link MessageSearchResponseDTO} containing the results and pagination metadata
      * @throws it.gov.pagopa.message.config.ExceptionMap (or specific exception) if the requested {@code fields} are invalid
      * 
@@ -151,46 +143,41 @@ public class MessageCoreServiceImpl implements MessageCoreService {
      * @see it.gov.pagopa.message.repository.MessageRepository#countMessages
      */
     @Override
-    public Mono<MessageSearchResponseDTO> searchMessages(String messageId, String recipientId, String originId, LocalDateTime startDate, LocalDateTime endDate, String cursor, int size, List<String> fields) {
-
+    public Mono<MessageSearchResponseDTO> searchMessages(MessageSearchParameter params) {
         return Mono.defer(() -> {
-            int safeSize = normalizePageSize(size);
-            Set<String> safeFields = resolveSearchFields(fields);
-
-            MessageSearchCursor decodedCursor = null;
-
-            if (StringUtils.hasText(cursor)) {
-                decodedCursor = cursorCodec.decode(cursor);
-            }
+            int safeSize = normalizePageSize(params.getSize() != null ? params.getSize() : defaultPageSize);
+            Set<String> safeFields = resolveSearchFields(params.getFields());
             
+            MessageSearchCursor decodedCursor = null;
+            if (StringUtils.hasText(params.getCursor())) {
+                decodedCursor = cursorCodec.decode(params.getCursor());
+            }
+
             log.info("[MESSAGE-CORE][SEARCH] Received search request - messageIdPresent: {}, startDatePresent: {}, endDatePresent: {}, cursorPresent: {}, size: {}, fields: {}",
-                    messageId != null && !messageId.isBlank(), startDate != null, endDate != null, decodedCursor != null, safeSize, safeFields);
-                    
-            Mono<MessageKeysetPage<Message>> contentMono = messageRepository.searchMessages(messageId, recipientId, originId, startDate, endDate, decodedCursor, safeSize, safeFields);
+                    StringUtils.hasText(params.getMessageId()), params.getStartDate() != null, params.getEndDate() != null, decodedCursor != null, safeSize, safeFields);
 
-            Mono<Long> countMono = messageRepository.countMessages(messageId, recipientId, originId, startDate, endDate);
+            return Mono.zip(
+                    messageRepository.searchMessages(params, decodedCursor, safeSize, safeFields),
+                    messageRepository.countMessages(params)
+            ).map(tuple -> {
+                MessageKeysetPage<Message> pageResult = tuple.getT1();
+                long totalElements = tuple.getT2();
+                
+                List<ResponseMessageDTO> content = pageResult.content().stream()
+                        .map(m -> messageMapperObjectToDTO.map(m, safeFields))
+                        .toList();
 
-            return Mono.zip(contentMono, countMono)
-                    .map(tuple -> {
-                        MessageKeysetPage<Message> pageResult = tuple.getT1();
-                        long totalElements = tuple.getT2();
+                int totalPages = (int) Math.ceil((double) totalElements / safeSize);
 
-                        List<ResponseMessageDTO> content = pageResult.content()
-                                                                        .stream()
-                                                                        .map(message ->messageMapperObjectToDTO.map(message, safeFields))
-                                                                        .toList();
-
-                        int totalPages = (int) Math.ceil((double) totalElements / safeSize);
-
-                        return MessageSearchResponseDTO.builder()
-                                .content(content)
-                                .size(safeSize)
-                                .totalElements(totalElements)
-                                .totalPages(totalPages)
-                                .hasNext(pageResult.hasNext())
-                                .nextCursor(pageResult.nextCursor())
-                                .build();
-                    });
+                return MessageSearchResponseDTO.builder()
+                        .content(content)
+                        .size(safeSize)
+                        .totalElements(totalElements)
+                        .totalPages(totalPages)
+                        .hasNext(pageResult.hasNext())
+                        .nextCursor(pageResult.nextCursor())
+                        .build();
+            });
         })
         .doOnSuccess(result -> log.info("[MESSAGE-CORE][SEARCH] Search completed - returned {} elements, totalElements: {}, totalPages: {}",
                 result.getContent().size(), result.getTotalElements(), result.getTotalPages()))
