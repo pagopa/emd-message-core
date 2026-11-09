@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/pagopa/emd-message-core/compare/v1.8.0...v1.8.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* [MMC-1315] Tpp refactor ([#141](https://github.com/pagopa/emd-message-core/issues/141)) ([e705a0f](https://github.com/pagopa/emd-message-core/commit/e705a0f20ae9843038064852e1f1612c113f9e4c))
+
 # [1.8.0](https://github.com/pagopa/emd-message-core/compare/v1.7.0...v1.8.0) (2026-11-03)
 
 
