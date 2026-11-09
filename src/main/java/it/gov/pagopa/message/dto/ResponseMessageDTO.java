@@ -48,8 +48,6 @@ public class ResponseMessageDTO {
     private Channel channel;
 
     private WorkflowType workflowType;
-
-    private String idPsp;
     
     private String messageRegistrationDate;
 

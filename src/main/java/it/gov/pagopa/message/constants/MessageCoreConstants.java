@@ -74,7 +74,6 @@ public class MessageCoreConstants {
         public static final String ANALOG_SCHEDULING_DATE = "analogSchedulingDate";
         public static final String CHANNEL = "channel";
         public static final String WORKFLOW_TYPE = "workflowType";
-        public static final String ID_PSP = "idPsp";
 
 
         /**
@@ -83,7 +82,7 @@ public class MessageCoreConstants {
         public static final Set<String> ALLOWED = Set.of(
                 MESSAGE_STATE, MESSAGE_ID, RECIPIENT_ID, TRIGGER_DATE_TIME, SENDER_DESCRIPTION,
                 MESSAGE_URL, ORIGIN_ID, TITLE, CONTENT, ASSOCIATED_PAYMENT,
-                ANALOG_SCHEDULING_DATE, CHANNEL, WORKFLOW_TYPE, ID_PSP, ENTITY_ID, REGISTRATION_DATE
+                ANALOG_SCHEDULING_DATE, CHANNEL, WORKFLOW_TYPE, ENTITY_ID, REGISTRATION_DATE
         );
 
         /**
@@ -91,7 +90,7 @@ public class MessageCoreConstants {
          * provided, matching the columns shown in the message grid.
          */
         public static final Set<String> DEFAULT_GRID_FIELDS = Set.of(
-                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, SENDER_DESCRIPTION, 
+                MESSAGE_STATE, ORIGIN_ID, MESSAGE_ID, RECIPIENT_ID, SENDER_DESCRIPTION,
                 WORKFLOW_TYPE, REGISTRATION_DATE, ENTITY_ID
         );
 
