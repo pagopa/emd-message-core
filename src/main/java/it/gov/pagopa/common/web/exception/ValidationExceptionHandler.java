@@ -1,5 +1,10 @@
 package it.gov.pagopa.common.web.exception;
 
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.exc.InvalidFormatException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import java.util.Arrays;
@@ -32,6 +37,8 @@ import java.util.stream.Collectors;
 public class ValidationExceptionHandler {
 
     private final ErrorDTO templateValidationErrorDTO;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public ValidationExceptionHandler(@Nullable ErrorDTO templateValidationErrorDTO) {
         this.templateValidationErrorDTO = Optional.ofNullable(templateValidationErrorDTO)
@@ -220,6 +227,32 @@ public class ValidationExceptionHandler {
         log.debug("Something went wrong while converting request parameter", ex);
 
         return new ErrorDTO( templateValidationErrorDTO.getCode(), message);
+    }
+
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<ErrorDTO> handleDownstream(WebClientResponseException ex, ServerHttpRequest request) {
+        HttpStatusCode status = ex.getStatusCode();
+        log.warn("Downstream call failed with status {} handling request {}",
+            status.value(), ErrorManager.getRequestDetails(request));
+
+        if (status.is4xxClientError()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorDTO("INVALID_REQUEST", "Request rejected by downstream service"));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            .body(new ErrorDTO("DOWNSTREAM_ERROR", "Downstream service error"));
+    }
+
+    private ErrorDTO extractDownstreamError(WebClientResponseException ex) {
+        try {
+            JsonNode node = MAPPER.readTree(ex.getResponseBodyAsByteArray());
+            if (node.hasNonNull("code") && node.hasNonNull("message")) {
+                return new ErrorDTO(node.get("code").asText(), node.get("message").asText());
+            }
+        } catch (Exception e) {
+            log.debug("Unable to parse downstream error body", e);
+        }
+        return new ErrorDTO("INVALID_REQUEST", "Request rejected by downstream service");
     }
 
 }
