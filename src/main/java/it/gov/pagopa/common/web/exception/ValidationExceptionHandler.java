@@ -39,8 +39,6 @@ public class ValidationExceptionHandler {
 
     private final ErrorDTO templateValidationErrorDTO;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
     public ValidationExceptionHandler(@Nullable ErrorDTO templateValidationErrorDTO) {
         this.templateValidationErrorDTO = Optional.ofNullable(templateValidationErrorDTO)
                 .orElse(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Invalid request"));
