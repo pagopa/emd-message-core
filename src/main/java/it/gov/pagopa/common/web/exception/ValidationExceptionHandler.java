@@ -1,5 +1,6 @@
 package it.gov.pagopa.common.web.exception;
 
+import it.gov.pagopa.common.utils.CommonConstants;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -42,7 +43,7 @@ public class ValidationExceptionHandler {
 
     public ValidationExceptionHandler(@Nullable ErrorDTO templateValidationErrorDTO) {
         this.templateValidationErrorDTO = Optional.ofNullable(templateValidationErrorDTO)
-                .orElse(new ErrorDTO("INVALID_REQUEST", "Invalid request"));
+                .orElse(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Invalid request"));
     }
 
     /**
@@ -237,22 +238,10 @@ public class ValidationExceptionHandler {
 
         if (status.is4xxClientError()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorDTO("INVALID_REQUEST", "Request rejected by downstream service"));
+                .body(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Request rejected by downstream service"));
         }
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
             .body(new ErrorDTO("DOWNSTREAM_ERROR", "Downstream service error"));
-    }
-
-    private ErrorDTO extractDownstreamError(WebClientResponseException ex) {
-        try {
-            JsonNode node = MAPPER.readTree(ex.getResponseBodyAsByteArray());
-            if (node.hasNonNull("code") && node.hasNonNull("message")) {
-                return new ErrorDTO(node.get("code").asText(), node.get("message").asText());
-            }
-        } catch (Exception e) {
-            log.debug("Unable to parse downstream error body", e);
-        }
-        return new ErrorDTO("INVALID_REQUEST", "Request rejected by downstream service");
     }
 
 }
