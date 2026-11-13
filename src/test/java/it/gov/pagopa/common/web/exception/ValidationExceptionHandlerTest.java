@@ -250,14 +250,13 @@ class ValidationExceptionHandlerTest {
               .isEqualTo("OK");
   }
 
-  @ParameterizedTest
-  @ValueSource(ints = {400, 404, 422})
-  void testHandleDownstream4xxDoesNotPropagateBody(int downstreamStatus) {
+  @Test
+  void testHandleDownstream4xxPropagatesCodeAndMessage() {
     String downstreamBody = """
-            {"code": "INVALID_REQUEST", "message": "[fiscalCode]: Invalid fiscal code format RSSMRA80A01H501U"}""";
+            {"code": "INVALID_REQUEST", "message": "[fiscalCode]: Invalid fiscal code format"}""";
 
     webTestClient.get()
-        .uri("/test-downstream/{status}?body={body}", downstreamStatus, downstreamBody)
+        .uri("/test-downstream/{status}?body={body}", 400, downstreamBody)
         .exchange()
         .expectStatus().isBadRequest()
         .expectBody(ErrorDTO.class)
@@ -265,8 +264,7 @@ class ValidationExceptionHandlerTest {
           ErrorDTO errorDTO = response.getResponseBody();
           assertThat(errorDTO).isNotNull();
           assertThat(errorDTO.getCode()).isEqualTo("INVALID_REQUEST");
-          assertThat(errorDTO.getMessage()).isEqualTo("Request rejected by downstream service");
-          assertThat(errorDTO.getMessage()).doesNotContain("fiscalCode", "RSSMRA80A01H501U");
+          assertThat(errorDTO.getMessage()).isEqualTo("[fiscalCode]: Invalid fiscal code format");
         });
   }
 

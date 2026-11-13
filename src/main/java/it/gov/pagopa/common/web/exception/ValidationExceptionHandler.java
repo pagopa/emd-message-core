@@ -39,6 +39,8 @@ public class ValidationExceptionHandler {
 
     private final ErrorDTO templateValidationErrorDTO;
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     public ValidationExceptionHandler(@Nullable ErrorDTO templateValidationErrorDTO) {
         this.templateValidationErrorDTO = Optional.ofNullable(templateValidationErrorDTO)
                 .orElse(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Invalid request"));
@@ -235,11 +237,22 @@ public class ValidationExceptionHandler {
             status.value(), ErrorManager.getRequestDetails(request));
 
         if (status.is4xxClientError()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Request rejected by downstream service"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(extractDownstreamError(ex));
         }
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
             .body(new ErrorDTO("DOWNSTREAM_ERROR", "Downstream service error"));
+    }
+
+    private ErrorDTO extractDownstreamError(WebClientResponseException ex) {
+        try {
+            JsonNode node = MAPPER.readTree(ex.getResponseBodyAsByteArray());
+            if (node.hasNonNull("code") && node.hasNonNull("message")) {
+                return new ErrorDTO(node.get("code").asString(), node.get("message").asString());
+            }
+        } catch (Exception e) {
+            log.debug("Unable to parse downstream error body");
+        }
+        return new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Request rejected by downstream service");
     }
 
 }
