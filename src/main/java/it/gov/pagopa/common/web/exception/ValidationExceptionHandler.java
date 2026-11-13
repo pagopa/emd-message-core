@@ -1,5 +1,9 @@
 package it.gov.pagopa.common.web.exception;
 
+import it.gov.pagopa.common.utils.CommonConstants;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import java.util.Arrays;
@@ -35,7 +39,7 @@ public class ValidationExceptionHandler {
 
     public ValidationExceptionHandler(@Nullable ErrorDTO templateValidationErrorDTO) {
         this.templateValidationErrorDTO = Optional.ofNullable(templateValidationErrorDTO)
-                .orElse(new ErrorDTO("INVALID_REQUEST", "Invalid request"));
+                .orElse(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Invalid request"));
     }
 
     /**
@@ -221,5 +225,19 @@ public class ValidationExceptionHandler {
 
         return new ErrorDTO( templateValidationErrorDTO.getCode(), message);
     }
+
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<ErrorDTO> handleDownstream(WebClientResponseException ex, ServerHttpRequest request) {
+        HttpStatusCode status = ex.getStatusCode();
+        log.warn("Downstream call failed with status {} handling request {}",
+            status.value(), ErrorManager.getRequestDetails(request));
+
+        if (status.is4xxClientError()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorManager.extractError(ex));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            .body(new ErrorDTO("DOWNSTREAM_ERROR", "Downstream service error"));
+    }
+
 
 }

@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import it.gov.pagopa.common.utils.MemoryAppender;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 
 import org.bson.BsonDocument;
@@ -13,11 +14,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
 import org.springframework.data.mongodb.UncategorizedMongoDbException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +34,7 @@ import com.mongodb.MongoCommandException;
 import com.mongodb.ServerAddress;
 
 import java.util.regex.Pattern;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @WebFluxTest(value = {
         ErrorManagerTest.TestController.class})
@@ -39,6 +44,15 @@ class ErrorManagerTest {
     private static final String ERROR_CODE = "Error";
     private static final String SOME_ERROR_MESSAGE = "Something gone wrong";
     private static final String CLIENT_ERROR_MESSAGE = "Error ClientExceptionWithBody";
+
+    private static WebClientResponseException downstreamException(int status, String body) {
+        return WebClientResponseException.create(
+            status,
+            "Downstream error",
+            HttpHeaders.EMPTY,
+            body == null ? new byte[0] : body.getBytes(StandardCharsets.UTF_8),
+            StandardCharsets.UTF_8);
+    }
 
     @Autowired
     private WebTestClient webTestClient;
@@ -274,6 +288,56 @@ class ErrorManagerTest {
                 .expectBody()
                 .jsonPath("$.code").isEqualTo(ERROR_CODE) // "Error"
                 .jsonPath("$.message").isEqualTo(SOME_ERROR_MESSAGE); // "Something gone wrong"
+    }
+
+    @Test
+    void toClientException4xxIsRenderedWithDownstreamCodeAndMessage() {
+        String body = "{\"code\": \"INVALID_REQUEST\", \"message\": \"[fiscalCode]: Invalid fiscal code format\"}";
+
+        Mockito.doThrow(ErrorManager.toClientException(downstreamException(400, body)))
+            .when(testControllerSpy).testEndpoint();
+
+        webTestClient.get()
+            .uri("/test")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("INVALID_REQUEST")
+            .jsonPath("$.message").isEqualTo("[fiscalCode]: Invalid fiscal code format");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "not-json", "{\"foo\": \"bar\"}", "{\"code\": \"INVALID_REQUEST\"}"})
+    void toClientException4xxFallbackIsRendered(String body) {
+        Mockito.doThrow(ErrorManager.toClientException(downstreamException(422, body)))
+            .when(testControllerSpy).testEndpoint();
+
+        webTestClient.get()
+            .uri("/test")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("INVALID_REQUEST")
+            .jsonPath("$.message").isEqualTo("Request rejected by downstream service");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {500, 502, 503})
+    void toClientException5xxIsRenderedAsBadGateway(int status) {
+        Mockito.doThrow(ErrorManager.toClientException(
+                downstreamException(status, "{\"secret\": \"internal\"}")))
+            .when(testControllerSpy).testEndpoint();
+
+        webTestClient.get()
+            .uri("/test")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("DOWNSTREAM_ERROR")
+            .jsonPath("$.message").isEqualTo("Downstream service error");
     }
 
 }
