@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,9 +86,12 @@ class ServiceExceptionHandlerTest {
         }
 
         @GetMapping("/test/downstream-unreachable")
-        String testDownstreamUnreachable() {
+        String testDownstreamUnreachable(@RequestParam(defaultValue = "false") boolean timeout) {
+            Throwable cause = timeout
+                ? io.netty.handler.timeout.ReadTimeoutException.INSTANCE
+                : new ConnectException("Connection refused");
             throw new WebClientRequestException(
-                new ConnectException("Connection refused"),
+                cause,
                 HttpMethod.GET,
                 URI.create("http://internal-host:8080/secret/path"),
                 HttpHeaders.EMPTY);
@@ -165,7 +169,7 @@ class ServiceExceptionHandlerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {500, 502, 503})
+    @ValueSource(ints = {500, 502, 503, 504})
     void testHandleDownstream5xx(int downstreamStatus) {
         webTestClient.get()
             .uri("/test/downstream/{status}?body={body}", downstreamStatus, "{\"secret\": \"internal\"}")
@@ -176,14 +180,18 @@ class ServiceExceptionHandlerTest {
             .jsonPath("$.message").isEqualTo("Downstream service error");
     }
 
-    @Test
-    void testHandleDownstreamUnreachable() {
+    @ParameterizedTest
+    @CsvSource({
+        "false, 502, DOWNSTREAM_UNREACHABLE, Downstream service unreachable",
+        "true,  504, DOWNSTREAM_TIMEOUT,     Downstream service timed out"
+    })
+    void testHandleDownstreamUnreachable(boolean timeout, int status, String code, String message) {
         webTestClient.get()
-            .uri("/test/downstream-unreachable")
+            .uri("/test/downstream-unreachable?timeout={timeout}", timeout)
             .exchange()
-            .expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
+            .expectStatus().isEqualTo(status)
             .expectBody()
-            .jsonPath("$.code").isEqualTo("DOWNSTREAM_UNREACHABLE")
-            .jsonPath("$.message").isEqualTo("Downstream service unreachable");
+            .jsonPath("$.code").isEqualTo(code)
+            .jsonPath("$.message").isEqualTo(message);
     }
 }
