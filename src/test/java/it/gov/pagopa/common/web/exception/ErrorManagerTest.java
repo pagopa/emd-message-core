@@ -5,7 +5,10 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import it.gov.pagopa.common.utils.MemoryAppender;
+import java.net.ConnectException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 import org.bson.BsonDocument;
@@ -15,6 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
@@ -22,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
 import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +39,7 @@ import com.mongodb.MongoCommandException;
 import com.mongodb.ServerAddress;
 
 import java.util.regex.Pattern;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @WebFluxTest(value = {
@@ -338,6 +344,42 @@ class ErrorManagerTest {
             .expectBody()
             .jsonPath("$.code").isEqualTo("DOWNSTREAM_ERROR")
             .jsonPath("$.message").isEqualTo("Downstream service error");
+    }
+
+    private static WebClientRequestException requestException(Throwable cause) {
+        return new WebClientRequestException(cause, HttpMethod.GET,
+            URI.create("http://internal-host:8080/secret/path"), HttpHeaders.EMPTY);
+    }
+
+    @Test
+    void toClientExceptionUnreachableIsRenderedAsBadGateway() {
+        Mockito.doThrow(ErrorManager.toClientException(requestException(new ConnectException("Connection refused"))))
+            .when(testControllerSpy).testEndpoint();
+
+        webTestClient.get().uri("/test").accept(MediaType.APPLICATION_JSON).exchange()
+            .expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("DOWNSTREAM_UNREACHABLE")
+            .jsonPath("$.message").isEqualTo("Downstream service unreachable");
+    }
+
+    @ParameterizedTest
+    @MethodSource("timeoutCauses")
+    void toClientExceptionTimeoutIsRenderedAsGatewayTimeout(Throwable cause) {
+        Mockito.doThrow(ErrorManager.toClientException(requestException(cause)))
+            .when(testControllerSpy).testEndpoint();
+
+        webTestClient.get().uri("/test").accept(MediaType.APPLICATION_JSON).exchange()
+            .expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("DOWNSTREAM_UNREACHABLE");
+    }
+
+    static Stream<Throwable> timeoutCauses() {
+        return Stream.of(
+            new java.util.concurrent.TimeoutException("timeout"),
+            io.netty.handler.timeout.ReadTimeoutException.INSTANCE,
+            new RuntimeException("wrapper", new java.util.concurrent.TimeoutException())); // catena annidata
     }
 
 }

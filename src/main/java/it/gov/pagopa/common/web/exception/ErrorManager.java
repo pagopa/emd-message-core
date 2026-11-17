@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.mongodb.MongoCommandException;
 
 import java.util.Optional;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -177,14 +177,21 @@ public class ErrorManager {
         "Request rejected by downstream service");
   }
 
-  public static RuntimeException toClientException(WebClientResponseException ex) {
-    HttpStatusCode status = ex.getStatusCode();
-    if (status.is4xxClientError()) {
-      ErrorDTO downstream = extractError(ex);
+  public static RuntimeException toClientException(WebClientException ex) {
+    if (ex instanceof WebClientResponseException responseEx) {
+      if (responseEx.getStatusCode().is4xxClientError()) {
+        ErrorDTO body = extractError(responseEx);
+        return new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, body.getCode(), body.getMessage());
+      }
       return new ClientExceptionWithBody(
-          HttpStatus.BAD_REQUEST, downstream.getCode(), downstream.getMessage());
+          HttpStatus.BAD_GATEWAY, "DOWNSTREAM_ERROR", "Downstream service error");
     }
+
+    boolean timeout = ex.contains(java.util.concurrent.TimeoutException.class)
+        || ex.contains(io.netty.handler.timeout.TimeoutException.class);
+
     return new ClientExceptionWithBody(
-        HttpStatus.BAD_GATEWAY, "DOWNSTREAM_ERROR", "Downstream service error");
+        timeout ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY,
+        "DOWNSTREAM_UNREACHABLE", "Downstream service unreachable");
   }
 }
