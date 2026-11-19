@@ -10,6 +10,7 @@ public class CommonConstants {
 
     public static final class ExceptionCode {
         public static final String GENERIC_ERROR = "GENERIC_ERROR";
+        public static final String INVALID_REQUEST = "INVALID_REQUEST";
         private ExceptionCode() {}
     }
 

@@ -1,10 +1,13 @@
 package it.gov.pagopa.message.connector;
 
+
 import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
+import it.gov.pagopa.common.web.exception.ErrorManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
@@ -39,12 +42,14 @@ public class CitizenConnectorImpl implements CitizenConnector {
     @Override
     public Mono<String> checkFiscalCode(String fiscalCode) {
         return webClient.get()
-                .uri("/emd/citizen/filter/{fiscalCode}", fiscalCode)
-                .retrieve()
-                .bodyToMono(String.class)
-                .retryWhen(WebClientRetrySpecs.transientNetwork())
-                .doOnError(ex -> log.error(
-                        "[CITIZEN-CONNECTOR] GET /emd/citizen/filter/{{fiscalCode}} failed: {}",
-                        ex.getMessage()));
+            .uri("/emd/citizen/filter/{fiscalCode}", fiscalCode)
+            .retrieve()
+            .bodyToMono(String.class)
+            .retryWhen(WebClientRetrySpecs.transientNetwork())
+            .onErrorMap(WebClientException.class, ErrorManager::toClientException)
+            .doOnError(ex -> log.error(
+                "[CITIZEN-CONNECTOR] GET /emd/citizen/filter/{{fiscalCode}} failed: {}",
+                ex.getMessage()));
     }
+
 }

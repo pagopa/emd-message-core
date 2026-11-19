@@ -2,6 +2,9 @@ package it.gov.pagopa.common.web.exception;
 
 import ch.qos.logback.classic.LoggerContext;
 import it.gov.pagopa.common.utils.MemoryAppender;
+import java.net.ConnectException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,15 +12,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @WebFluxTest(value = {
         ServiceExceptionHandlerTest.TestController.class})
@@ -58,6 +70,37 @@ class ServiceExceptionHandlerTest {
         String testCustomBody() {
             throw new ServiceException("DUMMY_CODE", "DUMMY_MESSAGE", new ErrorPayloadTest("RESPONSE",0), true, null);
         }
+
+        @GetMapping("/test/downstream/{status}")
+        String testDownstream(
+            @PathVariable
+            int status,
+            @RequestParam(required = false)
+            String body) {
+            throw WebClientResponseException.create(
+                status,
+                "Downstream error",
+                HttpHeaders.EMPTY,
+                body == null ? new byte[0] : body.getBytes(StandardCharsets.UTF_8),
+                StandardCharsets.UTF_8);
+        }
+
+        @GetMapping("/test/downstream-unreachable")
+        String testDownstreamUnreachable(@RequestParam(defaultValue = "refused") String cause) {
+            Throwable throwable = switch (cause) {
+                case "read-timeout" -> io.netty.handler.timeout.ReadTimeoutException.INSTANCE;
+                case "connect-timeout" -> new io.netty.channel.ConnectTimeoutException("connection timed out");
+                case "java-timeout" -> new java.util.concurrent.TimeoutException("timeout");
+                case "nested-timeout" -> new RuntimeException("wrapper", new java.util.concurrent.TimeoutException());
+                default -> new ConnectException("Connection refused");
+            };
+            throw new WebClientRequestException(
+                throwable,
+                HttpMethod.GET,
+                URI.create("http://internal-host:8080/secret/path"),
+                HttpHeaders.EMPTY);
+        }
+
     }
 
     @Data
@@ -101,5 +144,61 @@ class ServiceExceptionHandlerTest {
                 "it.gov.pagopa.common.web.exception.ServiceExceptionHandlerTest$TestController.testCustomBody"
 
         );
+    }
+
+    @Test
+    void testHandleDownstream4xxPropagatesCodeAndMessage() {
+        String downstreamBody = """
+            {"code": "INVALID_REQUEST", "message": "[fiscalCode]: Invalid fiscal code format"}""";
+
+        webTestClient.get()
+            .uri("/test/downstream/{status}?body={body}", 400, downstreamBody)
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("INVALID_REQUEST")
+            .jsonPath("$.message").isEqualTo("[fiscalCode]: Invalid fiscal code format");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "not-json", "{\"foo\": \"bar\"}"})
+    void testHandleDownstream4xxFallback(String downstreamBody) {
+        webTestClient.get()
+            .uri("/test/downstream/{status}?body={body}", 422, downstreamBody)
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("INVALID_REQUEST")
+            .jsonPath("$.message").isEqualTo("Request rejected by downstream service");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {500, 502, 503, 504})
+    void testHandleDownstream5xx(int downstreamStatus) {
+        webTestClient.get()
+            .uri("/test/downstream/{status}?body={body}", downstreamStatus, "{\"secret\": \"internal\"}")
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("DOWNSTREAM_ERROR")
+            .jsonPath("$.message").isEqualTo("Downstream service error");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "refused,         502, DOWNSTREAM_UNREACHABLE, Downstream service unreachable",
+        "java-timeout,    504, DOWNSTREAM_TIMEOUT,     Downstream service timed out",
+        "read-timeout,    504, DOWNSTREAM_TIMEOUT,     Downstream service timed out",
+        "connect-timeout, 504, DOWNSTREAM_TIMEOUT,     Downstream service timed out",
+        "nested-timeout,  504, DOWNSTREAM_TIMEOUT,     Downstream service timed out"
+    })
+    void testHandleDownstreamUnreachable(String cause, int status, String code, String message) {
+        webTestClient.get()
+            .uri("/test/downstream-unreachable?cause={cause}", cause)
+            .exchange()
+            .expectStatus().isEqualTo(status)
+            .expectBody()
+            .jsonPath("$.code").isEqualTo(code)
+            .jsonPath("$.message").isEqualTo(message);
     }
 }

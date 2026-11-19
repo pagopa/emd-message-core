@@ -1,10 +1,12 @@
 package it.gov.pagopa.common.web.exception;
 
 
+import it.gov.pagopa.common.web.dto.ErrorDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @RestControllerAdvice
 @Slf4j
@@ -74,4 +78,47 @@ public class ServiceExceptionHandler {
             .contentType(MediaType.APPLICATION_JSON)
             .body(error.getPayload());
   }
+
+  /**
+   * Handles errors returned by a downstream service.
+   *
+   * @param ex the WebClientResponseException to handle
+   * @param request the current HTTP request
+   * @return a ResponseEntity representing the error response
+   */
+  @ExceptionHandler(WebClientResponseException.class)
+  public ResponseEntity<ErrorDTO> handleDownstream(WebClientResponseException ex, ServerHttpRequest request) {
+    HttpStatusCode status = ex.getStatusCode();
+    log.warn("Downstream call failed with status {} handling request {}",
+        status.value(), ErrorManager.getRequestDetails(request));
+
+    if (status.is4xxClientError()) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorManager.extractError(ex));
+    }
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+        .body(new ErrorDTO("DOWNSTREAM_ERROR", "Downstream service error"));
+  }
+
+  /**
+   * Handles transport-level failures when calling a downstream service.
+   *
+   * @param ex the WebClientRequestException to handle
+   * @param request the current HTTP request
+   * @return a ResponseEntity representing the error response
+   */
+  @ExceptionHandler(WebClientRequestException.class)
+  public ResponseEntity<ErrorDTO> handleDownstreamUnreachable(WebClientRequestException ex, ServerHttpRequest request) {
+    log.warn("Downstream unreachable handling request {}: {}",
+        ErrorManager.getRequestDetails(request), ex.getMessage());
+
+    boolean timeout = ErrorManager.isTimeout(ex);
+
+    if (timeout) {
+      return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
+          .body(new ErrorDTO("DOWNSTREAM_TIMEOUT", "Downstream service timed out"));
+    }
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+        .body(new ErrorDTO("DOWNSTREAM_UNREACHABLE", "Downstream service unreachable"));
+  }
+
 }

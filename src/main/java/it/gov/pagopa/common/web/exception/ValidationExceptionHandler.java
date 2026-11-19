@@ -1,5 +1,8 @@
 package it.gov.pagopa.common.web.exception;
 
+import it.gov.pagopa.common.utils.CommonConstants;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import tools.jackson.databind.exc.InvalidFormatException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import java.util.Arrays;
@@ -35,7 +38,7 @@ public class ValidationExceptionHandler {
 
     public ValidationExceptionHandler(@Nullable ErrorDTO templateValidationErrorDTO) {
         this.templateValidationErrorDTO = Optional.ofNullable(templateValidationErrorDTO)
-                .orElse(new ErrorDTO("INVALID_REQUEST", "Invalid request"));
+                .orElse(new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST, "Invalid request"));
     }
 
     /**

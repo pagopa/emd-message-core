@@ -1,5 +1,6 @@
 package it.gov.pagopa.common.web.exception;
 
+import it.gov.pagopa.common.utils.CommonConstants;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,11 +16,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.mongodb.MongoCommandException;
 
 import java.util.Optional;
+import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @RestControllerAdvice
 @Slf4j
 public class ErrorManager {
   private final ErrorDTO defaultErrorDTO;
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   public ErrorManager(@Nullable ErrorDTO defaultErrorDTO) {
     this.defaultErrorDTO = Optional.ofNullable(defaultErrorDTO)
@@ -155,5 +162,42 @@ public class ErrorManager {
     return ResponseEntity.status(error.getHttpStatus())
             .contentType(MediaType.APPLICATION_JSON)
             .body(new ErrorDTO("INVALID_CURSOR", error.getMessage()));
+  }
+
+  public static ErrorDTO extractError(WebClientResponseException ex) {
+    try {
+      JsonNode node = MAPPER.readTree(ex.getResponseBodyAsByteArray());
+      if (node.hasNonNull("code") && node.hasNonNull("message")) {
+        return new ErrorDTO(node.get("code").asString(), node.get("message").asString());
+      }
+    } catch (Exception e) {
+      log.debug("Unable to parse downstream error body");
+    }
+    return new ErrorDTO(CommonConstants.ExceptionCode.INVALID_REQUEST,
+        "Request rejected by downstream service");
+  }
+
+  public static RuntimeException toClientException(WebClientException ex) {
+    if (ex instanceof WebClientResponseException responseEx) {
+      if (responseEx.getStatusCode().is4xxClientError()) {
+        ErrorDTO body = extractError(responseEx);
+        return new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, body.getCode(), body.getMessage());
+      }
+      return new ClientExceptionWithBody(
+          HttpStatus.BAD_GATEWAY, "DOWNSTREAM_ERROR", "Downstream service error");
+    }
+
+    boolean timeout = isTimeout(ex);
+
+    return new ClientExceptionWithBody(
+        timeout ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY,
+        timeout ? "DOWNSTREAM_TIMEOUT" : "DOWNSTREAM_UNREACHABLE",
+        timeout ? "Downstream service timed out" : "Downstream service unreachable");
+  }
+
+  public static boolean isTimeout(WebClientException ex) {
+    return ex.contains(java.util.concurrent.TimeoutException.class)
+        || ex.contains(io.netty.handler.timeout.TimeoutException.class)
+        || ex.contains(io.netty.channel.ConnectTimeoutException.class);
   }
 }

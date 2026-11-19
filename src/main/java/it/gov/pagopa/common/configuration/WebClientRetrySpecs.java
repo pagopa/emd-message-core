@@ -65,7 +65,8 @@ public final class WebClientRetrySpecs {
                         return status == 502 || status == 503 || status == 504;
                     }
                     return false;
-                });
+                })
+                .onRetryExhaustedThrow((spec, signal) -> signal.failure());
     }
 
     /**
