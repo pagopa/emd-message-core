@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/pagopa/emd-message-core/compare/v1.8.1...v1.8.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* [MMC-1422] Handle downstream WebClient error responses ([#145](https://github.com/pagopa/emd-message-core/issues/145)) ([9a035e5](https://github.com/pagopa/emd-message-core/commit/9a035e50855d018b8de28e9e4356710871e2b7cd))
+
 ## [1.8.1](https://github.com/pagopa/emd-message-core/compare/v1.8.0...v1.8.1) (2026-11-09)
 
 
