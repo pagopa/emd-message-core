@@ -187,11 +187,17 @@ public class ErrorManager {
           HttpStatus.BAD_GATEWAY, "DOWNSTREAM_ERROR", "Downstream service error");
     }
 
-    boolean timeout = ex.contains(java.util.concurrent.TimeoutException.class)
-        || ex.contains(io.netty.handler.timeout.TimeoutException.class);
+    boolean timeout = isTimeout(ex);
 
     return new ClientExceptionWithBody(
         timeout ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY,
-        "DOWNSTREAM_UNREACHABLE", "Downstream service unreachable");
+        timeout ? "DOWNSTREAM_TIMEOUT" : "DOWNSTREAM_UNREACHABLE",
+        timeout ? "Downstream service timed out" : "Downstream service unreachable");
+  }
+
+  public static boolean isTimeout(WebClientException ex) {
+    return ex.contains(java.util.concurrent.TimeoutException.class)
+        || ex.contains(io.netty.handler.timeout.TimeoutException.class)
+        || ex.contains(io.netty.channel.ConnectTimeoutException.class);
   }
 }

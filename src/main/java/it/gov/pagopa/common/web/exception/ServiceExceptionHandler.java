@@ -111,8 +111,7 @@ public class ServiceExceptionHandler {
     log.warn("Downstream unreachable handling request {}: {}",
         ErrorManager.getRequestDetails(request), ex.getMessage());
 
-    boolean timeout = ex.getCause() instanceof java.util.concurrent.TimeoutException
-        || ex.getCause() instanceof io.netty.handler.timeout.TimeoutException;
+    boolean timeout = ErrorManager.isTimeout(ex);
 
     if (timeout) {
       return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)

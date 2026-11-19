@@ -86,12 +86,16 @@ class ServiceExceptionHandlerTest {
         }
 
         @GetMapping("/test/downstream-unreachable")
-        String testDownstreamUnreachable(@RequestParam(defaultValue = "false") boolean timeout) {
-            Throwable cause = timeout
-                ? io.netty.handler.timeout.ReadTimeoutException.INSTANCE
-                : new ConnectException("Connection refused");
+        String testDownstreamUnreachable(@RequestParam(defaultValue = "refused") String cause) {
+            Throwable throwable = switch (cause) {
+                case "read-timeout" -> io.netty.handler.timeout.ReadTimeoutException.INSTANCE;
+                case "connect-timeout" -> new io.netty.channel.ConnectTimeoutException("connection timed out");
+                case "java-timeout" -> new java.util.concurrent.TimeoutException("timeout");
+                case "nested-timeout" -> new RuntimeException("wrapper", new java.util.concurrent.TimeoutException());
+                default -> new ConnectException("Connection refused");
+            };
             throw new WebClientRequestException(
-                cause,
+                throwable,
                 HttpMethod.GET,
                 URI.create("http://internal-host:8080/secret/path"),
                 HttpHeaders.EMPTY);
@@ -182,12 +186,15 @@ class ServiceExceptionHandlerTest {
 
     @ParameterizedTest
     @CsvSource({
-        "false, 502, DOWNSTREAM_UNREACHABLE, Downstream service unreachable",
-        "true,  504, DOWNSTREAM_TIMEOUT,     Downstream service timed out"
+        "refused,         502, DOWNSTREAM_UNREACHABLE, Downstream service unreachable",
+        "java-timeout,    504, DOWNSTREAM_TIMEOUT,     Downstream service timed out",
+        "read-timeout,    504, DOWNSTREAM_TIMEOUT,     Downstream service timed out",
+        "connect-timeout, 504, DOWNSTREAM_TIMEOUT,     Downstream service timed out",
+        "nested-timeout,  504, DOWNSTREAM_TIMEOUT,     Downstream service timed out"
     })
-    void testHandleDownstreamUnreachable(boolean timeout, int status, String code, String message) {
+    void testHandleDownstreamUnreachable(String cause, int status, String code, String message) {
         webTestClient.get()
-            .uri("/test/downstream-unreachable?timeout={timeout}", timeout)
+            .uri("/test/downstream-unreachable?cause={cause}", cause)
             .exchange()
             .expectStatus().isEqualTo(status)
             .expectBody()

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
@@ -372,14 +373,17 @@ class ErrorManagerTest {
         webTestClient.get().uri("/test").accept(MediaType.APPLICATION_JSON).exchange()
             .expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
             .expectBody()
-            .jsonPath("$.code").isEqualTo("DOWNSTREAM_UNREACHABLE");
+            .jsonPath("$.code").isEqualTo("DOWNSTREAM_TIMEOUT")
+            .jsonPath("$.message").isEqualTo("Downstream service timed out");
     }
 
     static Stream<Throwable> timeoutCauses() {
         return Stream.of(
             new java.util.concurrent.TimeoutException("timeout"),
             io.netty.handler.timeout.ReadTimeoutException.INSTANCE,
-            new RuntimeException("wrapper", new java.util.concurrent.TimeoutException())); // catena annidata
+            new io.netty.channel.ConnectTimeoutException("connection timed out"),
+            new RuntimeException("wrapper", new java.util.concurrent.TimeoutException()),
+            new RuntimeException("wrapper", new io.netty.channel.ConnectTimeoutException("nested")));
     }
 
 }
